@@ -1,5 +1,13 @@
 <?php
 
+/*
+* Database MySQLDump Class File
+* Copyright (c) 2009 by James Elliott
+* James.d.Elliott@gmail.com
+* GNU General Public License v3 http://www.gnu.org/licenses/gpl.html
+*
+*/
+
 class MySQLDump
 {
     public $tables = array();

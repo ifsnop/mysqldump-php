@@ -48,6 +48,7 @@ class Cron_Controller extends Base_Controller
 
 ## Credits
 
-This was originally written by someone in 2009, I just OOP'd it out a lot more and simplify it.
+This was originally written by James Elliott in 2009, I OOP'd it up, outputted to file, simplified the process, fixed some mysql errors, and updated it to PSR standards.
+http://code.google.com/p/db-mysqldump/
 
 Enjoy.
