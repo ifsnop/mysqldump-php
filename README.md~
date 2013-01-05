@@ -28,17 +28,16 @@ class Cron_Controller extends Base_Controller
 {
     public function get_backup()
     {
-        Bundle::start('mysqldump');
         $conn = Config::get('database.connections.mysql');
-
         $filename = time() . ".sql";
         $filepath = "storage/work/";
 
+        Bundle::start('mysqldump');
         $dump = new MySQLDump();
-        $dump->host     = $conn['host'];
-        $dump->user     = $conn['username'];
-        $dump->pass     = $conn['password'];
-        $dump->db       = $conn['database'];
+        $dump->host     = 'tunnel.pagodabox.com:3306';
+        $dump->user     = 'shanika';
+        $dump->pass     = 'TGfaSgZY';
+        $dump->db       = 'clouddueling2';
         $dump->filename = $filepath . $filename;
         $dump->start();
 
@@ -48,6 +47,6 @@ class Cron_Controller extends Base_Controller
 
 ## Credits
 
-This was originally written by someone in 2009, I just OOP'd it out a lot more and simplify it.
+The image resize class was originally written in a tutorial by Jarrod Oberto on [NetTuts+](http://net.tutsplus.com/tutorials/php/image-resizing-made-easy-with-php/). I only modified it to use Laravel's File class, updated the coding style, added comments throughout the class file and turned it into a Laravel bundle.
 
 Enjoy.
