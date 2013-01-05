@@ -1,6 +1,6 @@
 # MySQLDump - PHP
 
-This replicates mysqldump in terminal "$ mysqldump -u username -p..."
+This is a php version of linux's mysqldump in terminal "$ mysqldump -u username -p...".
 
 ## Installation
 
