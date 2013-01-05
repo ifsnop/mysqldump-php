@@ -22,33 +22,34 @@ Or without the `'auto' => true` to load it on demand:
 
 ## Usage
 
-<?php
+    <?php
 
-class Cron_Controller extends Base_Controller
-{
-    public function get_backup()
+    class Cron_Controller extends Base_Controller
     {
-        Bundle::start('mysqldump');
-        $conn = Config::get('database.connections.mysql');
+        public function get_backup()
+        {
+            Bundle::start('mysqldump');
+            $conn = Config::get('database.connections.mysql');
 
-        $filename = time() . ".sql";
-        $filepath = "storage/work/";
+            $filename = time() . ".sql";
+            $filepath = "storage/work/";
 
-        $dump = new MySQLDump();
-        $dump->host     = $conn['host'];
-        $dump->user     = $conn['username'];
-        $dump->pass     = $conn['password'];
-        $dump->db       = $conn['database'];
-        $dump->filename = $filepath . $filename;
-        $dump->start();
+            $dump = new MySQLDump();
+            $dump->host     = $conn['host'];
+            $dump->user     = $conn['username'];
+            $dump->pass     = $conn['password'];
+            $dump->db       = $conn['database'];
+            $dump->filename = $filepath . $filename;
+            $dump->start();
 
-        return "Backup complete.";
+            return "Backup complete.";
+        }
     }
-}
 
 ## Credits
 
 This was originally written by James Elliott in 2009, I OOP'd it up, outputted to file, simplified the process, fixed some mysql errors, and updated it to PSR standards.
-http://code.google.com/p/db-mysqldump/
+
+Original site: http://code.google.com/p/db-mysqldump/
 
 Enjoy.
