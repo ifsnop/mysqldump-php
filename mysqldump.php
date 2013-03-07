@@ -28,7 +28,7 @@ class MySQLDump
         $this->list_tables();
         $this->create_sql();
 
-        file_put_contents($this->filename, $this->sql_file);
+        return file_put_contents($this->filename, $this->sql_file);
     }
 
     public function create_sql()
