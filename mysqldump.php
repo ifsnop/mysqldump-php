@@ -19,17 +19,22 @@ class MySQLDump
     public $user = "";
     public $pass = "";
     public $db = "";
-    public $sql_file = "";
+    public $sql_handler;
     public $filename = "";
 
     public function start()
     {
+        $this->sql_handler = fopen($this->filename, "wb");
         $this->connect();
         $this->list_tables();
         $this->create_sql();
-
-        return file_put_contents($this->filename, $this->sql_file);
+        return fclose($this->sql_handler);
     }
+    
+    public function write($string) {
+        fwrite($this->sql_handler, $string);
+    }
+
 
     public function create_sql()
     {
@@ -38,7 +43,6 @@ class MySQLDump
         for ($i = 0; $i < $broj; $i++) {
             $table_name = $this->tables[$i]; //Get Table Names.
             $this->dump_table($table_name); //Dump Data to the Output Buffer.
-            $this->sql_file .= $this->output; //Display Output.
         }
     }
 
@@ -46,6 +50,7 @@ class MySQLDump
     {
         mysql_connect($this->host, $this->user, $this->pass) or die(mysql_error());
         mysql_select_db($this->db) or die(mysql_error());
+        mysql_query("SET NAMES utf8"); // Just for shure :)
     }
 
     public function list_tables()
@@ -66,11 +71,11 @@ class MySQLDump
     public function list_values($tablename)
     {
         $sql = mysql_query("SELECT * FROM `$tablename`");
-        $this->output .= "\n\n-- Dumping data for table: $tablename\n\n";
+        $this->write("\n\n-- Dumping data for table: $tablename\n\n");
         if ($sql !== false) {
             while ($row = mysql_fetch_array($sql)) {
                 $broj_polja = count($row) / 2;
-                $this->output .= "INSERT INTO `$tablename` VALUES(";
+                $this->write("INSERT INTO `$tablename` VALUES(");
                 $buffer = '';
                 for ($i=0;$i < $broj_polja;$i++) {
                     $vrednost = $row[$i];
@@ -81,29 +86,28 @@ class MySQLDump
                     $buffer .= $vrednost.', ';
                 }
                 $buffer = substr($buffer,0,count($buffer)-3);
-                $this->output .= $buffer . ");\n";
+                $this->write($buffer . ");\n");
             }
         } else {
-            $this->output .= "-- Could not list values of {$tablename}\n\n";
+            $this->write("-- Could not list values of {$tablename}\n\n");
         }
     }
 
     public function dump_table($tablename)
     {
-        $this->output = "";
         $this->get_table_structure($tablename);
         $this->list_values($tablename);
     }
 
     public function get_table_structure($tablename)
     {
-        $this->output .= "\n\n-- Dumping structure for table: $tablename\n\n";
+        $this->write( "\n\n-- Dumping structure for table: $tablename\n\n" );
         $sql = mysql_query("DESCRIBE `$tablename`") or die(mysql_error());
 
         if ($this->droptableifexists)
-            $this->output .= "DROP TABLE IF EXISTS `$tablename`;\nCREATE TABLE `$tablename` (\n";
+            $this->write( "DROP TABLE IF EXISTS `$tablename`;\nCREATE TABLE `$tablename` (\n" );
         else
-            $this->output .= "CREATE TABLE `$tablename` (\n";
+           $this->write( "CREATE TABLE `$tablename` (\n" );
 
         $this->fields = array();
         while ($row = mysql_fetch_array($sql)) {
@@ -126,9 +130,9 @@ class MySQLDump
             if ($extra !== "")
                 $extra .= ' ';
 
-            $this->output .= "  `$name` $type $null $extra,\n";
+           $this->write( "  `$name` $type $null $extra,\n" );
         }
-        $this->output .= "  PRIMARY KEY  (`$primary`)\n);\n";
+        $this->write( "  PRIMARY KEY  (`$primary`)\n);\n" );
     }
 }
 
