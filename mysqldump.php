@@ -50,6 +50,7 @@ class MySQLDump
     {
         mysql_connect($this->host, $this->user, $this->pass) or die(mysql_error());
         mysql_select_db($this->db) or die(mysql_error());
+        mysql_query("SET NAMES utf8"); // Just for shure :)
     }
 
     public function list_tables()
