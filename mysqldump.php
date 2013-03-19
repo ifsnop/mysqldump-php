@@ -102,37 +102,15 @@ class MySQLDump
     public function get_table_structure($tablename)
     {
         $this->write( "\n\n-- Dumping structure for table: $tablename\n\n" );
-        $sql = mysql_query("DESCRIBE `$tablename`") or die(mysql_error());
-
-        if ($this->droptableifexists)
-            $this->write( "DROP TABLE IF EXISTS `$tablename`;\nCREATE TABLE `$tablename` (\n" );
-        else
-           $this->write( "CREATE TABLE `$tablename` (\n" );
-
-        $this->fields = array();
-        while ($row = mysql_fetch_array($sql)) {
-            $name = $row[0];
-            $type = $row[1];
-            $null = $row[2];
-            $key = $row[3];
-            $default = $row[4];
-            $extra = $row[5];
-
-            if (empty($null) || $null == "NO")
-                $null = "NOT NULL";
-
-            if ($null == "YES")
-                $null = "NULL";
-
-            if ($key == "PRI")
-                $primary = $name;
-
-            if ($extra !== "")
-                $extra .= ' ';
-
-           $this->write( "  `$name` $type $null $extra,\n" );
+        
+        if ($this->droptableifexists) {
+           $this->write( "DROP TABLE IF EXISTS `$tablename`;\n\n" );
         }
-        $this->write( "  PRIMARY KEY  (`$primary`)\n);\n" );
+        
+        $sql = mysql_query("SHOW CREATE TABLE `$tablename`") or die(mysql_error());        
+        if ($row = mysql_fetch_array($sql)) {
+           $this->write( $row['Create Table']."\n\n" );
+        }
     }
 }
 
