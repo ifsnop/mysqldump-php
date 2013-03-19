@@ -81,7 +81,7 @@ class MySQLDump
                     $vrednost = $row[$i];
 
                     if (!is_integer($vrednost))
-                        $vrednost = "'".addslashes($vrednost)."'";
+                        $vrednost = "'".mysql_real_escape_string($vrednost)."'";
 
                     $buffer .= $vrednost.', ';
                 }
@@ -109,7 +109,7 @@ class MySQLDump
         
         $sql = mysql_query("SHOW CREATE TABLE `$tablename`") or die(mysql_error());        
         if ($row = mysql_fetch_array($sql)) {
-           $this->write( $row['Create Table']."\n\n" );
+           $this->write( $row['Create Table'].";\n\n" );
         }
     }
 }
