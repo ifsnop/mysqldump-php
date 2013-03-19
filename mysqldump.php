@@ -70,23 +70,16 @@ class MySQLDump
 
     public function list_values($tablename)
     {
-        $sql = mysql_query("SELECT * FROM `$tablename`");
         $this->write("\n\n-- Dumping data for table: $tablename\n\n");
+        $sql = mysql_query("SELECT * FROM `$tablename`");
         if ($sql !== false) {
             while ($row = mysql_fetch_array($sql)) {
                 $broj_polja = count($row) / 2;
-                $this->write("INSERT INTO `$tablename` VALUES(");
-                $buffer = '';
-                for ($i=0;$i < $broj_polja;$i++) {
-                    $vrednost = $row[$i];
-
-                    if (!is_integer($vrednost))
-                        $vrednost = "'".mysql_real_escape_string($vrednost)."'";
-
-                    $buffer .= $vrednost.', ';
+                $vals = array();
+                for ($i=0; $i < $broj_polja; $i++) {
+                    $vals[] = "'".mysql_real_escape_string($row[$i])."'";
                 }
-                $buffer = substr($buffer,0,count($buffer)-3);
-                $this->write($buffer . ");\n");
+                $this->write("INSERT INTO `$tablename` VALUES(".implode(", ",$vals).");\n");
             }
         } else {
             $this->write("-- Could not list values of {$tablename}\n\n");
