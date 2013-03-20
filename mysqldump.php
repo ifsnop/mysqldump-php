@@ -10,100 +10,137 @@
 
 class MySQLDump
 {
-    public $tables = array();
-    public $connected = false;
-    public $output;
-    public $droptableifexists = false;
-    public $mysql_error;
-    public $host = "";
-    public $user = "";
-    public $pass = "";
-    public $db = "";
-    public $sql_handler;
-    public $filename = "";
 
-    public function start()
+    // This can be set both on counstruct or manually 
+    public $host = 'localhost', $user = '', $pass = '', $db = '';
+    public $filename = 'dump.sql';
+
+    // Usable switch 
+    public $droptableifexists = false;
+
+    // Internal stuff
+    private $tables = array();
+    private $db_handler;
+    private $file_handler;
+
+    /**
+     * Constructor of MySQLDump
+     * 
+     * @param string $db        Database name
+     * @param string $user      MySQL account username
+     * @param string $pass      MySQL account password
+     * @param string $host      MySQL server to connect to
+     * @return null
+     */
+    public function __construct($db = '', $user = '', $pass = '', $host = 'localhost')
     {
-        $this->sql_handler = fopen($this->filename, "wb");
-        $this->connect();
-        $this->list_tables();
-        $this->create_sql();
-        return fclose($this->sql_handler);
+        $this->db = $db; $this->user = $user; $this->pass = $pass; $this->host = $host;
+    }
+
+    /**
+     * Main call
+     * 
+     * @param string $filename  Name of file to write sql dump to     
+     * @return bool
+     */
+    public function start($filename = '')
+    {
+        // Output file can be redefined here
+        if(!empty($filename)) $this->filename = $filename;
+        // We must set a name to continue
+        if(empty($this->filename)) throw new Exception("Output file name is not set", 1);
+        // Trying to bind a file with block
+        $this->file_handler = fopen($this->filename, "wb");
+        if($this->file_handler === FALSE) throw new Exception("Output file is not writable", 2);
+        // Connecting with MySQL
+        try {
+            $this->db_handler = new PDO("mysql:dbname={$this->db};host={$this->host}", $this->user, $this->pass);
+        } catch (PDOException $e) {
+            throw new Exception("Connection to MySQL failed with message: ".$e->getMessage(), 3);
+        }
+        // Fix for always-unicode output 
+        $this->db_handler->exec("SET NAMES utf8");        
+        // Formating dump file
+        $this->write_header();
+        // Listing all tables from database
+        $this->tables = array();
+        foreach ($this->db_handler->query("SHOW TABLES") as $row) {
+            array_push($this->tables, current($row));
+        }
+        // Exporting tables one by one 
+        foreach($this->tables as $table) {
+            $this->write("-- --------------------------------------------------------\n\n");
+            $this->get_table_structure($table);
+            $this->list_values($table);
+        }
+        // Releasing file
+        return fclose($this->file_handler);
     }
     
-    public function write($string) {
-        fwrite($this->sql_handler, $string);
-    }
-
-
-    public function create_sql()
-    {
-        $broj = count($this->tables); //Count Database Tables.
-        $this->sql_file = "";
-        for ($i = 0; $i < $broj; $i++) {
-            $table_name = $this->tables[$i]; //Get Table Names.
-            $this->dump_table($table_name); //Dump Data to the Output Buffer.
+    /**
+     * Output routine
+     * 
+     * @param string $string  SQL to write to dump file
+     * @return bool
+     */    
+    private function write($string) {
+        if(fwrite($this->file_handler, $string) === FALSE) {
+            throw new Exception("Writting to file failed! Probably, there is no more free space left?", 4);
         }
     }
 
-    public function connect()
+    /**
+     * Writting header for dump file
+     * 
+     * @return null
+     */   
+    private function write_header()
     {
-        mysql_connect($this->host, $this->user, $this->pass) or die(mysql_error());
-        mysql_select_db($this->db) or die(mysql_error());
-        mysql_query("SET NAMES utf8"); // Just for shure :)
+        // Some info about software, source and time
+        $this->write("-- mysqldump-php SQL Dump\n");
+        $this->write("-- https://github.com/clouddueling/mysqldump-php\n");
+        $this->write("--\n");
+        $this->write("-- Host: {$this->host}\n");
+        $this->write("-- Generation Time: ".date('r')."\n\n");   
+        $this->write("--\n");
+        $this->write("-- Database: `{$this->db}`\n");
+        $this->write("--\n\n");        
     }
 
-    public function list_tables()
+    /**
+     * Table structure extractor
+     * 
+     * @param string $tablename  Name of table to export
+     * @return null
+     */    
+    private function get_table_structure($tablename)
     {
-        $return = true;
-        if (!$this->connected)
-            $return = false;
-
-        $this->tables = array();
-        $sql = mysql_query("SHOW TABLES") or die(mysql_error());
-
-        while ($row = mysql_fetch_array($sql))
-            array_push($this->tables, $row[0]);
-
-        return $return;
-    }
-
-    public function list_values($tablename)
-    {
-        $this->write("\n\n-- Dumping data for table: $tablename\n\n");
-        $sql = mysql_query("SELECT * FROM `$tablename`");
-        if ($sql !== false) {
-            while ($row = mysql_fetch_array($sql)) {
-                $broj_polja = count($row) / 2;
-                $vals = array();
-                for ($i=0; $i < $broj_polja; $i++) {
-                    $vals[] = "'".mysql_real_escape_string($row[$i])."'";
-                }
-                $this->write("INSERT INTO `$tablename` VALUES(".implode(", ",$vals).");\n");
-            }
-        } else {
-            $this->write("-- Could not list values of {$tablename}\n\n");
-        }
-    }
-
-    public function dump_table($tablename)
-    {
-        $this->get_table_structure($tablename);
-        $this->list_values($tablename);
-    }
-
-    public function get_table_structure($tablename)
-    {
-        $this->write( "\n\n-- Dumping structure for table: $tablename\n\n" );
-        
+        $this->write( "--\n-- Table structure for table `$tablename`\n--\n\n" );
         if ($this->droptableifexists) {
            $this->write( "DROP TABLE IF EXISTS `$tablename`;\n\n" );
         }
-        
-        $sql = mysql_query("SHOW CREATE TABLE `$tablename`") or die(mysql_error());        
-        if ($row = mysql_fetch_array($sql)) {
+        foreach ($this->db_handler->query("SHOW CREATE TABLE `$tablename`") as $row) {
            $this->write( $row['Create Table'].";\n\n" );
         }
+    }
+
+    /**
+     * Table rows extractor
+     * 
+     * @param string $tablename  Name of table to export
+     * @return null
+     */   
+    private function list_values($tablename)
+    {
+        $this->write("--\n-- Dumping data for table `$tablename`\n--\n\n");
+        foreach ($this->db_handler->query("SELECT * FROM `$tablename`", PDO::FETCH_NUM) as $row) {
+            $vals = array();
+            foreach($row as $val) {
+                $vals[] = $this->db_handler->quote($val);
+            }
+            $this->write("INSERT INTO `$tablename` VALUES(".implode(", ",$vals).");\n");
+        }
+        $this->write("\n");
     }
 }
 
