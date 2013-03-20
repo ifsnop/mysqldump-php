@@ -2,6 +2,10 @@
 
 This is a php version of linux's mysqldump in terminal "$ mysqldump -u username -p...".
 
+## Requirements
+
+PHP 5 >= 5.1.0, PECL pdo >= 0.2.0
+
 ## Installation
 
 Install mysqldump using artisan:
@@ -20,7 +24,15 @@ Or without the `'auto' => true` to load it on demand:
         'mysqldump'
     );
 
-## Usage
+## Base usage
+
+    <?php
+
+    $dump = new MySQLDump('forum','forum_user','forum_pass','localhost');
+    $dump->start('forum_dump.sql');
+    $dump->start('forum_anotherdump.sql');    
+          
+## Advanced usage
 
     <?php
 
@@ -45,6 +57,7 @@ Or without the `'auto' => true` to load it on demand:
             return "Backup complete.";
         }
     }
+    
 
 ## Credits
 
