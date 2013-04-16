@@ -138,7 +138,7 @@ class MySQLDump
         foreach ($this->db_handler->query("SELECT * FROM `$tablename`", PDO::FETCH_NUM) as $row) {
             $vals = array();
             foreach($row as $val) {
-                $vals[] = $this->db_handler->quote($val);
+                $vals[] = is_null($val) ? "NULL" : $this->db_handler->quote($val);
             }
             $this->write("INSERT INTO `$tablename` VALUES(".implode(", ",$vals).");\n");
         }
