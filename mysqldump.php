@@ -59,7 +59,9 @@ class MySQLDump
             throw new Exception("Connection to MySQL failed with message: ".$e->getMessage(), 3);
         }
         // Fix for always-unicode output 
-        $this->db_handler->exec("SET NAMES utf8");        
+        $this->db_handler->exec("SET NAMES utf8");      
+        // https://github.com/clouddueling/mysqldump-php/issues/9
+        $this->db_handler->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
         // Formating dump file
         $this->write_header();
         // Listing all tables from database
@@ -136,7 +138,7 @@ class MySQLDump
         foreach ($this->db_handler->query("SELECT * FROM `$tablename`", PDO::FETCH_NUM) as $row) {
             $vals = array();
             foreach($row as $val) {
-                $vals[] = $this->db_handler->quote($val);
+                $vals[] = is_null($val) ? "NULL" : $this->db_handler->quote($val);
             }
             $this->write("INSERT INTO `$tablename` VALUES(".implode(", ",$vals).");\n");
         }
