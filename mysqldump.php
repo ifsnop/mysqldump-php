@@ -62,6 +62,10 @@ class MySQLDump
         if (empty($this->filename)) {
             throw new \Exception("Output file name is not set", 1);
         }
+        // Check for zlib
+        if ((true === $this->compress) && !function_exists("gzopen")) {
+            throw new \Exception("Compression is enabled, but zlib is not installed or configured properly", 1);
+        }
         // Trying to bind a file with block
         if (true === $this->compress) {
             $this->file_handler = gzopen($this->filename, "wb");
