@@ -26,6 +26,7 @@ class MySQLDump
 
     // Internal stuff
     private $tables = array();
+    private $views = array();
     private $db_handler;
     private $file_handler;
 
@@ -94,9 +95,13 @@ class MySQLDump
         }
         // Exporting tables one by one
         foreach ($this->tables as $table) {
-            $this->write("-- --------------------------------------------------------\n\n");
-            $this->getTableStructure($table);
-            $this->listValues($table);
+            $is_table = $this->getTableStructure($table);
+            if ($is_table == true) {
+                $this->listValues($table);
+            }
+        }
+        foreach ($this->views as $view) {
+            $this->write($view);
         }
         // Releasing file
         if (true === $this->compress) {
@@ -151,12 +156,23 @@ class MySQLDump
      */
     private function getTableStructure($tablename)
     {
-        $this->write("--\n-- Table structure for table `$tablename`\n--\n\n");
-        if (true === $this->droptableifexists) {
-            $this->write("DROP TABLE IF EXISTS `$tablename`;\n\n");
-        }
         foreach ($this->db_handler->query("SHOW CREATE TABLE `$tablename`") as $row) {
-            $this->write($row['Create Table'] . ";\n\n");
+            if (isset($row['Create Table'])) {
+                $this->write("-- --------------------------------------------------------\n\n");
+                $this->write("--\n-- Table structure for table `$tablename`\n--\n\n");
+                if (true === $this->droptableifexists) {
+                    $this->write("DROP TABLE IF EXISTS `$tablename`;\n\n");
+                }
+                $this->write($row['Create Table'] . ";\n\n");
+                return true;
+            }
+            if (isset($row['Create View'])) {
+                $view  = "-- --------------------------------------------------------\n\n";
+                $view .= "--\n-- Table structure for view `$tablename`\n--\n\n";
+                $view .= $row['Create View'] . ";\n\n";
+                $this->views[] = $view;
+                return false;
+            }
         }
     }
 
