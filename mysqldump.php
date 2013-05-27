@@ -20,6 +20,8 @@ class MySQLDump
 
     // Usable switch
     public $droptableifexists = false;
+    public $include = array();
+    public $exclude = array();
 
     //compress
     public $compress = false;
@@ -91,10 +93,15 @@ class MySQLDump
         // Listing all tables from database
         $this->tables = array();
         foreach ($this->db_handler->query("SHOW TABLES") as $row) {
-            array_push($this->tables, current($row));
+            if (empty($this->include) || (!empty($this->include) && in_array(current($row), $this->include, true))) {
+                array_push($this->tables, current($row));
+            }
         }
         // Exporting tables one by one
         foreach ($this->tables as $table) {
+            if (in_array($table, $this->exclude, true)) {
+                continue;
+            }
             $is_table = $this->getTableStructure($table);
             if ($is_table == true) {
                 $this->listValues($table);
