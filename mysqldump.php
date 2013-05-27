@@ -23,9 +23,12 @@ class MySQLDump
 
     //compress
     public $compress = false;
+    
+    //only dump structs, no data
+    public $nodata = false;
 
     // Internal stuff
-    private $tables = array();
+    private $tables;
     private $views = array();
     private $db_handler;
     private $file_handler;
@@ -39,12 +42,13 @@ class MySQLDump
      * @param string $host      MySQL server to connect to
      * @return null
      */
-    public function __construct($db = '', $user = '', $pass = '', $host = 'localhost')
+    public function __construct($db = '', $user = '', $pass = '', $host = 'localhost', $tables = array())
     {
         $this->db = $db;
         $this->user = $user;
         $this->pass = $pass;
         $this->host = $host;
+        $this->tables = $tables;
     }
 
     /**
@@ -88,16 +92,14 @@ class MySQLDump
         $this->db_handler->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
         // Formating dump file
         $this->writeHeader();
-        // Listing all tables from database
-        $this->tables = array();
-        foreach ($this->db_handler->query("SHOW TABLES") as $row) {
-            array_push($this->tables, current($row));
-        }
+        // Get tables from database
+    	$this->tables = $this->getTables($this->tables);
         // Exporting tables one by one
         foreach ($this->tables as $table) {
             $is_table = $this->getTableStructure($table);
             if ($is_table == true) {
-                $this->listValues($table);
+        	if ($this->nodata == false)
+            	    $this->listValues($table);
             }
         }
         foreach ($this->views as $view) {
@@ -194,4 +196,22 @@ class MySQLDump
         }
         $this->write("\n");
     }
+
+    /**
+     * Table extractor
+     *
+     * @param null
+     * @return array of table names
+     */
+    private function getTables($userselection)
+    {
+        $tables = array();
+        foreach ($this->db_handler->query("SHOW TABLES") as $row) {
+    	    if (!empty($userselection) && !in_array($row[0], $userselection))
+    		continue;
+	    array_push($tables, current($row));
+        }
+	return $tables;
+    }
+
 }
