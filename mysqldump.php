@@ -23,6 +23,9 @@ class MySQLDump
 
     //compress
     public $compress = false;
+    
+    //only dump structs, no data
+    public $nodata = false;
 
     // Internal stuff
     private $tables;
@@ -96,7 +99,8 @@ class MySQLDump
         foreach ($this->tables as $table) {
             $is_table = $this->getTableStructure($table);
             if ($is_table == true) {
-            	$this->listValues($table);
+        	if ($this->nodata == false)
+            	    $this->listValues($table);
             }
         }
         foreach ($this->views as $view) {
