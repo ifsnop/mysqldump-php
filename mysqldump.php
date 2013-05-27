@@ -92,9 +92,8 @@ class MySQLDump
         $this->db_handler->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
         // Formating dump file
         $this->writeHeader();
-        // Get all tables from database only if not supplied
-        if (count($this->tables) == 0)
-    	    $this->tables = getTables();
+        // Get tables from database
+    	$this->tables = $this->getTables($this->tables);
         // Exporting tables one by one
         foreach ($this->tables as $table) {
             $is_table = $this->getTableStructure($table);
@@ -204,11 +203,13 @@ class MySQLDump
      * @param null
      * @return array of table names
      */
-    private function getTables()
+    private function getTables($userselection)
     {
         $tables = array();
         foreach ($this->db_handler->query("SHOW TABLES") as $row) {
-	    array_push($this->tables, current($row));
+    	    if (!empty($userselection) && !in_array($row[0], $userselection))
+    		continue;
+	    array_push($tables, current($row));
         }
 	return $tables;
     }
