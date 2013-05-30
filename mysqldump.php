@@ -26,6 +26,9 @@ class MySQLDump
     //compress
     public $compress = false;
 
+    // Last update of database. Will be filled in connect method.
+    public $last_update;
+
     // Internal stuff
     private $tables = array();
     private $views = array();
@@ -48,6 +51,32 @@ class MySQLDump
         $this->pass = $pass;
         $this->host = $host;
     }
+
+
+    /**
+     * Connect with MySQL
+     *
+     * @return bool
+     */
+    public function connect()
+     {
+        // Connecting with MySQL
+        try {
+            $this->db_handler = new \PDO("mysql:dbname={$this->db};host={$this->host}", $this->user, $this->pass);
+        } catch (\PDOException $e) {
+            throw new \Exception("Connection to MySQL failed with message: " . $e->getMessage(), 3);
+        }
+        // Fix for always-unicode output
+        $this->db_handler->exec("SET NAMES utf8");
+        // https://github.com/clouddueling/mysqldump-php/issues/9
+        $this->db_handler->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
+        // Seting last_update
+        $this->db_handler->exec("USE information_schema");
+        $this->last_update=$this->db_handler->query("SELECT IF(MAX(UPDATE_TIME), MAX(UPDATE_TIME), MAX(CREATE_TIME)) AS 'last_update' FROM TABLES WHERE TABLE_SCHEMA = '{$this->db}' GROUP BY TABLE_SCHEMA")->fetch()['last_update'];
+        $this->db_handler->exec("USE {$this->db}");
+        return true;
+    }
+
 
     /**
      * Main call
@@ -78,16 +107,10 @@ class MySQLDump
         if (false === $this->file_handler) {
             throw new \Exception("Output file is not writable", 2);
         }
-        // Connecting with MySQL
-        try {
-            $this->db_handler = new \PDO("mysql:dbname={$this->db};host={$this->host}", $this->user, $this->pass);
-        } catch (\PDOException $e) {
-            throw new \Exception("Connection to MySQL failed with message: " . $e->getMessage(), 3);
+        // Connecting with MySQL, if not yet done
+        if (!isset($this->db_handler)) {
+            $this->connect();
         }
-        // Fix for always-unicode output
-        $this->db_handler->exec("SET NAMES utf8");
-        // https://github.com/clouddueling/mysqldump-php/issues/9
-        $this->db_handler->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
         // Formating dump file
         $this->writeHeader();
         // Listing all tables from database
