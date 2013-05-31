@@ -30,6 +30,7 @@ Or without the `'auto' => true` to load it on demand:
 
     $dump = new MySQLDump('forum','forum_user','forum_pass','localhost');
     $dump->start('forum_dump.sql');
+    $dump->nodata = false;
     $dump->compress = true;
     $dump->droptableifexists = true;
     $dump->start('forum_dump_with_drops.sql.gz');    

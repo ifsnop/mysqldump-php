@@ -19,6 +19,7 @@ class MySQLDump
     public $filename = 'dump.sql';
 
     // Usable switch
+    public $nodata = false;
     public $droptableifexists = false;
     public $include = array();
     public $exclude = array();
@@ -103,7 +104,7 @@ class MySQLDump
                 continue;
             }
             $is_table = $this->getTableStructure($table);
-            if ($is_table == true) {
+            if (true === $is_table && false === $this->nodata) {
                 $this->listValues($table);
             }
         }
