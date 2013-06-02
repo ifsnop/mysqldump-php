@@ -19,19 +19,18 @@ class MySQLDump
     public $filename = 'dump.sql';
 
     // Usable switch
-    public $nodata = false;
-    public $droptableifexists = false;
-    public $include = array();
-    public $exclude = array();
-
-    //compress
-    public $compress = false;
+    public $settings = array();
 
     // Internal stuff
     private $tables = array();
     private $views = array();
     private $db_handler;
     private $file_handler;
+    private $defaultSettings = array('no-data' => false,
+	'add-drop-table' => false,
+	'include-tables' => array(),
+	'exclude-tables' => array(),
+	'compress' => false);
 
     /**
      * Constructor of MySQLDump
@@ -42,12 +41,31 @@ class MySQLDump
      * @param string $host      MySQL server to connect to
      * @return null
      */
-    public function __construct($db = '', $user = '', $pass = '', $host = 'localhost')
-    {
+    public function __construct($db = '', $user = '', $pass = '', $host = 'localhost', $settings = null) {
         $this->db = $db;
         $this->user = $user;
         $this->pass = $pass;
         $this->host = $host;
+        $this->settings = $this->extend($this->defaultSettings, $settings);
+    }
+    
+    /**
+     * jquery style extend, merges arrays (without errors if the passed values are not arrays)
+     * extend($defaults, $options);
+     *
+     * @return array $extended
+     */
+    public function extend() {
+	$args = func_get_args();
+        $extended = array();
+        if( is_array($args) && count($args)>0 ) {
+    	    foreach($args as $array) {
+        	if(is_array($array)) {
+            	    $extended = array_merge($extended, $array);
+        	}
+    	    }
+	}
+	return $extended;
     }
 
     /**
@@ -67,11 +85,11 @@ class MySQLDump
             throw new \Exception("Output file name is not set", 1);
         }
         // Check for zlib
-        if ((true === $this->compress) && !function_exists("gzopen")) {
+        if ( (true === $this->settings['compress']) && !function_exists("gzopen") ) {
             throw new \Exception("Compression is enabled, but zlib is not installed or configured properly", 1);
         }
         // Trying to bind a file with block
-        if (true === $this->compress) {
+        if ( true === $this->settings['compress'] ) {
             $this->file_handler = gzopen($this->filename, "wb");
         } else {
             $this->file_handler = fopen($this->filename, "wb");
@@ -94,17 +112,17 @@ class MySQLDump
         // Listing all tables from database
         $this->tables = array();
         foreach ($this->db_handler->query("SHOW TABLES") as $row) {
-            if (empty($this->include) || (!empty($this->include) && in_array(current($row), $this->include, true))) {
+            if ( empty($this->settings['include-tables']) || (!empty($this->settings['include-tables']) && in_array(current($row), $this->settings['include-tables'], true)) ) {
                 array_push($this->tables, current($row));
             }
         }
         // Exporting tables one by one
         foreach ($this->tables as $table) {
-            if (in_array($table, $this->exclude, true)) {
+            if (in_array($table, $this->settings['exclude-tables'], true)) {
                 continue;
             }
             $is_table = $this->getTableStructure($table);
-            if (true === $is_table && false === $this->nodata) {
+            if ( true === $is_table && false === $this->settings['no-data'] ) {
                 $this->listValues($table);
             }
         }
@@ -112,7 +130,7 @@ class MySQLDump
             $this->write($view);
         }
         // Releasing file
-        if (true === $this->compress) {
+        if ( true === $this->settings['compress'] ) {
             return gzclose($this->file_handler);
         }
 
@@ -127,7 +145,7 @@ class MySQLDump
      */
     private function write($string)
     {
-        if (true === $this->compress) {
+        if ( true === $this->settings['compress'] ) {
             if (false === gzwrite($this->file_handler, $string)) {
                 throw new \Exception("Writting to file failed! Probably, there is no more free space left?", 4);
             }
@@ -168,7 +186,7 @@ class MySQLDump
             if (isset($row['Create Table'])) {
                 $this->write("-- --------------------------------------------------------\n\n");
                 $this->write("--\n-- Table structure for table `$tablename`\n--\n\n");
-                if (true === $this->droptableifexists) {
+                if ( true === $this->settings['add-drop-table'] ) {
                     $this->write("DROP TABLE IF EXISTS `$tablename`;\n\n");
                 }
                 $this->write($row['Create Table'] . ";\n\n");

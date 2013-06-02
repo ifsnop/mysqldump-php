@@ -28,12 +28,15 @@ Or without the `'auto' => true` to load it on demand:
 
     <?php
 
-    $dump = new MySQLDump('forum','forum_user','forum_pass','localhost');
-    $dump->start('forum_dump.sql');
-    $dump->nodata = false;
-    $dump->compress = true;
-    $dump->droptableifexists = true;
-    $dump->start('forum_dump_with_drops.sql.gz');    
+    $dumpSettings = array(
+	'include-tables' => array('table1', 'table2'),
+	'exclude-tables' => array('table3', 'table4),
+	'compress' => true,
+	'add-drop-table' => true,
+	'no-data' => true);
+
+    $dump = new MySQLDump('forum','forum_user','forum_pass','localhost', $dumpSettings);
+    $dump->start('forum_dump.sql.gz');
           
 ## Advanced usage
 
