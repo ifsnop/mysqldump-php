@@ -26,11 +26,12 @@ class MySQLDump
     private $views = array();
     private $db_handler;
     private $file_handler;
-    private $defaultSettings = array('no-data' => false,
-	'add-drop-table' => false,
-	'include-tables' => array(),
-	'exclude-tables' => array(),
-	'compress' => false);
+    private $defaultSettings = array(
+        'no-data' => false,
+        'add-drop-table' => false,
+        'include-tables' => array(),
+        'exclude-tables' => array(),
+        'compress' => false);
 
     /**
      * Constructor of MySQLDump
@@ -48,7 +49,7 @@ class MySQLDump
         $this->host = $host;
         $this->settings = $this->extend($this->defaultSettings, $settings);
     }
-    
+
     /**
      * jquery style extend, merges arrays (without errors if the passed values are not arrays)
      * extend($defaults, $options);
@@ -56,16 +57,16 @@ class MySQLDump
      * @return array $extended
      */
     public function extend() {
-	$args = func_get_args();
+        $args = func_get_args();
         $extended = array();
         if( is_array($args) && count($args)>0 ) {
-    	    foreach($args as $array) {
-        	if(is_array($array)) {
-            	    $extended = array_merge($extended, $array);
-        	}
-    	    }
-	}
-	return $extended;
+            foreach($args as $array) {
+                if(is_array($array)) {
+                    $extended = array_merge($extended, $array);
+                }
+            }
+        }
+        return $extended;
     }
 
     /**

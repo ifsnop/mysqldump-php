@@ -29,15 +29,15 @@ Or without the `'auto' => true` to load it on demand:
     <?php
 
     $dumpSettings = array(
-	'include-tables' => array('table1', 'table2'),
-	'exclude-tables' => array('table3', 'table4),
-	'compress' => true,
-	'add-drop-table' => true,
-	'no-data' => true);
+        'include-tables' => array('table1', 'table2'),
+        'exclude-tables' => array('table3', 'table4'),
+        'compress' => true,
+        'add-drop-table' => true,
+        'no-data' => true);
 
     $dump = new MySQLDump('forum','forum_user','forum_pass','localhost', $dumpSettings);
     $dump->start('forum_dump.sql.gz');
-          
+
 ## Advanced usage
 
     <?php
@@ -63,7 +63,7 @@ Or without the `'auto' => true` to load it on demand:
             return "Backup complete.";
         }
     }
-    
+
 
 ## Credits
 
