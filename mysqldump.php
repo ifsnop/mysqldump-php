@@ -10,7 +10,6 @@
 
 class MySQLDump
 {
-
     // This can be set both on constructor or manually
     public $host;
     public $user;
@@ -18,10 +17,8 @@ class MySQLDump
     public $db;
     public $filename = 'dump.sql';
 
-    // Usable switch
-    public $settings = array();
-
     // Internal stuff
+    private $settings = array();
     private $tables = array();
     private $views = array();
     private $db_handler;
@@ -42,7 +39,8 @@ class MySQLDump
      * @param string $host      MySQL server to connect to
      * @return null
      */
-    public function __construct($db = '', $user = '', $pass = '', $host = 'localhost', $settings = null) {
+    public function __construct($db = '', $user = '', $pass = '', $host = 'localhost', $settings = null)
+    {
         $this->db = $db;
         $this->user = $user;
         $this->pass = $pass;
@@ -119,7 +117,7 @@ class MySQLDump
         }
         // Exporting tables one by one
         foreach ($this->tables as $table) {
-            if (in_array($table, $this->settings['exclude-tables'], true)) {
+            if ( in_array($table, $this->settings['exclude-tables'], true) ) {
                 continue;
             }
             $is_table = $this->getTableStructure($table);
@@ -147,11 +145,11 @@ class MySQLDump
     private function write($string)
     {
         if ( true === $this->settings['compress'] ) {
-            if (false === gzwrite($this->file_handler, $string)) {
+            if ( false === gzwrite($this->file_handler, $string) ) {
                 throw new \Exception("Writting to file failed! Probably, there is no more free space left?", 4);
             }
         } else {
-            if (false === fwrite($this->file_handler, $string)) {
+            if ( false === fwrite($this->file_handler, $string) ) {
                 throw new \Exception("Writting to file failed! Probably, there is no more free space left?", 4);
             }
         }
@@ -184,7 +182,7 @@ class MySQLDump
     private function getTableStructure($tablename)
     {
         foreach ($this->db_handler->query("SHOW CREATE TABLE `$tablename`") as $row) {
-            if (isset($row['Create Table'])) {
+            if ( isset($row['Create Table']) ) {
                 $this->write("-- --------------------------------------------------------\n\n");
                 $this->write("--\n-- Table structure for table `$tablename`\n--\n\n");
                 if ( true === $this->settings['add-drop-table'] ) {
@@ -193,7 +191,7 @@ class MySQLDump
                 $this->write($row['Create Table'] . ";\n\n");
                 return true;
             }
-            if (isset($row['Create View'])) {
+            if ( isset($row['Create View']) ) {
                 $view  = "-- --------------------------------------------------------\n\n";
                 $view .= "--\n-- Table structure for view `$tablename`\n--\n\n";
                 $view .= $row['Create View'] . ";\n\n";
