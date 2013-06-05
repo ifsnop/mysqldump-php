@@ -28,13 +28,20 @@ Or without the `'auto' => true` to load it on demand:
 
     <?php
 
-    $dump = new MySQLDump('forum','forum_user','forum_pass','localhost');
-    $dump->start('forum_dump.sql');
-    $dump->nodata = false;
-    $dump->compress = true;
-    $dump->droptableifexists = true;
-    $dump->start('forum_dump_with_drops.sql.gz');    
-          
+    $dumpSettings = array(
+        'include-tables' => array('table1', 'table2'),
+        'exclude-tables' => array('table3', 'table4'),
+        'compress' => true,
+        'no-data' => false,             /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data */
+        'add-drop-table' => false,      /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table */
+        'single-transaction' => true,   /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_single-transaction */
+        'lock-tables' => false,         /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_lock-tables */
+        'add-locks' => true,            /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks */
+        'extended-insert' => true       /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert */
+
+    $dump = new MySQLDump('forum','forum_user','forum_pass','localhost', $dumpSettings);
+    $dump->start('forum_dump.sql.gz');
+
 ## Advanced usage
 
     <?php
@@ -60,7 +67,7 @@ Or without the `'auto' => true` to load it on demand:
             return "Backup complete.";
         }
     }
-    
+
 
 ## Credits
 
