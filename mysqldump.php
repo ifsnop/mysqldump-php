@@ -10,13 +10,15 @@
 
 class MySQLDump
 {
+    const MAXLINESIZE = 1000000;
+    
     // This can be set both on constructor or manually
     public $host;
     public $user;
     public $pass;
     public $db;
     public $filename = 'dump.sql';
-
+    
     // Internal stuff
     private $settings = array();
     private $tables = array();
@@ -24,11 +26,22 @@ class MySQLDump
     private $db_handler;
     private $file_handler;
     private $defaultSettings = array(
-        'no-data' => false,
-        'add-drop-table' => false,
         'include-tables' => array(),
         'exclude-tables' => array(),
-        'compress' => false);
+        'compress' => false,
+        'no-data' => false,
+            /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data */
+        'add-drop-table' => false,
+            /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table */
+        'single-transaction' => true,
+            /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_single-transaction */
+        'lock-tables' => false,
+            /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_lock-tables */
+        'add-locks' => true,
+            /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks */
+        'extended-insert' => true
+            /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert */
+        );
 
     /**
      * Constructor of MySQLDump
@@ -111,7 +124,9 @@ class MySQLDump
         // Listing all tables from database
         $this->tables = array();
         foreach ($this->db_handler->query("SHOW TABLES") as $row) {
-            if ( empty($this->settings['include-tables']) || (!empty($this->settings['include-tables']) && in_array(current($row), $this->settings['include-tables'], true)) ) {
+            if ( empty($this->settings['include-tables']) || 
+        	(!empty($this->settings['include-tables']) && 
+        	in_array(current($row), $this->settings['include-tables'], true)) ) {
                 array_push($this->tables, current($row));
             }
         }
@@ -144,15 +159,17 @@ class MySQLDump
      */
     private function write($string)
     {
+	$bytesWritten = 0;
         if ( true === $this->settings['compress'] ) {
-            if ( false === gzwrite($this->file_handler, $string) ) {
+            if ( false === ($bytesWritten = gzwrite($this->file_handler, $string)) ) {
                 throw new \Exception("Writting to file failed! Probably, there is no more free space left?", 4);
             }
         } else {
-            if ( false === fwrite($this->file_handler, $string) ) {
+            if ( false === ($bytesWritten = fwrite($this->file_handler, $string)) ) {
                 throw new \Exception("Writting to file failed! Probably, there is no more free space left?", 4);
             }
         }
+        return $bytesWritten;
     }
 
     /**
@@ -210,13 +227,43 @@ class MySQLDump
     private function listValues($tablename)
     {
         $this->write("--\n-- Dumping data for table `$tablename`\n--\n\n");
+        
+        if ( $this->settings['single-transaction'] ) {
+            $this->db_handler->exec("SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ");
+    	    $this->db_handler->exec("START TRANSACTION");
+    	}
+        if ( $this->settings['lock-tables'] )
+    	    $this->db_handler->exec("LOCK TABLES `$tablename` READ LOCAL");
+	if ( $this->settings['add-locks'] )
+    	    $this->write("LOCK TABLES `$tablename` WRITE;\n");
+    	
+    	$onlyOnce = true; $lineSize = 0;
         foreach ($this->db_handler->query("SELECT * FROM `$tablename`", PDO::FETCH_NUM) as $row) {
             $vals = array();
             foreach ($row as $val) {
                 $vals[] = is_null($val) ? "NULL" : $this->db_handler->quote($val);
             }
-            $this->write("INSERT INTO `$tablename` VALUES(" . implode(", ", $vals) . ");\n");
-        }
-        $this->write("\n");
+            if ($onlyOnce || !$this->settings['extended-insert'] ) {
+        	$lineSize += $this->write("INSERT INTO `$tablename` VALUES (" . implode(",", $vals) . ")");
+        	$onlyOnce = false;
+    	    } else {
+    		$lineSize += $this->write(",(" . implode(",", $vals) . ")"); 
+    	    }
+    	    if ( ($lineSize > MySQLDump::MAXLINESIZE) || !$this->settings['extended-insert'] ) {
+    		$onlyOnce = true; 
+    		$lineSize = $this->write(";\n");
+    	    }
+    	}
+    	if ( !$onlyOnce )
+    	    $this->write(";\n");
+
+	if ( $this->settings['add-locks'] )
+    	    $this->write("UNLOCK TABLES;\n");
+        if ( $this->settings['single-transaction'] )
+    	    $this->db_handler->exec("COMMIT");
+        if ( $this->settings['lock-tables'] )
+    	    $this->db_handler->exec("UNLOCK TABLES");
+    	    
+    	return;
     }
 }
