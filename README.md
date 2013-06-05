@@ -6,24 +6,6 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 
 PHP 5 >= 5.1.0, PECL pdo >= 0.2.0
 
-## Installation
-
-Install mysqldump using artisan:
-
-    php artisan bundle:install mysqldump
-
-Then in your *application/bundles.php* file, add the following line to load Resizer automatically:
-
-    return array(
-        'mysqldump' => array( 'auto' => true )
-    );
-
-Or without the `'auto' => true` to load it on demand:
-
-    return array(
-        'mysqldump'
-    );
-
 ## Base usage
 
     <?php
@@ -50,7 +32,6 @@ Or without the `'auto' => true` to load it on demand:
     {
         public function get_backup()
         {
-            Bundle::start('mysqldump');
             $conn = Config::get('database.connections.mysql');
 
             $filename = time() . ".sql";
