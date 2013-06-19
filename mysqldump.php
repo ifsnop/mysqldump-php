@@ -11,24 +11,23 @@
 class MySQLDump
 {
     const MAXLINESIZE = 1000000;
-    
+
     // This can be set both on constructor or manually
     public $host;
     public $user;
     public $pass;
     public $db;
-    public $filename = 'dump.sql';
-    
+    public $fileName = 'dump.sql';
+
     // Internal stuff
     private $settings = array();
     private $tables = array();
     private $views = array();
-    private $db_handler;
-    private $file_handler;
+    private $dbHandler;
     private $defaultSettings = array(
         'include-tables' => array(),
         'exclude-tables' => array(),
-        'compress' => false,
+        'compress' => CompressMethod::NONE,
         'no-data' => false,
             /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data */
         'add-drop-table' => false,
@@ -42,6 +41,7 @@ class MySQLDump
         'extended-insert' => true
             /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert */
         );
+    private $compressManager;
 
     /**
      * Constructor of MySQLDump
@@ -89,44 +89,37 @@ class MySQLDump
     public function start($filename = '')
     {
         // Output file can be redefined here
-        if (!empty($filename)) {
-            $this->filename = $filename;
+        if ( !empty($filename) ) {
+            $this->fileName = $filename;
         }
         // We must set a name to continue
-        if (empty($this->filename)) {
+        if ( empty($this->fileName) ) {
             throw new \Exception("Output file name is not set", 1);
         }
-        // Check for zlib
-        if ( (true === $this->settings['compress']) && !function_exists("gzopen") ) {
-            throw new \Exception("Compression is enabled, but zlib is not installed or configured properly", 1);
-        }
-        // Trying to bind a file with block
-        if ( true === $this->settings['compress'] ) {
-            $this->file_handler = gzopen($this->filename, "wb");
-        } else {
-            $this->file_handler = fopen($this->filename, "wb");
-        }
-        if (false === $this->file_handler) {
+        // Create a new compressManager to manage compressed output
+        $this->compressManager = CompressManagerFactory::create($this->settings['compress']);
+
+        if ( !$this->compressManager->open($this->fileName) )
             throw new \Exception("Output file is not writable", 2);
-        }
+
         // Connecting with MySQL
         try {
-            $this->db_handler = new \PDO("mysql:dbname={$this->db};host={$this->host}", $this->user, $this->pass);
+            $this->dbHandler = new \PDO("mysql:dbname={$this->db};host={$this->host}", $this->user, $this->pass);
         } catch (\PDOException $e) {
             throw new \Exception("Connection to MySQL failed with message: " . $e->getMessage(), 3);
         }
         // Fix for always-unicode output
-        $this->db_handler->exec("SET NAMES utf8");
+        $this->dbHandler->exec("SET NAMES utf8");
         // https://github.com/clouddueling/mysqldump-php/issues/9
-        $this->db_handler->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
+        $this->dbHandler->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
         // Formating dump file
-        $this->writeHeader();
+        $this->compressManager->write($this->getHeader());
         // Listing all tables from database
         $this->tables = array();
-        foreach ($this->db_handler->query("SHOW TABLES") as $row) {
-            if ( empty($this->settings['include-tables']) || 
-        	(!empty($this->settings['include-tables']) && 
-        	in_array(current($row), $this->settings['include-tables'], true)) ) {
+        foreach ($this->dbHandler->query("SHOW TABLES") as $row) {
+            if ( empty($this->settings['include-tables']) ||
+                (!empty($this->settings['include-tables']) &&
+                in_array(current($row), $this->settings['include-tables'], true)) ) {
                 array_push($this->tables, current($row));
             }
         }
@@ -141,53 +134,28 @@ class MySQLDump
             }
         }
         foreach ($this->views as $view) {
-            $this->write($view);
+            $this->compressManager->write($view);
         }
-        // Releasing file
-        if ( true === $this->settings['compress'] ) {
-            return gzclose($this->file_handler);
-        }
-
-        return fclose($this->file_handler);
+        $this->compressManager->close();
     }
 
     /**
-     * Output routine
-     *
-     * @param string $string  SQL to write to dump file
-     * @return bool
-     */
-    private function write($string)
-    {
-	$bytesWritten = 0;
-        if ( true === $this->settings['compress'] ) {
-            if ( false === ($bytesWritten = gzwrite($this->file_handler, $string)) ) {
-                throw new \Exception("Writting to file failed! Probably, there is no more free space left?", 4);
-            }
-        } else {
-            if ( false === ($bytesWritten = fwrite($this->file_handler, $string)) ) {
-                throw new \Exception("Writting to file failed! Probably, there is no more free space left?", 4);
-            }
-        }
-        return $bytesWritten;
-    }
-
-    /**
-     * Writting header for dump file
+     * Returns header for dump file
      *
      * @return null
      */
-    private function writeHeader()
+    private function getHeader()
     {
         // Some info about software, source and time
-        $this->write("-- mysqldump-php SQL Dump\n");
-        $this->write("-- https://github.com/clouddueling/mysqldump-php\n");
-        $this->write("--\n");
-        $this->write("-- Host: {$this->host}\n");
-        $this->write("-- Generation Time: " . date('r') . "\n\n");
-        $this->write("--\n");
-        $this->write("-- Database: `{$this->db}`\n");
-        $this->write("--\n\n");
+        $header = "-- mysqldump-php SQL Dump\n" .
+            "-- https://github.com/clouddueling/mysqldump-php\n" .
+            "--\n" .
+            "-- Host: {$this->host}\n" .
+            "-- Generation Time: " . date('r') . "\n\n" .
+            "--\n" .
+            "-- Database: `{$this->db}`\n" .
+            "--\n\n";
+        return $header;
     }
 
     /**
@@ -198,14 +166,14 @@ class MySQLDump
      */
     private function getTableStructure($tablename)
     {
-        foreach ($this->db_handler->query("SHOW CREATE TABLE `$tablename`") as $row) {
+        foreach ($this->dbHandler->query("SHOW CREATE TABLE `$tablename`") as $row) {
             if ( isset($row['Create Table']) ) {
-                $this->write("-- --------------------------------------------------------\n\n");
-                $this->write("--\n-- Table structure for table `$tablename`\n--\n\n");
-                if ( true === $this->settings['add-drop-table'] ) {
-                    $this->write("DROP TABLE IF EXISTS `$tablename`;\n\n");
+                $this->compressManager->write("-- --------------------------------------------------------\n\n");
+                $this->compressManager->write("--\n-- Table structure for table `$tablename`\n--\n\n");
+                if ( $this->settings['add-drop-table'] ) {
+                    $this->compressManager->write("DROP TABLE IF EXISTS `$tablename`;\n\n");
                 }
-                $this->write($row['Create Table'] . ";\n\n");
+                $this->compressManager->write($row['Create Table'] . ";\n\n");
                 return true;
             }
             if ( isset($row['Create View']) ) {
@@ -226,44 +194,149 @@ class MySQLDump
      */
     private function listValues($tablename)
     {
-        $this->write("--\n-- Dumping data for table `$tablename`\n--\n\n");
-        
+        $this->compressManager->write("--\n-- Dumping data for table `$tablename`\n--\n\n");
+
         if ( $this->settings['single-transaction'] ) {
-            $this->db_handler->exec("SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ");
-    	    $this->db_handler->exec("START TRANSACTION");
-    	}
+            $this->dbHandler->exec("SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ");
+            $this->dbHandler->exec("START TRANSACTION");
+        }
         if ( $this->settings['lock-tables'] )
-    	    $this->db_handler->exec("LOCK TABLES `$tablename` READ LOCAL");
-	if ( $this->settings['add-locks'] )
-    	    $this->write("LOCK TABLES `$tablename` WRITE;\n");
-    	
-    	$onlyOnce = true; $lineSize = 0;
-        foreach ($this->db_handler->query("SELECT * FROM `$tablename`", PDO::FETCH_NUM) as $row) {
+            $this->dbHandler->exec("LOCK TABLES `$tablename` READ LOCAL");
+        if ( $this->settings['add-locks'] )
+            $this->compressManager->write("LOCK TABLES `$tablename` WRITE;\n");
+
+        $onlyOnce = true; $lineSize = 0;
+        foreach ($this->dbHandler->query("SELECT * FROM `$tablename`", PDO::FETCH_NUM) as $row) {
             $vals = array();
             foreach ($row as $val) {
-                $vals[] = is_null($val) ? "NULL" : $this->db_handler->quote($val);
+                $vals[] = is_null($val) ? "NULL" : $this->dbHandler->quote($val);
             }
             if ($onlyOnce || !$this->settings['extended-insert'] ) {
-        	$lineSize += $this->write("INSERT INTO `$tablename` VALUES (" . implode(",", $vals) . ")");
-        	$onlyOnce = false;
-    	    } else {
-    		$lineSize += $this->write(",(" . implode(",", $vals) . ")"); 
-    	    }
-    	    if ( ($lineSize > MySQLDump::MAXLINESIZE) || !$this->settings['extended-insert'] ) {
-    		$onlyOnce = true; 
-    		$lineSize = $this->write(";\n");
-    	    }
-    	}
-    	if ( !$onlyOnce )
-    	    $this->write(";\n");
+                $lineSize += $this->compressManager->write("INSERT INTO `$tablename` VALUES (" . implode(",", $vals) . ")");
+                $onlyOnce = false;
+            } else {
+                $lineSize += $this->compressManager->write(",(" . implode(",", $vals) . ")");
+            }
+            if ( ($lineSize > MySQLDump::MAXLINESIZE) || !$this->settings['extended-insert'] ) {
+                $onlyOnce = true;
+                $lineSize = $this->compressManager->write(";\n");
+            }
+        }
+        if ( !$onlyOnce )
+            $this->compressManager->write(";\n");
 
-	if ( $this->settings['add-locks'] )
-    	    $this->write("UNLOCK TABLES;\n");
+        if ( $this->settings['add-locks'] )
+            $this->compressManager->write("UNLOCK TABLES;\n");
         if ( $this->settings['single-transaction'] )
-    	    $this->db_handler->exec("COMMIT");
+            $this->dbHandler->exec("COMMIT");
         if ( $this->settings['lock-tables'] )
-    	    $this->db_handler->exec("UNLOCK TABLES");
-    	    
-    	return;
+            $this->dbHandler->exec("UNLOCK TABLES");
+
+        return;
+    }
+}
+
+/**
+ * Enum with all available compression methods
+ *
+ */
+abstract class CompressMethod {
+    const NONE = 0;
+    const GZIP = 1;
+    const BZIP2 = 2;
+
+    public static $enums = array(
+        self::NONE => "None",
+        self::GZIP => "Gzip",
+        self::BZIP2  => "Bzip2"
+    );
+    public static function isValid($c) {
+        return array_key_exists($c, CompressMethod::$enums);
+    }
+}
+
+abstract class CompressManagerFactory {
+    private $fileHandle = null;
+
+    public static function create($c) {
+        if ( !CompressMethod::isValid($c) ) {
+            throw new \Exception("Compression method is invalid", 1);
+        }
+        $method = "Compress" . CompressMethod::$enums[$c];
+        return new $method();
+    }
+}
+
+class CompressBzip2 extends CompressManagerFactory {
+
+    public function __construct()
+    {
+        if ( !function_exists("bzopen") )
+            throw new \Exception("Compression is enabled, but bzip2 lib is not installed or configured properly", 1);
+    }
+    public function open($filename)
+    {
+        $this->fileHandler = bzopen($filename . ".bz2", "w");
+        if (false === $this->fileHandler)
+            return false;
+        return true;
+    }
+    public function write($string)
+    {
+        $bytesWritten = 0;
+        if ( false === ($bytesWritten = bzwrite($this->fileHandler, $string)) )
+            throw new \Exception("Writting to file failed! Probably, there is no more free space left?", 4);
+        return $bytesWritten;
+    }
+    public function close() {
+        return bzclose($this->fileHandler);
+    }
+}
+
+class CompressGzip extends CompressManagerFactory {
+
+    public function __construct()
+    {
+        if ( !function_exists("gzopen") )
+            throw new \Exception("Compression is enabled, but gzip lib is not installed or configured properly", 1);
+    }
+    public function open($filename)
+    {
+        $this->fileHandler = gzopen($filename . ".gz", "wb");
+        if (false === $this->fileHandler)
+            return false;
+        return true;
+    }
+    public function write($string)
+    {
+        $bytesWritten = 0;
+        if ( false === ($bytesWritten = gzwrite($this->fileHandler, $string)) )
+            throw new \Exception("Writting to file failed! Probably, there is no more free space left?", 4);
+        return $bytesWritten;
+    }
+    public function close() {
+        return gzclose($this->fileHandler);
+    }
+}
+
+class CompressNone extends CompressManagerFactory {
+
+    public function __construct() { return; }
+    public function open($filename)
+    {
+        $this->fileHandler = fopen($filename, "wb");
+        if (false === $this->fileHandler)
+            return false;
+        return true;
+    }
+    public function write($string)
+    {
+        $bytesWritten = 0;
+        if ( false === ($bytesWritten = fwrite($this->fileHandler, $string)) )
+            throw new \Exception("Writting to file failed! Probably, there is no more free space left?", 4);
+        return $bytesWritten;
+    }
+    public function close() {
+        return fclose($this->fileHandler);
     }
 }
