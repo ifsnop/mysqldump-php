@@ -29,17 +29,11 @@ class MySQLDump
         'exclude-tables' => array(),
         'compress' => CompressMethod::NONE,
         'no-data' => false,
-            /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data */
         'add-drop-table' => false,
-            /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table */
         'single-transaction' => true,
-            /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_single-transaction */
         'lock-tables' => false,
-            /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_lock-tables */
         'add-locks' => true,
-            /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks */
         'extended-insert' => true
-            /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert */
         );
     private $compressManager;
 
@@ -52,7 +46,8 @@ class MySQLDump
      * @param string $host      MySQL server to connect to
      * @return null
      */
-    public function __construct($db = '', $user = '', $pass = '', $host = 'localhost', $settings = null)
+    public function __construct($db = '', $user = '', $pass = '',
+        $host = 'localhost', $settings = null)
     {
         $this->db = $db;
         $this->user = $user;
@@ -62,17 +57,21 @@ class MySQLDump
     }
 
     /**
-     * jquery style extend, merges arrays (without errors if the passed values are not arrays)
-     * extend($defaults, $options);
+     * jquery style extend, merges arrays (without errors if the passed
+     * values are not arrays)
      *
-     * @return array $extended
+     * @param array $args       default settings
+     * @param array $extended   user settings
+     *
+     * @return array $extended  merged user settings with default settings
      */
-    public function extend() {
+    public function extend()
+    {
         $args = func_get_args();
         $extended = array();
-        if( is_array($args) && count($args)>0 ) {
-            foreach($args as $array) {
-                if(is_array($array)) {
+        if ( is_array($args) && count($args)>0 ) {
+            foreach ($args as $array) {
+                if ( is_array($array) ) {
                     $extended = array_merge($extended, $array);
                 }
             }
@@ -97,21 +96,26 @@ class MySQLDump
             throw new \Exception("Output file name is not set", 1);
         }
         // Create a new compressManager to manage compressed output
-        $this->compressManager = CompressManagerFactory::create($this->settings['compress']);
+        $this->compressManager = CompressManagerFactory::create(
+            $this->settings['compress'] );
 
-        if ( !$this->compressManager->open($this->fileName) )
+        if ( !$this->compressManager->open($this->fileName) ) {
             throw new \Exception("Output file is not writable", 2);
+        }
 
         // Connecting with MySQL
         try {
-            $this->dbHandler = new \PDO("mysql:dbname={$this->db};host={$this->host}", $this->user, $this->pass);
+            $this->dbHandler = new \PDO("mysql:dbname={$this->db};" .
+                "host={$this->host}", $this->user, $this->pass);
         } catch (\PDOException $e) {
-            throw new \Exception("Connection to MySQL failed with message: " . $e->getMessage(), 3);
+            throw new \Exception("Connection to MySQL failed with message: " .
+                $e->getMessage(), 3);
         }
         // Fix for always-unicode output
         $this->dbHandler->exec("SET NAMES utf8");
         // https://github.com/clouddueling/mysqldump-php/issues/9
-        $this->dbHandler->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
+        $this->dbHandler->setAttribute(PDO::ATTR_ORACLE_NULLS,
+            PDO::NULL_NATURAL);
         // Formating dump file
         $this->compressManager->write($this->getHeader());
         // Listing all tables from database
@@ -119,7 +123,9 @@ class MySQLDump
         foreach ($this->dbHandler->query("SHOW TABLES") as $row) {
             if ( empty($this->settings['include-tables']) ||
                 (!empty($this->settings['include-tables']) &&
-                in_array(current($row), $this->settings['include-tables'], true)) ) {
+                in_array(current($row),
+                    $this->settings['include-tables'],
+                    true)) ) {
                 array_push($this->tables, current($row));
             }
         }
@@ -166,20 +172,27 @@ class MySQLDump
      */
     private function getTableStructure($tablename)
     {
-        foreach ($this->dbHandler->query("SHOW CREATE TABLE `$tablename`") as $row) {
-            if ( isset($row['Create Table']) ) {
-                $this->compressManager->write("-- --------------------------------------------------------\n\n");
-                $this->compressManager->write("--\n-- Table structure for table `$tablename`\n--\n\n");
+        $stmt = "SHOW CREATE TABLE `$tablename`";
+        foreach ($this->dbHandler->query($stmt) as $r) {
+            if ( isset($r['Create Table']) ) {
+                $this->compressManager->write("-- " .
+                    "--------------------------------------------------------" .
+                    "\n\n" .
+                    "--\n" .
+                    "-- Table structure for table `$tablename`\n--\n\n");
                 if ( $this->settings['add-drop-table'] ) {
-                    $this->compressManager->write("DROP TABLE IF EXISTS `$tablename`;\n\n");
+                    $this->compressManager->write(
+                        "DROP TABLE IF EXISTS `$tablename`;\n\n");
                 }
-                $this->compressManager->write($row['Create Table'] . ";\n\n");
+                $this->compressManager->write($r['Create Table'] . ";\n\n");
                 return true;
             }
-            if ( isset($row['Create View']) ) {
-                $view  = "-- --------------------------------------------------------\n\n";
+            if ( isset($r['Create View']) ) {
+                $view  = "-- " .
+                    "--------------------------------------------------------" .
+                    "\n\n";
                 $view .= "--\n-- Table structure for view `$tablename`\n--\n\n";
-                $view .= $row['Create View'] . ";\n\n";
+                $view .= $r['Create View'] . ";\n\n";
                 $this->views[] = $view;
                 return false;
             }
@@ -194,43 +207,56 @@ class MySQLDump
      */
     private function listValues($tablename)
     {
-        $this->compressManager->write("--\n-- Dumping data for table `$tablename`\n--\n\n");
+        $this->compressManager->write("--\n" .
+            "-- Dumping data for table `$tablename`\n--\n\n");
 
         if ( $this->settings['single-transaction'] ) {
-            $this->dbHandler->exec("SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ");
+            $this->dbHandler->exec("SET GLOBAL TRANSACTION ISOLATION " .
+                "LEVEL REPEATABLE READ");
             $this->dbHandler->exec("START TRANSACTION");
         }
-        if ( $this->settings['lock-tables'] )
+        if ( $this->settings['lock-tables'] ) {
             $this->dbHandler->exec("LOCK TABLES `$tablename` READ LOCAL");
-        if ( $this->settings['add-locks'] )
+        }
+        if ( $this->settings['add-locks'] ) {
             $this->compressManager->write("LOCK TABLES `$tablename` WRITE;\n");
+        }
 
         $onlyOnce = true; $lineSize = 0;
-        foreach ($this->dbHandler->query("SELECT * FROM `$tablename`", PDO::FETCH_NUM) as $row) {
+        $stmt = "SELECT * FROM `$tablename`";
+        foreach ($this->dbHandler->query($stmt, PDO::FETCH_NUM) as $r) {
             $vals = array();
-            foreach ($row as $val) {
-                $vals[] = is_null($val) ? "NULL" : $this->dbHandler->quote($val);
+            foreach ($r as $val) {
+                $vals[] = is_null($val) ? "NULL" :
+                    $this->dbHandler->quote($val);
             }
             if ($onlyOnce || !$this->settings['extended-insert'] ) {
-                $lineSize += $this->compressManager->write("INSERT INTO `$tablename` VALUES (" . implode(",", $vals) . ")");
+                $lineSize += $this->compressManager->write(
+                    "INSERT INTO `$tablename` VALUES (" .
+                    implode(",", $vals) . ")");
                 $onlyOnce = false;
             } else {
-                $lineSize += $this->compressManager->write(",(" . implode(",", $vals) . ")");
+                $lineSize += $this->compressManager->write(",(" .
+                    implode(",", $vals) . ")");
             }
-            if ( ($lineSize > MySQLDump::MAXLINESIZE) || !$this->settings['extended-insert'] ) {
+            if ( ($lineSize > MySQLDump::MAXLINESIZE) ||
+                !$this->settings['extended-insert'] ) {
                 $onlyOnce = true;
                 $lineSize = $this->compressManager->write(";\n");
             }
         }
-        if ( !$onlyOnce )
+        if ( !$onlyOnce ) {
             $this->compressManager->write(";\n");
-
-        if ( $this->settings['add-locks'] )
+        }
+        if ( $this->settings['add-locks'] ) {
             $this->compressManager->write("UNLOCK TABLES;\n");
-        if ( $this->settings['single-transaction'] )
+        }
+        if ( $this->settings['single-transaction'] ) {
             $this->dbHandler->exec("COMMIT");
-        if ( $this->settings['lock-tables'] )
+        }
+        if ( $this->settings['lock-tables'] ) {
             $this->dbHandler->exec("UNLOCK TABLES");
+        }
 
         return;
     }
@@ -250,15 +276,18 @@ abstract class CompressMethod {
         self::GZIP => "Gzip",
         self::BZIP2  => "Bzip2"
     );
-    public static function isValid($c) {
+    public static function isValid($c)
+    {
         return array_key_exists($c, CompressMethod::$enums);
     }
 }
 
-abstract class CompressManagerFactory {
+abstract class CompressManagerFactory
+{
     private $fileHandle = null;
 
-    public static function create($c) {
+    public static function create($c)
+    {
         if ( !CompressMethod::isValid($c) ) {
             throw new \Exception("Compression method is invalid", 1);
         }
@@ -271,24 +300,30 @@ class CompressBzip2 extends CompressManagerFactory {
 
     public function __construct()
     {
-        if ( !function_exists("bzopen") )
-            throw new \Exception("Compression is enabled, but bzip2 lib is not installed or configured properly", 1);
+        if ( !function_exists("bzopen") ) {
+            throw new \Exception("Compression is enabled, but bzip2 lib is " .
+                "not installed or configured properly", 1);
+        }
     }
     public function open($filename)
     {
         $this->fileHandler = bzopen($filename . ".bz2", "w");
-        if (false === $this->fileHandler)
+        if (false === $this->fileHandler) {
             return false;
+        }
         return true;
     }
-    public function write($string)
+    public function write($str)
     {
         $bytesWritten = 0;
-        if ( false === ($bytesWritten = bzwrite($this->fileHandler, $string)) )
-            throw new \Exception("Writting to file failed! Probably, there is no more free space left?", 4);
+        if ( false === ($bytesWritten = bzwrite($this->fileHandler, $str)) ) {
+            throw new \Exception("Writting to file failed! Probably, there " .
+                "is no more free space left?", 4);
+        }
         return $bytesWritten;
     }
-    public function close() {
+    public function close()
+    {
         return bzclose($this->fileHandler);
     }
 }
@@ -297,46 +332,60 @@ class CompressGzip extends CompressManagerFactory {
 
     public function __construct()
     {
-        if ( !function_exists("gzopen") )
-            throw new \Exception("Compression is enabled, but gzip lib is not installed or configured properly", 1);
+        if ( !function_exists("gzopen") ) {
+            throw new \Exception("Compression is enabled, but gzip lib is " .
+                "not installed or configured properly", 1);
+        }
     }
     public function open($filename)
     {
         $this->fileHandler = gzopen($filename . ".gz", "wb");
-        if (false === $this->fileHandler)
+        if (false === $this->fileHandler) {
             return false;
+        }
         return true;
     }
-    public function write($string)
+    public function write($str)
     {
         $bytesWritten = 0;
-        if ( false === ($bytesWritten = gzwrite($this->fileHandler, $string)) )
-            throw new \Exception("Writting to file failed! Probably, there is no more free space left?", 4);
+        if ( false === ($bytesWritten = gzwrite($this->fileHandler, $str)) ) {
+            throw new \Exception("Writting to file failed! Probably, there " .
+                "is no more free space left?", 4);
+        }
         return $bytesWritten;
     }
-    public function close() {
+    public function close()
+    {
         return gzclose($this->fileHandler);
     }
 }
 
-class CompressNone extends CompressManagerFactory {
+class CompressNone extends CompressManagerFactory
+{
 
-    public function __construct() { return; }
+    public function __construct()
+    {
+        return;
+    }
     public function open($filename)
     {
         $this->fileHandler = fopen($filename, "wb");
-        if (false === $this->fileHandler)
+        if (false === $this->fileHandler) {
             return false;
+        }
         return true;
     }
-    public function write($string)
+    public function write($str)
     {
         $bytesWritten = 0;
-        if ( false === ($bytesWritten = fwrite($this->fileHandler, $string)) )
-            throw new \Exception("Writting to file failed! Probably, there is no more free space left?", 4);
+        if ( false === ($bytesWritten = fwrite($this->fileHandler, $str)) ) {
+            throw new \Exception("Writting to file failed! Probably, there " .
+                "is no more free space left?", 4);
+        }
         return $bytesWritten;
     }
-    public function close() {
+    public function close()
+    {
         return fclose($this->fileHandler);
     }
 }
