@@ -13,7 +13,7 @@ PHP 5 >= 5.1.0, PECL pdo >= 0.2.0
     $dumpSettings = array(
         'include-tables' => array('table1', 'table2'),
         'exclude-tables' => array('table3', 'table4'),
-        'compress' => CompressionMethod::GZIP, /* CompressionMethod::[GZIP, BZIP2, NONE] */
+        'compress' => CompressMethod::GZIP, /* CompressMethod::[GZIP, BZIP2, NONE] */
         'no-data' => false,             /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data */
         'add-drop-table' => false,      /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table */
         'single-transaction' => true,   /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_single-transaction */
