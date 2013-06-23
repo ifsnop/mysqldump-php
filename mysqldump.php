@@ -80,6 +80,30 @@ class MySQLDump
     }
 
     /**
+     * Connect with MySQL
+     *
+     * @return bool
+     */
+    private function connect()
+    {
+        // Connecting with MySQL
+        try {
+            $this->dbHandler = new PDO("mysql:dbname={$this->db};" .
+                "host={$this->host}", $this->user, $this->pass);
+        } catch (PDOException $e) {
+            throw new \Exception("Connection to MySQL failed with message: " .
+                $e->getMessage(), 3);
+        }
+        // Fix for always-unicode output
+        $this->dbHandler->exec("SET NAMES utf8");
+        // https://github.com/clouddueling/mysqldump-php/issues/9
+        $this->dbHandler->setAttribute(PDO::ATTR_ORACLE_NULLS,
+            PDO::NULL_NATURAL);
+
+        return;
+    }
+
+    /**
      * Main call
      *
      * @param string $filename  Name of file to write sql dump to
@@ -95,6 +119,10 @@ class MySQLDump
         if ( empty($this->fileName) ) {
             throw new \Exception("Output file name is not set", 1);
         }
+
+        // Connect to database
+        $this->connect();
+
         // Create a new compressManager to manage compressed output
         $this->compressManager = CompressManagerFactory::create(
             $this->settings['compress'] );
@@ -103,21 +131,9 @@ class MySQLDump
             throw new \Exception("Output file is not writable", 2);
         }
 
-        // Connecting with MySQL
-        try {
-            $this->dbHandler = new \PDO("mysql:dbname={$this->db};" .
-                "host={$this->host}", $this->user, $this->pass);
-        } catch (\PDOException $e) {
-            throw new \Exception("Connection to MySQL failed with message: " .
-                $e->getMessage(), 3);
-        }
-        // Fix for always-unicode output
-        $this->dbHandler->exec("SET NAMES utf8");
-        // https://github.com/clouddueling/mysqldump-php/issues/9
-        $this->dbHandler->setAttribute(PDO::ATTR_ORACLE_NULLS,
-            PDO::NULL_NATURAL);
         // Formating dump file
         $this->compressManager->write($this->getHeader());
+
         // Listing all tables from database
         $this->tables = array();
         foreach ($this->dbHandler->query("SHOW TABLES") as $row) {
@@ -129,6 +145,7 @@ class MySQLDump
                 array_push($this->tables, current($row));
             }
         }
+
         // Exporting tables one by one
         foreach ($this->tables as $table) {
             if ( in_array($table, $this->settings['exclude-tables'], true) ) {
@@ -139,6 +156,8 @@ class MySQLDump
                 $this->listValues($table);
             }
         }
+
+        // Exporting views one by one
         foreach ($this->views as $view) {
             $this->compressManager->write($view);
         }
