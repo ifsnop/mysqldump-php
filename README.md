@@ -53,8 +53,5 @@ PHP 5 >= 5.1.0, PECL pdo >= 0.2.0
 
 ## Credits
 
-This was originally written by James Elliott in 2009, I OOP'd it up, outputted to file, simplified the process, fixed some mysql errors, and updated it to PSR standards.
-
-Original site: http://code.google.com/p/db-mysqldump/
-
-Enjoy.
+Originally written by James Elliott in 2009 but has since been modernized to PHP 5.3 and PHP-FIG
+http://code.google.com/p/db-mysqldump/
