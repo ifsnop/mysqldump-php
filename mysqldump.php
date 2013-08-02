@@ -33,7 +33,8 @@ class MySQLDump
         'single-transaction' => true,
         'lock-tables' => false,
         'add-locks' => true,
-        'extended-insert' => true
+        'extended-insert' => true,
+        'disable-foreign-keys-check' => false
         );
     private $compressManager;
 
@@ -146,6 +147,15 @@ class MySQLDump
             }
         }
 
+        // Disable checking foreign keys
+        if ($this->settings['disable-foreign-keys-check'] === true) {
+            $this->compressManager->write(
+                "-- Ignore Checking Of Foreign Keys \n" .
+                "SET FOREIGN_KEY_CHECKS = 0; \n" .
+                "--\n\n"
+            );
+        }
+
         // Exporting tables one by one
         foreach ($this->tables as $table) {
             if ( in_array($table, $this->settings['exclude-tables'], true) ) {
@@ -161,6 +171,16 @@ class MySQLDump
         foreach ($this->views as $view) {
             $this->compressManager->write($view);
         }
+
+        // Enable checking foreign keys if needed
+        if ($this->settings['disable-foreign-keys-check'] === true) {
+            $this->compressManager->write(
+                "\n" .
+                "SET FOREIGN_KEY_CHECKS = 1; \n" .
+                "--\n\n"
+            );
+        }
+
         $this->compressManager->close();
     }
 
