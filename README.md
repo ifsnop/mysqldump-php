@@ -13,17 +13,31 @@ PHP 5 >= 5.1.0, PECL pdo >= 0.2.0
     $dumpSettings = array(
         'include-tables' => array('table1', 'table2'),
         'exclude-tables' => array('table3', 'table4'),
-        'compress' => CompressMethod::GZIP, /* CompressMethod::[GZIP, BZIP2, NONE] */
-        'no-data' => false,             /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data */
-        'add-drop-table' => false,      /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table */
-        'single-transaction' => true,   /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_single-transaction */
-        'lock-tables' => false,         /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_lock-tables */
-        'add-locks' => true,            /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks */
-        'extended-insert' => true,       /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert */
-        'disable-foreign-keys-check' => false /* http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html */
+/* CompressMethod::[GZIP, BZIP2, NONE] */3
+        'compress' => CompressMethod::GZIP,
+ /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data */
+        'no-data' => false,
+/* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table */
+        'add-drop-table' => false,
+/* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_single-transaction */
+        'single-transaction' => true,
+/* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_lock-tables */
+        'lock-tables' => false,
+/* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks */
+        'add-locks' => true,
+/* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert */
+        'extended-insert' => true,
+ /* http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html */
+        'disable-foreign-keys-check' => false
     );
 
-    $dump = new MySQLDump('forum','forum_user','forum_pass','localhost', $dumpSettings);
+    $dump = new MySQLDump(
+        'forum',
+        'forum_user',
+        'forum_pass',
+        'localhost',
+        $dumpSettings
+    );
     $dump->start('forum_dump.sql.gz');
 
 ## Advanced usage

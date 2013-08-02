@@ -148,10 +148,10 @@ class MySQLDump
         }
 
         // Disable checking foreign keys
-        if ($this->settings['disable-foreign-keys-check'] === true) {
+        if ( $this->settings['disable-foreign-keys-check'] ) {
             $this->compressManager->write(
                 "-- Ignore Checking Of Foreign Keys \n" .
-                "SET FOREIGN_KEY_CHECKS = 0; \n" .
+                "SET FOREIGN_KEY_CHECKS = 0;\n" .
                 "--\n\n"
             );
         }
@@ -162,7 +162,7 @@ class MySQLDump
                 continue;
             }
             $is_table = $this->getTableStructure($table);
-            if ( true === $is_table && false === $this->settings['no-data'] ) {
+            if ( $is_table && !$this->settings['no-data'] ) {
                 $this->listValues($table);
             }
         }
@@ -173,7 +173,7 @@ class MySQLDump
         }
 
         // Enable checking foreign keys if needed
-        if ($this->settings['disable-foreign-keys-check'] === true) {
+        if ( $this->settings['disable-foreign-keys-check'] ) {
             $this->compressManager->write(
                 "\n" .
                 "SET FOREIGN_KEY_CHECKS = 1; \n" .
@@ -261,7 +261,8 @@ class MySQLDump
             $this->compressManager->write("LOCK TABLES `$tablename` WRITE;\n");
         }
 
-        $onlyOnce = true; $lineSize = 0;
+        $onlyOnce = true;
+        $lineSize = 0;
         $stmt = "SELECT * FROM `$tablename`";
         foreach ($this->dbHandler->query($stmt, PDO::FETCH_NUM) as $r) {
             $vals = array();
