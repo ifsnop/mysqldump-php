@@ -38,22 +38,17 @@ class MySQLDump
     private $compressManager;
 
     /**
-     * Constructor of MySQLDump
-     *
-     * @param string $db        Database name
-     * @param string $user      MySQL account username
-     * @param string $pass      MySQL account password
-     * @param string $host      MySQL server to connect to
-     * @return null
-     */
-    public function __construct($db = '', $user = '', $pass = '',
-        $host = 'localhost', $settings = null)
+	 * The contructor takes as an input an stdClass called $dbi (for database information) which must contain the following attributes:
+	 * 	- for SQLite: filename ;
+	 *  - for MySQL: hostname, dbName, username, password (all eponym);
+	 *  - for all: type, which must be the type of database as defined in the XSD documentation. SQLite, MySQL, etc. (case insensitive).
+	 * @param array $dbi as defined in the XSD for configuration files.
+	 */
+    public function __construct($dbi, $settings = null, $pdo_options = array(PDO::ATTR_PERSISTENT => true, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION))
     {
-        $this->db = $db;
-        $this->user = $user;
-        $this->pass = $pass;
-        $this->host = $host;
+        $this->dbi = $dbi;
         $this->settings = $this->extend($this->defaultSettings, $settings);
+        $this->pdo_options = $pdo_options;
     }
 
     /**
@@ -81,17 +76,26 @@ class MySQLDump
 
     /**
      * Connect with MySQL
-     *
-     * @return bool
+     * @throws Exception on unsupported database type and PDO connection failure.
+     * @return null
      */
     private function connect()
     {
         // Connecting with MySQL
         try {
-            $this->dbHandler = new PDO("mysql:dbname={$this->db};" .
-                "host={$this->host}", $this->user, $this->pass);
+            switch (strtoupper($dbi->type)){
+				case 'SQLITE':
+					$this->dbHandler = new PDO("sqlite:../".$dbi->filename, null, null, $this->pdo_options);
+					break;
+				case 'MYSQL':
+					$this->dbHandler = new PDO("mysql:host=".$dbi->hostname.";dbname=".$dbi->dbName, $dbi->username, $dbi->password, $this->pdo_options);
+					break;
+				default:
+				    throw new \Exception("Unsupported database type: ".$dbi->type, 3);
+			}
+			
         } catch (PDOException $e) {
-            throw new \Exception("Connection to MySQL failed with message: " .
+            throw new \Exception("Connection to ".$dbi->type." database failed with message: " .
                 $e->getMessage(), 3);
         }
         // Fix for always-unicode output
