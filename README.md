@@ -22,7 +22,7 @@ PHP 5 >= 5.1.0, PECL pdo >= 0.2.0
         'extended-insert' => true       /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert */
     );
 
-    $dump = new MySQLDump('database','database_user','database_pass','localhost', $dumpSettings);
+    $dump = new MySQLDump('database','database_user','database_pass','localhost', 'mysql', $dumpSettings);
     $dump->start('forum_dump.sql.gz');
 
 ## Advanced usage
@@ -43,6 +43,7 @@ PHP 5 >= 5.1.0, PECL pdo >= 0.2.0
             $dump->user     = $conn['username'];
             $dump->pass     = $conn['password'];
             $dump->db       = $conn['database'];
+            $dump->type     = 'mysql';
             $dump->filename = $filepath . $filename;
             $dump->start();
 
