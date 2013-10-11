@@ -33,7 +33,8 @@ class MySQLDump
         'single-transaction' => true,
         'lock-tables' => false,
         'add-locks' => true,
-        'extended-insert' => true
+        'extended-insert' => true, 
+        'where' => ''
         );
     private $compressManager;
 
@@ -243,6 +244,9 @@ class MySQLDump
 
         $onlyOnce = true; $lineSize = 0;
         $stmt = "SELECT * FROM `$tablename`";
+        if ( !empty($this->settings['where']) ) {
+            $stmt .= ' WHERE ' . $this->settings['where'];
+        }
         foreach ($this->dbHandler->query($stmt, PDO::FETCH_NUM) as $r) {
             $vals = array();
             foreach ($r as $val) {
