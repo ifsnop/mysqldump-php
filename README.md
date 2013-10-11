@@ -19,7 +19,8 @@ PHP 5 >= 5.1.0, PECL pdo >= 0.2.0
         'single-transaction' => true,   /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_single-transaction */
         'lock-tables' => false,         /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_lock-tables */
         'add-locks' => true,            /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks */
-        'extended-insert' => true       /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert */
+        'extended-insert' => true,      /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert */
+        'where' => ''                   /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_where */ 
     );
 
     $dump = new MySQLDump('database','database_user','database_pass','localhost', $dumpSettings);
