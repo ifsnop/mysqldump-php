@@ -46,7 +46,11 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 - **extended-insert**
  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert
 
+### License
+
+The Laravel framework is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT)
+
 ### Credits
 
-Originally written by James Elliott in 2009 but has since been modernized to PHP 5.3 and PHP-FIG
+Originally written by James Elliott in 2009 but has since been almost entirely rewritten and improved upon.
 http://code.google.com/p/db-mysqldump/
