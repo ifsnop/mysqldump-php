@@ -2,57 +2,51 @@
 
 This is a php version of linux's mysqldump in terminal "$ mysqldump -u username -p...".
 
-## Requirements
+### Requirements
 
-PHP 5 >= 5.1.0, PECL pdo >= 0.2.0
+- PHP 5 >= 5.1.0
+- PECL pdo >= 0.2.0
 
-## Base usage
-
-    <?php
-
-    $dumpSettings = array(
-        'include-tables' => array('table1', 'table2'),
-        'exclude-tables' => array('table3', 'table4'),
-        'compress' => CompressMethod::GZIP, /* CompressMethod::[GZIP, BZIP2, NONE] */
-        'no-data' => false,             /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data */
-        'add-drop-table' => false,      /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table */
-        'single-transaction' => true,   /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_single-transaction */
-        'lock-tables' => false,         /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_lock-tables */
-        'add-locks' => true,            /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks */
-        'extended-insert' => true       /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert */
-    );
-
-    $dump = new MySQLDump('database','database_user','database_pass','localhost', 'mysql', $dumpSettings);
-    $dump->start('forum_dump.sql.gz');
-
-## Advanced usage
+### Getting started
 
     <?php
+	$dumpSettings = array(
+		'include-tables' => array('table1', 'table2'),
+		'exclude-tables' => array('users', 'records'),
+		'compress' => 'GZIP',
+		'no-data' => false,
+		'add-drop-table' => false,
+		'single-transaction' => true,
+		'lock-tables' => false,
+		'add-locks' => true,
+		'extended-insert' => true
+	);
 
-    class Cron_Controller extends Base_Controller
-    {
-        public function get_backup()
-        {
-            $conn = Config::get('database.connections.mysql');
+	$dump = new Mysqldump('clouddueling', 'root', 'root', 'localhost', 'mysql', $dumpSettings);
+	$dump->start('storage/work/dump.sql');
+	
+### API
 
-            $filename = time() . ".sql";
-            $filepath = "storage/work/";
+- **include-tables**
+ - Only include these tables.
+- **exclude-tables**
+ - Exclude these tables.
+- **compress**
+ - GZIP, BZIP2, NONE
+- **no-data**
+ - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data
+- **add-drop-table**
+ - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table
+- **single-transaction**
+ - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_single-transaction
+- **lock-tables**
+ - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_lock-tables
+- **add-locks**
+ - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks
+- **extended-insert**
+ - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert
 
-            $dump = new MySQLDump();
-            $dump->host     = $conn['host'];
-            $dump->user     = $conn['username'];
-            $dump->pass     = $conn['password'];
-            $dump->db       = $conn['database'];
-            $dump->type     = 'mysql';
-            $dump->filename = $filepath . $filename;
-            $dump->start();
-
-            return "Backup complete.";
-        }
-    }
-
-
-## Credits
+### Credits
 
 Originally written by James Elliott in 2009 but has since been modernized to PHP 5.3 and PHP-FIG
 http://code.google.com/p/db-mysqldump/
