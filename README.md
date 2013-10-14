@@ -54,3 +54,6 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 
 Originally written by James Elliott in 2009 but has since been almost entirely rewritten and improved upon.
 http://code.google.com/p/db-mysqldump/
+
+### Todos
+- Replace public extend() with array_merge_recursive()
