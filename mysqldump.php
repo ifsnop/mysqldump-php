@@ -137,7 +137,7 @@ class Mysqldump
 
         // Listing all tables from database
         $this->tables = array();
-        foreach ($this->dbHandler->query($this->adapter->show_tables()) as $row) {
+        foreach ($this->dbHandler->query($this->adapter->show_tables($this->db)) as $row) {
             if (empty($this->settings['include-tables']) || (! empty($this->settings['include-tables']) && in_array(current($row), $this->settings['include-tables'], true))) {
                 array_push($this->tables, current($row));
             }
@@ -442,14 +442,14 @@ class TypeAdapter
         }
     }
 
-    public function show_tables(){
-        switch($this->type){
-            case 'sqlite':
-                return "SELECT tbl_name FROM sqlite_master where type='table'";
-            default:
-                return "SHOW TABLES";
-        }
-    }
+	public function show_tables($dbName){
+		switch($this->type){
+			case 'sqlite':
+				return "SELECT tbl_name FROM sqlite_master where type='table'";
+			default:
+				return "SELECT TABLE_NAME AS tbl_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='$dbName'";
+		}
+	}
 
     public function start_transaction(){
         switch($this->type){
