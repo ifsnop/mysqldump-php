@@ -2,74 +2,61 @@
 
 This is a php version of linux's mysqldump in terminal "$ mysqldump -u username -p...".
 
-## Requirements
+### Requirements
 
-PHP 5 >= 5.1.0, PECL pdo >= 0.2.0
+- PHP 5 >= 5.1.0
+- PECL pdo >= 0.2.0
 
-## Base usage
-
-    <?php
-
-    $dumpSettings = array(
-        'include-tables' => array('table1', 'table2'),
-        'exclude-tables' => array('table3', 'table4'),
-/* CompressMethod::[GZIP, BZIP2, NONE] */3
-        'compress' => CompressMethod::GZIP,
- /* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data */
-        'no-data' => false,
-/* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table */
-        'add-drop-table' => false,
-/* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_single-transaction */
-        'single-transaction' => true,
-/* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_lock-tables */
-        'lock-tables' => false,
-/* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks */
-        'add-locks' => true,
-/* http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert */
-        'extended-insert' => true,
- /* http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html */
-        'disable-foreign-keys-check' => false
-    );
-
-    $dump = new MySQLDump(
-        'forum',
-        'forum_user',
-        'forum_pass',
-        'localhost',
-        $dumpSettings
-    );
-    $dump->start('forum_dump.sql.gz');
-
-## Advanced usage
+### Getting started
 
     <?php
+        $dumpSettings = array(
+            'include-tables' => array('table1', 'table2'),
+            'exclude-tables' => array('table3', 'table4'),
+            'compress' => 'GZIP',
+            'no-data' => false,
+            'add-drop-table' => false,
+            'single-transaction' => true,
+            'lock-tables' => false,
+            'add-locks' => true,
+            'extended-insert' => true,
+            'disable-foreign-keys-check' => false
+    );
 
-    class Cron_Controller extends Base_Controller
-    {
-        public function get_backup()
-        {
-            $conn = Config::get('database.connections.mysql');
+    $dump = new Mysqldump('clouddueling', 'root', 'root', 'localhost', 'mysql', $dumpSettings);
+    $dump->start('storage/work/dump.sql');
 
-            $filename = time() . ".sql";
-            $filepath = "storage/work/";
+### API
 
-            $dump = new MySQLDump();
-            $dump->host     = $conn['host'];
-            $dump->user     = $conn['username'];
-            $dump->pass     = $conn['password'];
-            $dump->db       = $conn['database'];
-            $dump->filename = $filepath . $filename;
-            $dump->start();
+- **include-tables**
+ - Only include these tables.
+- **exclude-tables**
+ - Exclude these tables.
+- **compress**
+ - GZIP, BZIP2, NONE
+- **no-data**
+ - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data
+- **add-drop-table**
+ - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table
+- **single-transaction**
+ - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_single-transaction
+- **lock-tables**
+ - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_lock-tables
+- **add-locks**
+ - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks
+- **extended-insert**
+ - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert
+- **disable-foreign-keys-check**
+ - http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
 
-            return "Backup complete.";
-        }
-    }
+### License
 
+The Laravel framework is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT)
 
-## Credits
+### Credits
 
-This was originally written by James Elliott in 2009, I OOP'd it up, outputted to file, simplified the process, fixed some mysql errors, and updated it to PSR standards.
+Originally written by James Elliott in 2009 but has since been almost entirely rewritten and improved upon.
+http://code.google.com/p/db-mysqldump/
 
-Original site: http://code.google.com/p/db-mysqldump/
-
-Enjoy.
+### Todos
+- Replace public extend() with array_merge_recursive()
