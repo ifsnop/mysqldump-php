@@ -1,5 +1,7 @@
 <?php
 
+namespace Clouddueling\Mysqldump;
+
 class Mysqldump
 {
     const MAXLINESIZE = 1000000;
