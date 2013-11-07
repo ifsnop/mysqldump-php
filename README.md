@@ -50,7 +50,8 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
  - http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
 
 ### Contributing
-- Format all code to PHP-FIG standards.
+
+Format all code to PHP-FIG standards.
 
 ### License
 
