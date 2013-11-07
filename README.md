@@ -49,11 +49,14 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 - **disable-foreign-keys-check**
  - http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
 
+### Contributing
+- Format all code to PHP-FIG standards.
+
 ### License
 
 This project is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT)
 
 ### Credits
 
-Originally written by James Elliott in 2009 but has since been almost entirely rewritten and improved upon.
+Originally based on James Elliott's script from 2009 but has since been entirely rewritten.
 http://code.google.com/p/db-mysqldump/
