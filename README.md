@@ -10,21 +10,22 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 ### Getting started
 
     <?php
-	$dumpSettings = array(
-		'include-tables' => array('table1', 'table2'),
-		'exclude-tables' => array('users', 'records'),
-		'compress' => 'GZIP',
-		'no-data' => false,
-		'add-drop-table' => false,
-		'single-transaction' => true,
-		'lock-tables' => false,
-		'add-locks' => true,
-		'extended-insert' => true
-	);
+        $dumpSettings = array(
+            'include-tables' => array('table1', 'table2'),
+            'exclude-tables' => array('table3', 'table4'),
+            'compress' => 'GZIP',
+            'no-data' => false,
+            'add-drop-table' => false,
+            'single-transaction' => true,
+            'lock-tables' => false,
+            'add-locks' => true,
+            'extended-insert' => true,
+            'disable-foreign-keys-check' => false
+    );
 
-	$dump = new Mysqldump('clouddueling', 'root', 'root', 'localhost', 'mysql', $dumpSettings);
-	$dump->start('storage/work/dump.sql');
-	
+    $dump = new Mysqldump('clouddueling', 'root', 'root', 'localhost', 'mysql', $dumpSettings);
+    $dump->start('storage/work/dump.sql');
+
 ### API
 
 - **include-tables**
@@ -45,6 +46,8 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks
 - **extended-insert**
  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert
+- **disable-foreign-keys-check**
+ - http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
 
 ### License
 
@@ -54,6 +57,3 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 
 Originally written by James Elliott in 2009 but has since been almost entirely rewritten and improved upon.
 http://code.google.com/p/db-mysqldump/
-
-### Todos
-- Replace public extend() with array_merge_recursive()

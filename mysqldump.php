@@ -16,17 +16,6 @@ class Mysqldump
     private $tables = array();
     private $views = array();
     private $dbHandler;
-    private $defaultSettings = array(
-        'include-tables' => array(),
-        'exclude-tables' => array(),
-        'compress' => CompressMethod::NONE,
-        'no-data' => false,
-        'add-drop-table' => false,
-        'single-transaction' => true,
-        'lock-tables' => false,
-        'add-locks' => true,
-        'extended-insert' => true
-    );
     private $compressManager;
 
     /**
@@ -40,38 +29,49 @@ class Mysqldump
      */
     public function __construct($db = '', $user = '', $pass = '', $host = 'localhost', $type="mysql", $settings = null, $pdo_options = array(PDO::ATTR_PERSISTENT => true, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION))
     {
+        $defaultSettings = array(
+            'include-tables' => array(),
+            'exclude-tables' => array(),
+            'compress' => 'None',
+            'no-data' => false,
+            'add-drop-table' => false,
+            'single-transaction' => true,
+            'lock-tables' => false,
+            'add-locks' => true,
+            'extended-insert' => true,
+            'disable-foreign-keys-check' => false
+        );
+
         $this->db = $db;
         $this->user = $user;
         $this->pass = $pass;
         $this->host = $host;
         $this->type = strtolower($type);
         $this->pdo_options = $pdo_options;
-        $this->settings = $this->extend($this->defaultSettings, $settings);
+        $this->settings = Mysqldump::array_replace_recursive($defaultSettings, $settings);
     }
 
     /**
-     * jquery style extend, merges arrays (without errors if the passed
-     * values are not arrays)
+     * Custom array_replace_recursive to be used if PHP < 5.3
      *
-     * @param array $args       default settings
-     * @param array $extended   user settings
-     *
-     * @return array $extended  merged user settings with default settings
+     * @return array
      */
-    public function extend()
+    public static function array_replace_recursive($array1, $array2)
     {
-        $args = func_get_args();
-        $extended = array();
-        if (is_array($args) && count($args) > 0) {
-            foreach ($args as $array) {
-                if (is_array($array)) {
-                    $extended = array_merge($extended, $array);
+        if ( function_exists('array_replace_recursive') ) {
+            return array_replace_recursive($array1, $array2);
+        } else {
+            foreach ($array2 as $key => $value) {
+                if (is_array($value)) {
+                    $array1[$key] = Mysqldump::array_replace_recursive($array1[$key], $value);
+                } else {
+                    $array1[$key] = $value;
                 }
             }
+            return $array1;
         }
-
-        return $extended;
     }
+
 
     /**
      * Connect with PDO
@@ -143,6 +143,13 @@ class Mysqldump
             }
         }
 
+        // Disable checking foreign keys
+        if ( $this->settings['disable-foreign-keys-check'] ) {
+            $this->compressManager->write(
+                $this->adapter->start_disable_foreign_keys_check()
+            );
+        }
+
         // Exporting tables one by one
         foreach ($this->tables as $table) {
             if (in_array($table, $this->settings['exclude-tables'], true)) {
@@ -158,6 +165,14 @@ class Mysqldump
         foreach ($this->views as $view) {
             $this->compressManager->write($view);
         }
+
+        // Enable checking foreign keys if needed
+        if ( $this->settings['disable-foreign-keys-check'] ) {
+            $this->compressManager->write(
+                $this->adapter->end_disable_foreign_keys_check()
+            );
+        }
+
         $this->compressManager->close();
     }
 
@@ -192,28 +207,29 @@ class Mysqldump
         $stmt = $this->adapter->show_create_table($tablename);
         foreach ($this->dbHandler->query($stmt) as $r) {
             if (isset($r['Create Table'])) {
-                $this->compressManager->write("-- " .
-                    "--------------------------------------------------------" .
+                $this->compressManager->write(
+                    "-- --------------------------------------------------------" .
                     "\n\n" .
                     "--\n" .
-                    "-- Table structure for table `$tablename`\n--\n\n");
+                    "-- Table structure for table `$tablename`\n" .
+                    "--\n\n"
+                );
 
                 if ($this->settings['add-drop-table']) {
                     $this->compressManager->write("DROP TABLE IF EXISTS `$tablename`;\n\n");
                 }
-
                 $this->compressManager->write($r['Create Table'] . ";\n\n");
-
                 return true;
             }
+
             if ( isset($r['Create View']) ) {
-                $view  = "-- " .
-                        "--------------------------------------------------------" .
-                        "\n\n";
-                $view .= "--\n-- Table structure for view `$tablename`\n--\n\n";
+                $view  = "-- --------------------------------------------------------" .
+                        "\n\n" .
+                        "--\n" .
+                        "-- Table structure for view `$tablename`\n" .
+                        "--\n\n";
                 $view .= $r['Create View'] . ";\n\n";
                 $this->views[] = $view;
-
                 return false;
             }
         }
@@ -296,10 +312,6 @@ class Mysqldump
  */
 abstract class CompressMethod
 {
-    const NONE = 0;
-    const GZIP = 1;
-    const BZIP2 = 2;
-
     public static $enums = array(
         "None",
         "Gzip",
@@ -442,14 +454,14 @@ class TypeAdapter
         }
     }
 
-	public function show_tables($dbName){
-		switch($this->type){
-			case 'sqlite':
-				return "SELECT tbl_name FROM sqlite_master where type='table'";
-			default:
-				return "SELECT TABLE_NAME AS tbl_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='$dbName'";
-		}
-	}
+    public function show_tables($dbName){
+        switch($this->type){
+            case 'sqlite':
+                return "SELECT tbl_name FROM sqlite_master where type='table'";
+            default:
+                return "SELECT TABLE_NAME AS tbl_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='$dbName'";
+            }
+    }
 
     public function start_transaction(){
         switch($this->type){
@@ -504,4 +516,25 @@ class TypeAdapter
                 return "UNLOCK TABLES;\n";
         }
     }
+
+    public function start_disable_foreign_keys_check() {
+        switch($this->type) {
+            case 'sqlite':
+                return "\n";
+            default:
+                return "-- Ignore checking of foreign keys\n" .
+                "SET FOREIGN_KEY_CHECKS = 0;\n\n";
+        }
+    }
+
+    public function end_disable_foreign_keys_check() {
+        switch($this->type) {
+            case 'sqlite':
+                return "\n";
+            default:
+                return "\n-- Unignore checking of foreign keys\n" .
+                    "SET FOREIGN_KEY_CHECKS = 1; \n\n";
+        }
+    }
+
 }
