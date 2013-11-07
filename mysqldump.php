@@ -312,7 +312,6 @@ class Mysqldump
  */
 abstract class CompressMethod
 {
-
     public static $enums = array(
         "None",
         "Gzip",
@@ -455,14 +454,14 @@ class TypeAdapter
         }
     }
 
-	public function show_tables($dbName){
-		switch($this->type){
-			case 'sqlite':
-				return "SELECT tbl_name FROM sqlite_master where type='table'";
-			default:
-				return "SELECT TABLE_NAME AS tbl_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='$dbName'";
-		}
-	}
+    public function show_tables($dbName){
+        switch($this->type){
+            case 'sqlite':
+                return "SELECT tbl_name FROM sqlite_master where type='table'";
+            default:
+                return "SELECT TABLE_NAME AS tbl_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='$dbName'";
+            }
+    }
 
     public function start_transaction(){
         switch($this->type){
