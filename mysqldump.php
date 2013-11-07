@@ -16,18 +16,6 @@ class Mysqldump
     private $tables = array();
     private $views = array();
     private $dbHandler;
-    private $defaultSettings = array(
-        'include-tables' => array(),
-        'exclude-tables' => array(),
-        'compress' => 'None',
-        'no-data' => false,
-        'add-drop-table' => false,
-        'single-transaction' => true,
-        'lock-tables' => false,
-        'add-locks' => true,
-        'extended-insert' => true,
-        'disable-foreign-keys-check' => false
-    );
     private $compressManager;
 
     /**
@@ -41,38 +29,49 @@ class Mysqldump
      */
     public function __construct($db = '', $user = '', $pass = '', $host = 'localhost', $type="mysql", $settings = null, $pdo_options = array(PDO::ATTR_PERSISTENT => true, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION))
     {
+        $defaultSettings = array(
+            'include-tables' => array(),
+            'exclude-tables' => array(),
+            'compress' => 'None',
+            'no-data' => false,
+            'add-drop-table' => false,
+            'single-transaction' => true,
+            'lock-tables' => false,
+            'add-locks' => true,
+            'extended-insert' => true,
+            'disable-foreign-keys-check' => false
+        );
+
         $this->db = $db;
         $this->user = $user;
         $this->pass = $pass;
         $this->host = $host;
         $this->type = strtolower($type);
         $this->pdo_options = $pdo_options;
-        $this->settings = $this->extend($this->defaultSettings, $settings);
+        $this->settings = Mysqldump::array_replace_recursive($defaultSettings, $settings);
     }
 
     /**
-     * jquery style extend, merges arrays (without errors if the passed
-     * values are not arrays)
+     * Custom array_replace_recursive to be used if PHP < 5.3
      *
-     * @param array $args       default settings
-     * @param array $extended   user settings
-     *
-     * @return array $extended  merged user settings with default settings
+     * @return array
      */
-    public function extend()
+    public static function array_replace_recursive($array1, $array2)
     {
-        $args = func_get_args();
-        $extended = array();
-        if (is_array($args) && count($args) > 0) {
-            foreach ($args as $array) {
-                if (is_array($array)) {
-                    $extended = array_merge($extended, $array);
+        if ( function_exists('array_replace_recursive') ) {
+            return array_replace_recursive($array1, $array2);
+        } else {
+            foreach ($array2 as $key => $value) {
+                if (is_array($value)) {
+                    $array1[$key] = Mysqldump::array_replace_recursive($array1[$key], $value);
+                } else {
+                    $array1[$key] = $value;
                 }
             }
+            return $array1;
         }
-
-        return $extended;
     }
+
 
     /**
      * Connect with PDO
