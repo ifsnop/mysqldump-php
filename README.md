@@ -51,7 +51,7 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 
 ### License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT)
+This project is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT)
 
 ### Credits
 
