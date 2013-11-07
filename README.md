@@ -23,7 +23,7 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
             'disable-foreign-keys-check' => false
     );
 
-    $dump = new Mysqldump('clouddueling', 'root', 'root', 'localhost', 'mysql', $dumpSettings);
+    $dump = new Mysqldump('clouddueling', 'root', 'password', 'localhost', 'mysql', $dumpSettings);
     $dump->start('storage/work/dump.sql');
 
 ### API
