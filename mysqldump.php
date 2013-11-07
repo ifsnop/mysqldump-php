@@ -16,7 +16,10 @@ class Mysqldump
     private $tables = array();
     private $views = array();
     private $dbHandler;
+    private $dbType;
     private $compressManager;
+    private $typeAdapter;
+    private $pdo_options;
 
     /**
      * Constructor of Mysqldump. Note that in the case of an SQLite database connection, the filename must be in the $db parameter.
@@ -27,7 +30,10 @@ class Mysqldump
      * @param string $host      SQL server to connect to
      * @return null
      */
-    public function __construct($db = '', $user = '', $pass = '', $host = 'localhost', $type="mysql", $settings = null, $pdo_options = array(PDO::ATTR_PERSISTENT => true, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION))
+    public function __construct($db = '', $user = '', $pass = '',
+        $host = 'localhost', $type = "mysql", $settings = null,
+        $pdo_options = array(PDO::ATTR_PERSISTENT => true,
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION))
     {
         $defaultSettings = array(
             'include-tables' => array(),
@@ -46,7 +52,7 @@ class Mysqldump
         $this->user = $user;
         $this->pass = $pass;
         $this->host = $host;
-        $this->type = strtolower($type);
+        $this->dbType = strtolower($type);
         $this->pdo_options = $pdo_options;
         $this->settings = Mysqldump::array_replace_recursive($defaultSettings, $settings);
     }
@@ -80,29 +86,31 @@ class Mysqldump
      */
     private function connect()
     {
+
         // Connecting with PDO
         try {
-            switch ($this->type){
+            switch ($this->dbType) {
                 case 'sqlite':
                     $this->dbHandler = new PDO("sqlite:" . $this->db, null, null, $this->pdo_options);
                     break;
-
                 case 'mysql': case 'pgsql': case 'dblib':
-                    $this->dbHandler = new PDO($this->type . ":host=" . $this->host.";dbname=" . $this->db, $this->user, $this->pass, $this->pdo_options);
+                    $this->dbHandler = new PDO($this->dbType . ":host=" .
+                        $this->host.";dbname=" . $this->db, $this->user,
+                        $this->pass, $this->pdo_options);
                     // Fix for always-unicode output
                     $this->dbHandler->exec("SET NAMES utf8");
                     break;
 
                 default:
-                    throw new \Exception("Unsupported database type: " . $this->type, 3);
+                    throw new \Exception("Unsupported database type: " . $this->dbType, 3);
             }
         } catch (PDOException $e) {
-            throw new \Exception("Connection to " . $this->type . " failed with message: " .
+            throw new \Exception("Connection to " . $this->dbType . " failed with message: " .
                     $e->getMessage(), 3);
         }
 
         $this->dbHandler->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
-        $this->adapter = new TypeAdapter($this->type);
+        $this->typeAdapter = TypeAdapterFactory::create($this->dbType);
     }
 
     /**
@@ -137,7 +145,7 @@ class Mysqldump
 
         // Listing all tables from database
         $this->tables = array();
-        foreach ($this->dbHandler->query($this->adapter->show_tables($this->db)) as $row) {
+        foreach ($this->dbHandler->query($this->typeAdapter->show_tables($this->db)) as $row) {
             if (empty($this->settings['include-tables']) || (! empty($this->settings['include-tables']) && in_array(current($row), $this->settings['include-tables'], true))) {
                 array_push($this->tables, current($row));
             }
@@ -146,7 +154,7 @@ class Mysqldump
         // Disable checking foreign keys
         if ( $this->settings['disable-foreign-keys-check'] ) {
             $this->compressManager->write(
-                $this->adapter->start_disable_foreign_keys_check()
+                $this->typeAdapter->start_disable_foreign_keys_check()
             );
         }
 
@@ -169,7 +177,7 @@ class Mysqldump
         // Enable checking foreign keys if needed
         if ( $this->settings['disable-foreign-keys-check'] ) {
             $this->compressManager->write(
-                $this->adapter->end_disable_foreign_keys_check()
+                $this->typeAdapter->end_disable_foreign_keys_check()
             );
         }
 
@@ -204,7 +212,7 @@ class Mysqldump
      */
     private function getTableStructure($tablename)
     {
-        $stmt = $this->adapter->show_create_table($tablename);
+        $stmt = $this->typeAdapter->show_create_table($tablename);
         foreach ($this->dbHandler->query($stmt) as $r) {
             if (isset($r['Create Table'])) {
                 $this->compressManager->write(
@@ -250,18 +258,18 @@ class Mysqldump
         );
 
         if ($this->settings['single-transaction']) {
-            $this->dbHandler->exec($this->adapter->start_transaction());
+            $this->dbHandler->exec($this->typeAdapter->start_transaction());
         }
 
         if ($this->settings['lock-tables']) {
-            $lockstmt = $this->adapter->lock_table($tablename);
+            $lockstmt = $this->typeAdapter->lock_table($tablename);
             if(strlen($lockstmt)){
                 $this->dbHandler->exec($lockstmt);
             }
         }
 
         if ( $this->settings['add-locks'] ) {
-            $this->compressManager->write($this->adapter->start_add_lock_table($tablename));
+            $this->compressManager->write($this->typeAdapter->start_add_lock_table($tablename));
         }
 
         $onlyOnce = true; $lineSize = 0;
@@ -290,16 +298,16 @@ class Mysqldump
         }
 
         if ($this->settings['add-locks']) {
-            $this->compressManager->write($this->adapter->end_add_lock_table($tablename));
+            $this->compressManager->write($this->typeAdapter->end_add_lock_table($tablename));
         }
 
         if ($this->settings['single-transaction']) {
-            $this->dbHandler->exec($this->adapter->commit_transaction());
+            $this->dbHandler->exec($this->typeAdapter->commit_transaction());
         }
 
         if ($this->settings['lock-tables']) {
-            $lockstmt = $this->adapter->unlock_table($tablename);
-            if(strlen($lockstmt)){
+            $lockstmt = $this->typeAdapter->unlock_table($tablename);
+            if( strlen($lockstmt) ){
                 $this->dbHandler->exec($lockstmt);
             }
         }
@@ -439,102 +447,129 @@ class CompressNone extends CompressManagerFactory
     }
 }
 
-class TypeAdapter
+/**
+ * Enum with all available TypeAdapter implementations
+ *
+ */
+abstract class TypeAdapter
 {
-    public function __construct($type){
-        $this->type = $type;
+    public static $enums = array(
+        "Sqlite",
+        "Mysql"
+    );
+
+    public static function isValid($c)
+    {
+        return in_array($c, self::$enums);
+    }
+}
+
+/**
+ * TypeAdapter Factory
+ *
+ */
+abstract class TypeAdapterFactory
+{
+    public static function create($c)
+    {
+        $c = ucfirst(strtolower($c));
+        if (! TypeAdapter::isValid($c)) {
+            throw new \Exception("Database type support for ($c) not yet available", 1);
+        }
+
+        $method = "TypeAdapter" . $c;
+
+        return new $method();
     }
 
     public function show_create_table($tablename){
-        switch($this->type){
-            case 'sqlite':
-                return "select tbl_name as 'Table', sql as 'Create Table' from sqlite_master where type='table' and tbl_name='$tablename'";
-            default:
-                return "SHOW CREATE TABLE `$tablename`";
-        }
+        return "select tbl_name as 'Table', sql as 'Create Table' from sqlite_master where type='table' and tbl_name='$tablename'";
     }
 
     public function show_tables($dbName){
-        switch($this->type){
-            case 'sqlite':
-                return "SELECT tbl_name FROM sqlite_master where type='table'";
-            default:
-                return "SELECT TABLE_NAME AS tbl_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='$dbName'";
-            }
+        return "SELECT tbl_name FROM sqlite_master where type='table'";
     }
 
     public function start_transaction(){
-        switch($this->type){
-            case 'sqlite':
-                return "BEGIN EXCLUSIVE";
-            default:
-                return "SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ; START TRANSACTION";
-        }
+        return "BEGIN EXCLUSIVE";
     }
 
     public function commit_transaction(){
-        switch($this->type){
-            case 'sqlite':
-                return "COMMIT";
-            default:
-                return "SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ; START TRANSACTION";
-        }
+        return "COMMIT";
     }
 
     public function lock_table($tablename){
-        switch($this->type){
-            case 'sqlite':
-                return "";
-            default:
-                return "LOCK TABLES `$tablename` READ LOCAL";
-        }
+        return "";
     }
 
     public function unlock_table($tablename){
-        switch($this->type){
-            case 'sqlite':
-                return "";
-            default:
-                return "UNLOCK TABLES";
-        }
+        return "";
     }
 
     public function start_add_lock_table($tablename){
-        switch($this->type){
-            case 'sqlite':
-                return "\n";
-            default:
-                return "LOCK TABLES `$tablename` WRITE;\n";
-        }
+        return "\n";
     }
 
     public function end_add_lock_table($tablename){
-        switch($this->type){
-            case 'sqlite':
-                return "\n";
-            default:
-                return "UNLOCK TABLES;\n";
-        }
+        return "\n";
     }
 
     public function start_disable_foreign_keys_check() {
-        switch($this->type) {
-            case 'sqlite':
-                return "\n";
-            default:
-                return "-- Ignore checking of foreign keys\n" .
-                "SET FOREIGN_KEY_CHECKS = 0;\n\n";
-        }
+        return "\n";
     }
 
     public function end_disable_foreign_keys_check() {
-        switch($this->type) {
-            case 'sqlite':
-                return "\n";
-            default:
-                return "\n-- Unignore checking of foreign keys\n" .
-                    "SET FOREIGN_KEY_CHECKS = 1; \n\n";
-        }
+        return "\n";
     }
 
+
+}
+
+class TypeAdapterPgsql extends TypeAdapterFactory {}
+class TypeAdapterDblib extends TypeAdapterFactory {}
+class TypeAdapterSqlite extends TypeAdapterFactory {}
+
+class TypeAdapterMysql extends TypeAdapterFactory
+{
+    public function show_create_table($tablename){
+        return "SHOW CREATE TABLE `$tablename`";
+    }
+
+    public function show_tables($dbName){
+        return "SELECT TABLE_NAME AS tbl_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='$dbName'";
+    }
+
+    public function start_transaction(){
+        return "SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ; START TRANSACTION";
+    }
+
+    public function commit_transaction(){
+        return "COMMIT";
+    }
+
+    public function lock_table($tablename){
+        return "LOCK TABLES `$tablename` READ LOCAL";
+    }
+
+    public function unlock_table($tablename){
+        return "UNLOCK TABLES";
+    }
+
+    public function start_add_lock_table($tablename){
+        return "LOCK TABLES `$tablename` WRITE;\n";
+    }
+
+    public function end_add_lock_table($tablename){
+        return "UNLOCK TABLES;\n";
+    }
+
+    public function start_disable_foreign_keys_check() {
+        return "-- Ignore checking of foreign keys\n" .
+            "SET FOREIGN_KEY_CHECKS = 0;\n\n";
+    }
+
+    public function end_disable_foreign_keys_check() {
+        return "\n-- Unignore checking of foreign keys\n" .
+            "SET FOREIGN_KEY_CHECKS = 1; \n\n";
+    }
 }
