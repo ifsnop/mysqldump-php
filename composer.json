@@ -1,0 +1,9 @@
+{
+    "name": "clouddueling/mysqldump-php",
+    "description": "This is a php version of linux's mysqldump in terminal \"$ mysqldump -u username -p...\"",
+    "license": "MIT",
+    "minimum-stability": "stable",
+    "require": {
+
+    }
+}
