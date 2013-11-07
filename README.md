@@ -52,6 +52,7 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 ### Contributing
 
 Format all code to PHP-FIG standards.
+http://www.php-fig.org/
 
 ### License
 
