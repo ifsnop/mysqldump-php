@@ -13,7 +13,7 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 
         include_once('mysqldump-php/src/Clouddueling/Mysqldump/Mysqldump.php');
 
-        use Clouddueling\Mysqldump\Mysqldump;
+        use Clouddueling\Mysqldump;
 
         $dumpSettings = array(
             'include-tables' => array('table1', 'table2'),

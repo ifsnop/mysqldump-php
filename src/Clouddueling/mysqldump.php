@@ -1,6 +1,6 @@
 <?php
 
-namespace Clouddueling\Mysqldump;
+namespace Clouddueling;
 
 use Exception;
 use PDO;
