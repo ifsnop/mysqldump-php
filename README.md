@@ -11,7 +11,7 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 
     <?php
 
-        include_once('mysqldump-php/src/Clouddueling/Mysqldump/Mysqldump.php');
+        include_once('mysqldump-php/src/Clouddueling/Mysqldump.php');
 
         use Clouddueling\Mysqldump;
 
