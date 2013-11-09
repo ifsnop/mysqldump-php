@@ -2,6 +2,9 @@
 
 namespace Clouddueling\Mysqldump;
 
+use Exception;
+use PDO;
+
 class Mysqldump
 {
     const MAXLINESIZE = 1000000;
@@ -30,6 +33,7 @@ class Mysqldump
      * @param string $user      SQL account username
      * @param string $pass      SQL account password
      * @param string $host      SQL server to connect to
+     * @param string $type      SQL database type
      * @return null
      */
     public function __construct($db = '', $user = '', $pass = '',
@@ -104,10 +108,10 @@ class Mysqldump
                     break;
 
                 default:
-                    throw new \Exception("Unsupported database type: " . $this->dbType, 3);
+                    throw new Exception("Unsupported database type: '" . $this->dbType . "'", 3);
             }
         } catch (PDOException $e) {
-            throw new \Exception("Connection to " . $this->dbType . " failed with message: " .
+            throw new Exception("Connection to " . $this->dbType . " failed with message: " .
                     $e->getMessage(), 3);
         }
 
@@ -129,7 +133,7 @@ class Mysqldump
         }
         // We must set a name to continue
         if ( empty($this->fileName) ) {
-            throw new \Exception("Output file name is not set", 1);
+            throw new Exception("Output file name is not set", 1);
         }
 
         // Connect to database
@@ -139,7 +143,7 @@ class Mysqldump
         $this->compressManager = CompressManagerFactory::create($this->settings['compress']);
 
         if (! $this->compressManager->open($this->fileName)) {
-            throw new \Exception("Output file is not writable", 2);
+            throw new Exception("Output file is not writable", 2);
         }
 
         // Formating dump file
@@ -342,12 +346,12 @@ abstract class CompressManagerFactory
     {
         $c = ucfirst(strtolower($c));
         if (! CompressMethod::isValid($c)) {
-            throw new \Exception("Compression method is invalid", 1);
+            throw new Exception("Compression method ($c) is not defined yet", 1);
         }
 
-        $method = "Compress" . $c;
+        $method =  __NAMESPACE__ . "\\" . "Compress" . $c;
 
-        return new $method();
+        return new $method;
     }
 }
 
@@ -356,7 +360,7 @@ class CompressBzip2 extends CompressManagerFactory
     public function __construct()
     {
         if (! function_exists("bzopen")) {
-            throw new \Exception("Compression is enabled, but bzip2 lib is not installed or configured properly", 1);
+            throw new Exception("Compression is enabled, but bzip2 lib is not installed or configured properly", 1);
         }
     }
 
@@ -374,7 +378,7 @@ class CompressBzip2 extends CompressManagerFactory
     {
         $bytesWritten = 0;
         if (false === ($bytesWritten = bzwrite($this->fileHandler, $str))) {
-            throw new \Exception("Writting to file failed! Probably, there is no more free space left?", 4);
+            throw new Exception("Writting to file failed! Probably, there is no more free space left?", 4);
         }
 
         return $bytesWritten;
@@ -391,7 +395,7 @@ class CompressGzip extends CompressManagerFactory
     public function __construct()
     {
         if (! function_exists("gzopen") ) {
-            throw new \Exception("Compression is enabled, but gzip lib is not installed or configured properly", 1);
+            throw new Exception("Compression is enabled, but gzip lib is not installed or configured properly", 1);
         }
     }
 
@@ -409,7 +413,7 @@ class CompressGzip extends CompressManagerFactory
     {
         $bytesWritten = 0;
         if (false === ($bytesWritten = gzwrite($this->fileHandler, $str))) {
-            throw new \Exception("Writting to file failed! Probably, there is no more free space left?", 4);
+            throw new Exception("Writting to file failed! Probably, there is no more free space left?", 4);
         }
 
         return $bytesWritten;
@@ -437,7 +441,7 @@ class CompressNone extends CompressManagerFactory
     {
         $bytesWritten = 0;
         if (false === ($bytesWritten = fwrite($this->fileHandler, $str))) {
-            throw new \Exception("Writting to file failed! Probably, there is no more free space left?", 4);
+            throw new Exception("Writting to file failed! Probably, there is no more free space left?", 4);
         }
 
         return $bytesWritten;
@@ -476,12 +480,11 @@ abstract class TypeAdapterFactory
     {
         $c = ucfirst(strtolower($c));
         if (! TypeAdapter::isValid($c)) {
-            throw new \Exception("Database type support for ($c) not yet available", 1);
+            throw new Exception("Database type support for ($c) not yet available", 1);
         }
 
-        $method = "TypeAdapter" . $c;
-
-        return new $method();
+        $method =  __NAMESPACE__ . "\\" . "TypeAdapter" . $c;
+        return new $method;
     }
 
     public function show_create_table($tablename){
