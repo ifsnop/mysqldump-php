@@ -10,6 +10,11 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 ### Getting started
 
     <?php
+
+        include_once('mysqldump-php/src/Clouddueling/Mysqldump/Mysqldump.php');
+
+        use Clouddueling\Mysqldump\Mysqldump;
+
         $dumpSettings = array(
             'include-tables' => array('table1', 'table2'),
             'exclude-tables' => array('table3', 'table4'),
@@ -21,10 +26,10 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
             'add-locks' => true,
             'extended-insert' => true,
             'disable-foreign-keys-check' => false
-    );
+        );
 
-    $dump = new Mysqldump('clouddueling', 'root', 'password', 'localhost', 'mysql', $dumpSettings);
-    $dump->start('storage/work/dump.sql');
+        $dump = new Mysqldump('clouddueling', 'root', 'password', 'localhost', 'mysql', $dumpSettings);
+        $dump->start('storage/work/dump.sql');
 
 ### API
 
