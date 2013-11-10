@@ -17,17 +17,18 @@ class Mysqldump
     public $fileName = 'dump.sql';
 
     // Internal stuff
-    private $settings = array();
-    private $tables = array();
-    private $views = array();
-    private $dbHandler;
-    private $dbType;
-    private $compressManager;
-    private $typeAdapter;
-    private $pdo_options;
+    private $_settings = array();
+    private $_tables = array();
+    private $_views = array();
+    private $_dbHandler;
+    private $_dbType;
+    private $_compressManager;
+    private $_typeAdapter;
+    private $_pdoOptions;
 
     /**
-     * Constructor of Mysqldump. Note that in the case of an SQLite database connection, the filename must be in the $db parameter.
+     * Constructor of Mysqldump. Note that in the case of an SQLite database
+     * connection, the filename must be in the $db parameter.
      *
      * @param string $db        Database name
      * @param string $user      SQL account username
@@ -38,7 +39,7 @@ class Mysqldump
      */
     public function __construct($db = '', $user = '', $pass = '',
         $host = 'localhost', $type = "mysql", $settings = null,
-        $pdo_options = array(PDO::ATTR_PERSISTENT => true,
+        $pdoOptions = array(PDO::ATTR_PERSISTENT => true,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION))
     {
         $defaultSettings = array(
@@ -58,9 +59,9 @@ class Mysqldump
         $this->user = $user;
         $this->pass = $pass;
         $this->host = $host;
-        $this->dbType = strtolower($type);
-        $this->pdo_options = $pdo_options;
-        $this->settings = Mysqldump::array_replace_recursive($defaultSettings, $settings);
+        $this->_dbType = strtolower($type);
+        $this->_pdoOptions = $pdoOptions;
+        $this->_settings = Mysqldump::array_replace_recursive($defaultSettings, $settings);
     }
 
     /**
@@ -95,28 +96,32 @@ class Mysqldump
 
         // Connecting with PDO
         try {
-            switch ($this->dbType) {
+            switch ($this->_dbType) {
                 case 'sqlite':
-                    $this->dbHandler = new PDO("sqlite:" . $this->db, null, null, $this->pdo_options);
+                    $this->dbHandler = new PDO("sqlite:" . $this->db, null, null, $this->_pdoOptions);
                     break;
                 case 'mysql': case 'pgsql': case 'dblib':
-                    $this->dbHandler = new PDO($this->dbType . ":host=" .
+                    $this->_dbHandler = new PDO(
+                        $this->_dbType . ":host=" .
                         $this->host.";dbname=" . $this->db, $this->user,
-                        $this->pass, $this->pdo_options);
+                        $this->pass, $this->_pdoOptions
+                    );
                     // Fix for always-unicode output
-                    $this->dbHandler->exec("SET NAMES utf8");
+                    $this->_dbHandler->exec("SET NAMES utf8");
                     break;
 
                 default:
-                    throw new Exception("Unsupported database type: '" . $this->dbType . "'", 3);
+                    throw new Exception("Unsupported database type (" . $this->_dbType . ")", 3);
             }
         } catch (PDOException $e) {
-            throw new Exception("Connection to " . $this->dbType . " failed with message: " .
-                    $e->getMessage(), 3);
+            throw new Exception(
+                "Connection to " . $this->_dbType . " failed with message: " .
+                $e->getMessage(), 3
+            );
         }
 
-        $this->dbHandler->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
-        $this->typeAdapter = TypeAdapterFactory::create($this->dbType);
+        $this->_dbHandler->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
+        $this->_typeAdapter = TypeAdapterFactory::create($this->_dbType);
     }
 
     /**
@@ -140,54 +145,66 @@ class Mysqldump
         $this->connect();
 
         // Create a new compressManager to manage compressed output
-        $this->compressManager = CompressManagerFactory::create($this->settings['compress']);
+        $this->_compressManager = CompressManagerFactory::create($this->_settings['compress']);
 
-        if (! $this->compressManager->open($this->fileName)) {
+        if (! $this->_compressManager->open($this->fileName)) {
             throw new Exception("Output file is not writable", 2);
         }
 
         // Formating dump file
-        $this->compressManager->write($this->getHeader());
+        $this->_compressManager->write($this->getHeader());
 
         // Listing all tables from database
-        $this->tables = array();
-        foreach ($this->dbHandler->query($this->typeAdapter->show_tables($this->db)) as $row) {
-            if (empty($this->settings['include-tables']) || (! empty($this->settings['include-tables']) && in_array(current($row), $this->settings['include-tables'], true))) {
-                array_push($this->tables, current($row));
+        $this->_tables = array();
+        foreach ($this->_dbHandler->query($this->_typeAdapter->show_tables($this->db)) as $row) {
+            if ( empty($this->_settings['include-tables']) ||
+                (! empty($this->_settings['include-tables']) &&
+                in_array(current($row), $this->_settings['include-tables'], true))) {
+                array_push($this->_tables, current($row));
+                // remove tables from include-tables array.
+                if ( ($key = array_search(current($row), $this->_settings['include-tables'])) !== false ) {
+                    unset($this->_settings['include-tables'][$key]);
+                }
             }
         }
 
+        // If there still are some tables in include-tables array, that means
+        // that some tables weren't found. Give proper error and exit.
+        if ( 0 < count($this->_settings['include-tables']) ) {
+            throw new Exception("Table (" . implode(",", $this->_settings['include-tables']) . ") not found in database", 4);
+        }
+
         // Disable checking foreign keys
-        if ( $this->settings['disable-foreign-keys-check'] ) {
-            $this->compressManager->write(
-                $this->typeAdapter->start_disable_foreign_keys_check()
+        if ( $this->_settings['disable-foreign-keys-check'] ) {
+            $this->_compressManager->write(
+                $this->_typeAdapter->start_disable_foreign_keys_check()
             );
         }
 
         // Exporting tables one by one
-        foreach ($this->tables as $table) {
-            if (in_array($table, $this->settings['exclude-tables'], true)) {
+        foreach ($this->_tables as $table) {
+            if (in_array($table, $this->_settings['exclude-tables'], true)) {
                 continue;
             }
             $is_table = $this->getTableStructure($table);
-            if (true === $is_table && false === $this->settings['no-data']) {
+            if (true === $is_table && false === $this->_settings['no-data']) {
                 $this->listValues($table);
             }
         }
 
         // Exporting views one by one
-        foreach ($this->views as $view) {
-            $this->compressManager->write($view);
+        foreach ($this->_views as $view) {
+            $this->_compressManager->write($view);
         }
 
         // Enable checking foreign keys if needed
-        if ( $this->settings['disable-foreign-keys-check'] ) {
-            $this->compressManager->write(
-                $this->typeAdapter->end_disable_foreign_keys_check()
+        if ( $this->_settings['disable-foreign-keys-check'] ) {
+            $this->_compressManager->write(
+                $this->_typeAdapter->end_disable_foreign_keys_check()
             );
         }
 
-        $this->compressManager->close();
+        $this->_compressManager->close();
     }
 
     /**
@@ -218,10 +235,10 @@ class Mysqldump
      */
     private function getTableStructure($tablename)
     {
-        $stmt = $this->typeAdapter->show_create_table($tablename);
-        foreach ($this->dbHandler->query($stmt) as $r) {
+        $stmt = $this->_typeAdapter->show_create_table($tablename);
+        foreach ($this->_dbHandler->query($stmt) as $r) {
             if (isset($r['Create Table'])) {
-                $this->compressManager->write(
+                $this->_compressManager->write(
                     "-- --------------------------------------------------------" .
                     "\n\n" .
                     "--\n" .
@@ -229,10 +246,10 @@ class Mysqldump
                     "--\n\n"
                 );
 
-                if ($this->settings['add-drop-table']) {
-                    $this->compressManager->write("DROP TABLE IF EXISTS `$tablename`;\n\n");
+                if ($this->_settings['add-drop-table']) {
+                    $this->_compressManager->write("DROP TABLE IF EXISTS `$tablename`;\n\n");
                 }
-                $this->compressManager->write($r['Create Table'] . ";\n\n");
+                $this->_compressManager->write($r['Create Table'] . ";\n\n");
                 return true;
             }
 
@@ -243,7 +260,7 @@ class Mysqldump
                         "-- Table structure for view `$tablename`\n" .
                         "--\n\n";
                 $view .= $r['Create View'] . ";\n\n";
-                $this->views[] = $view;
+                $this->_views[] = $view;
                 return false;
             }
         }
@@ -257,64 +274,66 @@ class Mysqldump
      */
     private function listValues($tablename)
     {
-        $this->compressManager->write(
+        $this->_compressManager->write(
             "--\n" .
             "-- Dumping data for table `$tablename`\n" .
             "--\n\n"
         );
 
-        if ($this->settings['single-transaction']) {
-            $this->dbHandler->exec($this->typeAdapter->start_transaction());
+        if ( $this->_settings['single-transaction'] ) {
+            $this->_dbHandler->exec($this->_typeAdapter->start_transaction());
         }
 
-        if ($this->settings['lock-tables']) {
-            $lockstmt = $this->typeAdapter->lock_table($tablename);
-            if(strlen($lockstmt)){
-                $this->dbHandler->exec($lockstmt);
+        if ( $this->_settings['lock-tables'] ) {
+            $lockstmt = $this->_typeAdapter->lock_table($tablename);
+            if ( strlen($lockstmt) ) {
+                $this->_dbHandler->exec($lockstmt);
             }
         }
 
-        if ( $this->settings['add-locks'] ) {
-            $this->compressManager->write($this->typeAdapter->start_add_lock_table($tablename));
+        if ( $this->_settings['add-locks'] ) {
+            $this->_compressManager->write($this->_typeAdapter->start_add_lock_table($tablename));
         }
 
         $onlyOnce = true; $lineSize = 0;
         $stmt = "SELECT * FROM `$tablename`";
-        foreach ($this->dbHandler->query($stmt, PDO::FETCH_NUM) as $r) {
+        foreach ($this->_dbHandler->query($stmt, PDO::FETCH_NUM) as $r) {
             $vals = array();
             foreach ($r as $val) {
                 $vals[] = is_null($val) ? "NULL" :
-                $this->dbHandler->quote($val);
+                $this->_dbHandler->quote($val);
             }
-            if ($onlyOnce || !$this->settings['extended-insert'] ) {
-                $lineSize += $this->compressManager->write("INSERT INTO `$tablename` VALUES (" . implode(",", $vals) . ")");
+            if ($onlyOnce || !$this->_settings['extended-insert'] ) {
+                $lineSize += $this->_compressManager->write(
+                    "INSERT INTO `$tablename` VALUES (" . implode(",", $vals) . ")"
+                );
                 $onlyOnce = false;
             } else {
-                $lineSize += $this->compressManager->write(",(" . implode(",", $vals) . ")");
+                $lineSize += $this->_compressManager->write(",(" . implode(",", $vals) . ")");
             }
             if ( ($lineSize > Mysqldump::MAXLINESIZE) ||
-                    !$this->settings['extended-insert'] ) {
+                    !$this->_settings['extended-insert'] ) {
                 $onlyOnce = true;
-                $lineSize = $this->compressManager->write(";\n");
+                $lineSize = $this->_compressManager->write(";\n");
             }
         }
 
-        if (! $onlyOnce) {
-            $this->compressManager->write(";\n");
+        if ( !$onlyOnce ) {
+            $this->_compressManager->write(";\n");
         }
 
-        if ($this->settings['add-locks']) {
-            $this->compressManager->write($this->typeAdapter->end_add_lock_table($tablename));
+        if ( $this->_settings['add-locks'] ) {
+            $this->_compressManager->write($this->_typeAdapter->end_add_lock_table($tablename));
         }
 
-        if ($this->settings['single-transaction']) {
-            $this->dbHandler->exec($this->typeAdapter->commit_transaction());
+        if ( $this->_settings['single-transaction'] ) {
+            $this->_dbHandler->exec($this->_typeAdapter->commit_transaction());
         }
 
-        if ($this->settings['lock-tables']) {
-            $lockstmt = $this->typeAdapter->unlock_table($tablename);
-            if( strlen($lockstmt) ){
-                $this->dbHandler->exec($lockstmt);
+        if ( $this->_settings['lock-tables'] ) {
+            $lockstmt = $this->_typeAdapter->unlock_table($tablename);
+            if ( strlen($lockstmt) ) {
+                $this->_dbHandler->exec($lockstmt);
             }
         }
     }
@@ -340,7 +359,7 @@ abstract class CompressMethod
 
 abstract class CompressManagerFactory
 {
-    private $fileHandle = null;
+    private $_fileHandle = null;
 
     public static function create($c)
     {
@@ -366,8 +385,8 @@ class CompressBzip2 extends CompressManagerFactory
 
     public function open($filename)
     {
-        $this->fileHandler = bzopen($filename . ".bz2", "w");
-        if (false === $this->fileHandler) {
+        $this->_fileHandler = bzopen($filename . ".bz2", "w");
+        if (false === $this->_fileHandler) {
             return false;
         }
 
@@ -377,7 +396,7 @@ class CompressBzip2 extends CompressManagerFactory
     public function write($str)
     {
         $bytesWritten = 0;
-        if (false === ($bytesWritten = bzwrite($this->fileHandler, $str))) {
+        if (false === ($bytesWritten = bzwrite($this->_fileHandler, $str))) {
             throw new Exception("Writting to file failed! Probably, there is no more free space left?", 4);
         }
 
@@ -386,7 +405,7 @@ class CompressBzip2 extends CompressManagerFactory
 
     public function close()
     {
-        return bzclose($this->fileHandler);
+        return bzclose($this->_fileHandler);
     }
 }
 
@@ -401,8 +420,8 @@ class CompressGzip extends CompressManagerFactory
 
     public function open($filename)
     {
-        $this->fileHandler = gzopen($filename . ".gz", "wb");
-        if (false === $this->fileHandler) {
+        $this->_fileHandler = gzopen($filename . ".gz", "wb");
+        if (false === $this->_fileHandler) {
             return false;
         }
 
@@ -412,7 +431,7 @@ class CompressGzip extends CompressManagerFactory
     public function write($str)
     {
         $bytesWritten = 0;
-        if (false === ($bytesWritten = gzwrite($this->fileHandler, $str))) {
+        if (false === ($bytesWritten = gzwrite($this->_fileHandler, $str))) {
             throw new Exception("Writting to file failed! Probably, there is no more free space left?", 4);
         }
 
@@ -421,7 +440,7 @@ class CompressGzip extends CompressManagerFactory
 
     public function close()
     {
-        return gzclose($this->fileHandler);
+        return gzclose($this->_fileHandler);
     }
 }
 
@@ -429,8 +448,8 @@ class CompressNone extends CompressManagerFactory
 {
     public function open($filename)
     {
-        $this->fileHandler = fopen($filename, "wb");
-        if (false === $this->fileHandler) {
+        $this->_fileHandler = fopen($filename, "wb");
+        if (false === $this->_fileHandler) {
             return false;
         }
 
@@ -440,7 +459,7 @@ class CompressNone extends CompressManagerFactory
     public function write($str)
     {
         $bytesWritten = 0;
-        if (false === ($bytesWritten = fwrite($this->fileHandler, $str))) {
+        if (false === ($bytesWritten = fwrite($this->_fileHandler, $str))) {
             throw new Exception("Writting to file failed! Probably, there is no more free space left?", 4);
         }
 
@@ -449,7 +468,7 @@ class CompressNone extends CompressManagerFactory
 
     public function close()
     {
-        return fclose($this->fileHandler);
+        return fclose($this->_fileHandler);
     }
 }
 
@@ -487,93 +506,124 @@ abstract class TypeAdapterFactory
         return new $method;
     }
 
-    public function show_create_table($tablename){
-        return "select tbl_name as 'Table', sql as 'Create Table' from sqlite_master where type='table' and tbl_name='$tablename'";
+    public function show_create_table($tablename)
+    {
+        return "SELECT tbl_name as 'Table', sql as 'Create Table' " .
+            "FROM sqlite_master " .
+            "WHERE type='table' AND tbl_name='$tablename'";
     }
 
-    public function show_tables(){
+    public function show_tables()
+    {
         return "SELECT tbl_name FROM sqlite_master where type='table'";
     }
 
-    public function start_transaction(){
+    public function start_transaction()
+    {
         return "BEGIN EXCLUSIVE";
     }
 
-    public function commit_transaction(){
+    public function commit_transaction()
+    {
         return "COMMIT";
     }
 
-    public function lock_table(){
+    public function lock_table()
+    {
         return "";
     }
 
-    public function unlock_table(){
+    public function unlock_table()
+    {
         return "";
     }
 
-    public function start_add_lock_table(){
+    public function start_add_lock_table()
+    {
         return "\n";
     }
 
-    public function end_add_lock_table(){
+    public function end_add_lock_table()
+    {
         return "\n";
     }
 
-    public function start_disable_foreign_keys_check() {
+    public function start_disable_foreign_keys_check()
+    {
         return "\n";
     }
 
-    public function end_disable_foreign_keys_check() {
+    public function end_disable_foreign_keys_check()
+    {
         return "\n";
     }
-
-
 }
 
-class TypeAdapterPgsql extends TypeAdapterFactory {}
-class TypeAdapterDblib extends TypeAdapterFactory {}
-class TypeAdapterSqlite extends TypeAdapterFactory {}
+class TypeAdapterPgsql extends TypeAdapterFactory
+{
+}
+
+class TypeAdapterDblib extends TypeAdapterFactory
+{
+}
+
+class TypeAdapterSqlite extends TypeAdapterFactory
+{
+}
 
 class TypeAdapterMysql extends TypeAdapterFactory
 {
-    public function show_create_table($tablename){
+    public function show_create_table($tablename)
+    {
         return "SHOW CREATE TABLE `$tablename`";
     }
 
-    public function show_tables($dbName){
-        return "SELECT TABLE_NAME AS tbl_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='$dbName'";
+    public function show_tables($dbName)
+    {
+        return "SELECT TABLE_NAME AS tbl_name " .
+            "FROM INFORMATION_SCHEMA.TABLES " .
+            "WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='$dbName'";
     }
 
-    public function start_transaction(){
-        return "SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ; START TRANSACTION";
+    public function start_transaction()
+    {
+        return "SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ; " .
+            "START TRANSACTION";
     }
 
-    public function commit_transaction(){
+    public function commit_transaction()
+    {
         return "COMMIT";
     }
 
-    public function lock_table($tablename){
+    public function lock_table($tablename)
+    {
         return "LOCK TABLES `$tablename` READ LOCAL";
     }
 
-    public function unlock_table($tablename){
+    public function unlock_table($tablename)
+    {
         return "UNLOCK TABLES";
     }
 
-    public function start_add_lock_table($tablename){
+    public function start_add_lock_table($tablename)
+    {
         return "LOCK TABLES `$tablename` WRITE;\n";
     }
 
-    public function end_add_lock_table(){
+    public function end_add_lock_table()
+    {
         return "UNLOCK TABLES;\n";
     }
 
-    public function start_disable_foreign_keys_check() {
+    public function start_disable_foreign_keys_check()
+    {
         return "-- Ignore checking of foreign keys\n" .
             "SET FOREIGN_KEY_CHECKS = 0;\n\n";
     }
 
-    public function end_disable_foreign_keys_check() {
+    public function end_disable_foreign_keys_check() 
+    {
         return "\n-- Unignore checking of foreign keys\n" .
             "SET FOREIGN_KEY_CHECKS = 1; \n\n";
     }
