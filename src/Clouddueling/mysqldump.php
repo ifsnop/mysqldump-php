@@ -161,7 +161,17 @@ class Mysqldump
                 (! empty($this->_settings['include-tables']) &&
                 in_array(current($row), $this->_settings['include-tables'], true))) {
                 array_push($this->_tables, current($row));
+                // remove tables from include-tables array.
+                if ( ($key = array_search(current($row), $this->_settings['include-tables'])) !== false ) {
+                    unset($this->_settings['include-tables'][$key]);
+                }
             }
+        }
+
+        // If there still are some tables in include-tables array, that means
+        // that some tables weren't found. Give proper error and exit.
+        if ( 0 < count($this->_settings['include-tables']) ) {
+            throw new Exception("Table (" . implode(",", $this->_settings['include-tables']) . ") not found in database", 4);
         }
 
         // Disable checking foreign keys
