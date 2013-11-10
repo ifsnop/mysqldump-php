@@ -491,7 +491,7 @@ abstract class TypeAdapterFactory
         return "select tbl_name as 'Table', sql as 'Create Table' from sqlite_master where type='table' and tbl_name='$tablename'";
     }
 
-    public function show_tables($dbName){
+    public function show_tables(){
         return "SELECT tbl_name FROM sqlite_master where type='table'";
     }
 
@@ -503,19 +503,19 @@ abstract class TypeAdapterFactory
         return "COMMIT";
     }
 
-    public function lock_table($tablename){
+    public function lock_table(){
         return "";
     }
 
-    public function unlock_table($tablename){
+    public function unlock_table(){
         return "";
     }
 
-    public function start_add_lock_table($tablename){
+    public function start_add_lock_table(){
         return "\n";
     }
 
-    public function end_add_lock_table($tablename){
+    public function end_add_lock_table(){
         return "\n";
     }
 
@@ -564,7 +564,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return "LOCK TABLES `$tablename` WRITE;\n";
     }
 
-    public function end_add_lock_table($tablename){
+    public function end_add_lock_table(){
         return "UNLOCK TABLES;\n";
     }
 
