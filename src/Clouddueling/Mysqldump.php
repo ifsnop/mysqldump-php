@@ -4,6 +4,7 @@ namespace Clouddueling;
 
 use Exception;
 use PDO;
+use PDOException;
 
 class Mysqldump
 {
@@ -40,7 +41,8 @@ class Mysqldump
     public function __construct($db = '', $user = '', $pass = '',
         $host = 'localhost', $type = "mysql", $settings = null,
         $pdoOptions = array(PDO::ATTR_PERSISTENT => true,
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION))
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"))
     {
         $defaultSettings = array(
             'include-tables' => array(),
@@ -85,7 +87,6 @@ class Mysqldump
         }
     }
 
-
     /**
      * Connect with PDO
      *
@@ -98,7 +99,7 @@ class Mysqldump
         try {
             switch ($this->_dbType) {
                 case 'sqlite':
-                    $this->dbHandler = new PDO("sqlite:" . $this->db, null, null, $this->_pdoOptions);
+                    $this->_dbHandler = new PDO("sqlite:" . $this->db, null, null, $this->_pdoOptions);
                     break;
                 case 'mysql': case 'pgsql': case 'dblib':
                     $this->_dbHandler = new PDO(
@@ -109,7 +110,6 @@ class Mysqldump
                     // Fix for always-unicode output
                     $this->_dbHandler->exec("SET NAMES utf8");
                     break;
-
                 default:
                     throw new Exception("Unsupported database type (" . $this->_dbType . ")", 3);
             }
