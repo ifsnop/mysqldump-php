@@ -4,6 +4,11 @@
     "license": "MIT",
     "minimum-stability": "stable",
     "require": {
-
+        "php": ">=5.2.0"
+    },
+    "autoload": {
+        "psr-0": {
+            "Clouddueling\\": "src/"
+        }
     }
 }
