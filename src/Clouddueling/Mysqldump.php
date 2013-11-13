@@ -573,13 +573,19 @@ class TypeAdapterSqlite extends TypeAdapterFactory
 
 class TypeAdapterMysql extends TypeAdapterFactory
 {
-    public function show_create_table($tablename)
+    public function show_create_table($tableName)
     {
-        return "SHOW CREATE TABLE `$tablename`";
+        return "SHOW CREATE TABLE `$tableName`";
     }
 
-    public function show_tables($dbName)
+    public function show_tables()
     {
+        if ( func_num_args() != 1 )
+            return "";
+
+        $args = func_get_args();
+        $dbName = $args[0];
+
         return "SELECT TABLE_NAME AS tbl_name " .
             "FROM INFORMATION_SCHEMA.TABLES " .
             "WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='$dbName'";
@@ -596,19 +602,31 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return "COMMIT";
     }
 
-    public function lock_table($tablename)
+    public function lock_table()
     {
-        return "LOCK TABLES `$tablename` READ LOCAL";
+        if ( func_num_args() != 1 )
+            return "";
+
+        $args = func_get_args();
+        $tableName = $args[0];
+        return "LOCK TABLES `$tableName` READ LOCAL";
     }
 
-    public function unlock_table($tablename)
+    public function unlock_table()
     {
         return "UNLOCK TABLES";
     }
 
-    public function start_add_lock_table($tablename)
+    public function start_add_lock_table()
     {
-        return "LOCK TABLES `$tablename` WRITE;\n";
+
+        if ( func_num_args() != 1 )
+            return "";
+
+        $args = func_get_args();
+        $tableName = $args[0];
+
+        return "LOCK TABLES `$tableName` WRITE;\n";
     }
 
     public function end_add_lock_table()
@@ -622,7 +640,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
             "SET FOREIGN_KEY_CHECKS = 0;\n\n";
     }
 
-    public function end_disable_foreign_keys_check() 
+    public function end_disable_foreign_keys_check()
     {
         return "\n-- Unignore checking of foreign keys\n" .
             "SET FOREIGN_KEY_CHECKS = 1; \n\n";
