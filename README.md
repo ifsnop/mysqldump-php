@@ -20,6 +20,7 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
             'exclude-tables' => array('table3', 'table4'),
             'compress' => 'GZIP',
             'no-data' => false,
+            'add-drop-database' => false,
             'add-drop-table' => false,
             'single-transaction' => true,
             'lock-tables' => false,
@@ -41,6 +42,8 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
  - GZIP, BZIP2, NONE
 - **no-data**
  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data
+- **add-drop-database**
+ - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-database
 - **add-drop-table**
  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table
 - **single-transaction**

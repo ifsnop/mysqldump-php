@@ -49,6 +49,7 @@ class Mysqldump
             'exclude-tables' => array(),
             'compress' => 'None',
             'no-data' => false,
+            'add-drop-database' => false,
             'add-drop-table' => false,
             'single-transaction' => true,
             'lock-tables' => false,
@@ -153,6 +154,10 @@ class Mysqldump
 
         // Formating dump file
         $this->_compressManager->write($this->getHeader());
+
+        if ( $this->_settings['add-drop-database'] ) {
+            $this->_compressManager->write($this->_typeAdapter->add_drop_database($this->db, $this->_dbHandler));
+        }
 
         // Listing all tables from database
         $this->_tables = array();
@@ -557,6 +562,11 @@ abstract class TypeAdapterFactory
     {
         return "\n";
     }
+
+    public function add_drop_database()
+    {
+        return "\n";
+    }
 }
 
 class TypeAdapterPgsql extends TypeAdapterFactory
@@ -619,7 +629,6 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function start_add_lock_table()
     {
-
         if ( func_num_args() != 1 )
             return "";
 
@@ -644,5 +653,30 @@ class TypeAdapterMysql extends TypeAdapterFactory
     {
         return "\n-- Unignore checking of foreign keys\n" .
             "SET FOREIGN_KEY_CHECKS = 1; \n\n";
+    }
+
+    public function add_drop_database()
+    {
+        $ret = "";
+        if ( func_num_args() != 2 )
+            return $ret;
+
+        $args = func_get_args();
+        $dbName = $args[0];
+        $dbHandler = $args[1];
+
+        $ret .= "/*!40000 DROP DATABASE IF EXISTS `" . $dbName . "`*/;\n";
+
+        $rs = $dbHandler->query("SHOW VARIABLES LIKE 'character_set_database';");
+        $characterSet = $rs->fetchColumn(1);
+
+        $rs = $dbHandler->query("SHOW VARIABLES LIKE 'collation_database';");
+        $collationDb = $rs->fetchColumn(1);
+
+        $ret .= "CREATE DATABASE /*!32312 IF NOT EXISTS*/ `" . $dbName .
+            "` /*!40100 DEFAULT CHARACTER SET " . $characterSet .
+            " COLLATE " . $collationDb . "*/;\n\n";
+
+        return $ret;
     }
 }
