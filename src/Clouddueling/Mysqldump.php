@@ -675,7 +675,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
         $ret .= "CREATE DATABASE /*!32312 IF NOT EXISTS*/ `" . $dbName .
             "` /*!40100 DEFAULT CHARACTER SET " . $characterSet .
-            " COLLATE " . $collationDb . "*/;\n\n";
+            " COLLATE " . $collationDb . "*/;\n" .
+            "USE `" . $dbName . "`;\n\n";
 
         return $ret;
     }
