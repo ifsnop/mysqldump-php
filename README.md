@@ -13,7 +13,7 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 
         include_once('mysqldump-php/src/Clouddueling/Mysqldump.php');
 
-        use Clouddueling\Mysqldump;
+        use Clouddueling\Mysqldump\Mysqldump;
 
         $dumpSettings = array(
             'include-tables' => array('table1', 'table2'),
@@ -35,27 +35,31 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 ### API
 
 - **include-tables**
- - Only include these tables.
+  - Only include these tables.
 - **exclude-tables**
- - Exclude these tables.
+  - Exclude these tables.
 - **compress**
- - GZIP, BZIP2, NONE
+  - GZIP, BZIP2, NONE
 - **no-data**
- - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data
 - **add-drop-database**
- - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-database
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-database
 - **add-drop-table**
- - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table
 - **single-transaction**
- - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_single-transaction
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_single-transaction
 - **lock-tables**
- - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_lock-tables
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_lock-tables
 - **add-locks**
- - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks
 - **extended-insert**
- - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert
 - **disable-foreign-keys-check**
- - http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
+  - http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
+
+### Getting Started With Composer
+
+http://net.tutsplus.com/tutorials/php/easy-package-management-with-composer/
 
 ### Contributing
 
