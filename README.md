@@ -11,8 +11,6 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 
     <?php
 
-        include_once('mysqldump-php/src/Clouddueling/Mysqldump.php');
-
         use Clouddueling\Mysqldump\Mysqldump;
 
         $dumpSettings = array(
@@ -57,7 +55,7 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 - **disable-foreign-keys-check**
   - http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
 
-### Getting Started With Composer
+### Using Composer
 
 http://net.tutsplus.com/tutorials/php/easy-package-management-with-composer/
 
