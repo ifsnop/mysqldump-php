@@ -13,5 +13,10 @@
         "psr-0": {
             "Clouddueling\\": "src/"
         }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-stable"
+        }
     }
 }
