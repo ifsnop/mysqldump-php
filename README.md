@@ -3,6 +3,7 @@
 This is a php version of linux's mysqldump in terminal "$ mysqldump -u username -p...".
 
 [![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/clouddueling/mysqldump-php/badges/quality-score.png?s=d02891e196a3ca1298619032a538ce8ae8cafd2b)](https://scrutinizer-ci.com/g/clouddueling/mysqldump-php/)
+[![Latest Stable Version](https://poser.pugx.org/clouddueling/mysqldump-php/v/stable.png)](https://packagist.org/packages/clouddueling/mysqldump-php)
 
 ### Requirements
 
