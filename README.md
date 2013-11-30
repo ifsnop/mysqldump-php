@@ -63,7 +63,6 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 
 - Write unit tests.
 - Refactor to the singleton pattern.
-- Remove all static functions
 
 ### Using Composer
 
