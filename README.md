@@ -9,7 +9,7 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 ## Requirements
 
 - PHP 5 >= 5.3.0
-- PECL pdo >= 0.2.0
+- PDO
 
 ## Getting started
 
