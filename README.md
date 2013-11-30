@@ -6,12 +6,12 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 [![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/clouddueling/mysqldump-php/badges/quality-score.png?s=d02891e196a3ca1298619032a538ce8ae8cafd2b)](https://scrutinizer-ci.com/g/clouddueling/mysqldump-php/)
 [![Latest Stable Version](https://poser.pugx.org/clouddueling/mysqldump-php/v/stable.png)](https://packagist.org/packages/clouddueling/mysqldump-php)
 
-### Requirements
+## Requirements
 
 - PHP 5 >= 5.3.0
 - PECL pdo >= 0.2.0
 
-### Getting started
+## Getting started
 
     <?php
 
@@ -34,7 +34,7 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
         $dump = new Mysqldump('clouddueling', 'root', 'password', 'localhost', 'mysql', $dumpSettings);
         $dump->start('storage/work/dump.sql');
 
-### API
+## API
 
 - **include-tables**
   - Only include these tables.
@@ -59,25 +59,25 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 - **disable-foreign-keys-check**
   - http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
 
-### Todo
+## Todo
 
 - Write unit tests.
 - Refactor to the singleton pattern.
 
-### Using Composer
+## Using Composer
 
 http://net.tutsplus.com/tutorials/php/easy-package-management-with-composer/
 
-### Contributing
+## Contributing
 
 Format all code to PHP-FIG standards.
 http://www.php-fig.org/
 
-### License
+## License
 
 This project is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT)
 
-### Credits
+## Credits
 
 Originally based on James Elliott's script from 2009 but has since been entirely rewritten.
 http://code.google.com/p/db-mysqldump/
