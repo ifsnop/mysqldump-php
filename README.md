@@ -79,5 +79,5 @@ This project is open-sourced software licensed under the [MIT license](http://op
 
 ## Credits
 
-Originally based on James Elliott's script from 2009 but has since been entirely rewritten.
+Originally based on James Elliott's script from 2009.
 http://code.google.com/p/db-mysqldump/
