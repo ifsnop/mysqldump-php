@@ -59,14 +59,22 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 - **disable-foreign-keys-check**
   - http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
 
+## Composer
+
+```
+"clouddueling/mysqldump-php": "dev-master"
+```
+
+or
+
+```
+"clouddueling/mysqldump-php": "1.0.*"
+```
+
 ## Todo
 
 - Write unit tests.
 - Refactor to the singleton pattern.
-
-## Using Composer
-
-http://net.tutsplus.com/tutorials/php/easy-package-management-with-composer/
 
 ## Contributing
 
