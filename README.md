@@ -74,7 +74,7 @@ or
 ## Todo
 
 - Write unit tests.
-- Refactor to the singleton pattern.
+- Refactor into one class.
 
 ## Contributing
 
