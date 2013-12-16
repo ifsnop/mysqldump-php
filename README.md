@@ -89,3 +89,7 @@ This project is open-sourced software licensed under the [MIT license](http://op
 
 Originally based on James Elliott's script from 2009.
 http://code.google.com/p/db-mysqldump/
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/clouddueling/mysqldump-php/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
