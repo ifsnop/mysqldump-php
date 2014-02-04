@@ -161,14 +161,17 @@ class Mysqldump
 
         // Listing all tables from database
         $this->_tables = array();
-        foreach ($this->_dbHandler->query($this->_typeAdapter->show_tables($this->db)) as $row) {
-            if ( empty($this->_settings['include-tables']) ||
-                (! empty($this->_settings['include-tables']) &&
-                in_array(current($row), $this->_settings['include-tables'], true))) {
+        if (empty($this->_settings['include-tables'])) {
+            // include all tables for now, blacklisting happens later
+            foreach($this->_dbHandler->query($this->_typeAdapter->show_tables($this->db)) as $row) {
                 array_push($this->_tables, current($row));
-                // remove tables from include-tables array.
-                if ( ($key = array_search(current($row), $this->_settings['include-tables'])) !== false ) {
-                    unset($this->_settings['include-tables'][$key]);
+            }
+        } else {
+            // include only the tables mentioned in include-tables
+            foreach ($this->_dbHandler->query($this->_typeAdapter->show_tables($this->db)) as $row) {
+                if (in_array(current($row), $this->_settings['include-tables'], true)) {
+                    array_push($this->_tables, current($row));
+                    unset($this->_settings['include-tables'][array_search(current($row), $this->_settings['include-tables'])]);
                 }
             }
         }
