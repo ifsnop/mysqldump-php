@@ -39,7 +39,7 @@ class Mysqldump
      * @return null
      */
     public function __construct($db = '', $user = '', $pass = '',
-        $host = 'localhost', $type = "mysql", $settings = null,
+        $host = 'localhost', $type = "mysql", $settings = array(),
         $pdoOptions = array(PDO::ATTR_PERSISTENT => true,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"))
