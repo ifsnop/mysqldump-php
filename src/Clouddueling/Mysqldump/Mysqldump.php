@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Clouddueling\Mysqldump;
 
@@ -12,6 +12,7 @@ class Mysqldump
 
     // This can be set both on constructor or manually
     public $host;
+    public $port;
     public $user;
     public $pass;
     public $db;
@@ -58,9 +59,18 @@ class Mysqldump
             'disable-foreign-keys-check' => false
         );
 
+        $colon_pos = strpos($host, ':');
+        if ($colon_pos !== false) {
+            $port = substr($host, $colon_pos + 1);
+            $host = substr($host, 0, $colon_pos);
+        } else {
+            $port = null;
+        }
+
         $this->db = $db;
         $this->user = $user;
         $this->pass = $pass;
+        $this->port = $port;
         $this->host = $host;
         $this->_dbType = strtolower($type);
         $this->_pdoOptions = $pdoOptions;
@@ -103,11 +113,9 @@ class Mysqldump
                     $this->_dbHandler = new PDO("sqlite:" . $this->db, null, null, $this->_pdoOptions);
                     break;
                 case 'mysql': case 'pgsql': case 'dblib':
-                    $this->_dbHandler = new PDO(
-                        $this->_dbType . ":host=" .
-                        $this->host.";dbname=" . $this->db, $this->user,
-                        $this->pass, $this->_pdoOptions
-                    );
+                    $dsn = $this->_dbType . ":host=" . $this->host . ";dbname=" . $this->db;
+                    if (isset($this->port)) $dsn .= ';port=' . $this->port;
+                    $this->_dbHandler = new PDO($dsn, $this->user, $this->pass, $this->_pdoOptions);
                     // Fix for always-unicode output
                     $this->_dbHandler->exec("SET NAMES utf8");
                     break;
