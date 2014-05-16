@@ -1,3 +1,5 @@
+# If someone would like to take ownership of this repo please open an issue and we can talk.  I can't support this anymore.
+
 # MySQLDump - PHP
 
 This is a php version of linux's mysqldump in terminal "$ mysqldump -u username -p...".
