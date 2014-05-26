@@ -55,7 +55,9 @@ class Mysqldump
             'lock-tables' => false,
             'add-locks' => true,
             'extended-insert' => true,
-            'disable-foreign-keys-check' => false
+            'disable-foreign-keys-check' => false,
+            'where' => '',
+            'no-create-info' => false,
         );
 
         $this->db = $db;
@@ -246,29 +248,32 @@ class Mysqldump
         $stmt = $this->_typeAdapter->show_create_table($tablename);
         foreach ($this->_dbHandler->query($stmt) as $r) {
             if (isset($r['Create Table'])) {
-                $this->_compressManager->write(
-                    "-- --------------------------------------------------------" .
-                    "\n\n" .
-                    "--\n" .
-                    "-- Table structure for table `$tablename`\n" .
-                    "--\n\n"
-                );
-
-                if ($this->_settings['add-drop-table']) {
-                    $this->_compressManager->write("DROP TABLE IF EXISTS `$tablename`;\n\n");
+                if (!$this->_settings['no-create-info']) {
+                    $this->_compressManager->write(
+                        "-- --------------------------------------------------------" .
+                        "\n\n" .
+                        "--\n" .
+                        "-- Table structure for table `$tablename`\n" .
+                        "--\n\n"
+                    );
+                    if ($this->_settings['add-drop-table']) {
+                        $this->_compressManager->write("DROP TABLE IF EXISTS `$tablename`;\n\n");
+                    }
+                    $this->_compressManager->write($r['Create Table'] . ";\n\n");
                 }
-                $this->_compressManager->write($r['Create Table'] . ";\n\n");
                 return true;
             }
 
             if ( isset($r['Create View']) ) {
-                $view  = "-- --------------------------------------------------------" .
-                        "\n\n" .
-                        "--\n" .
-                        "-- Table structure for view `$tablename`\n" .
-                        "--\n\n";
-                $view .= $r['Create View'] . ";\n\n";
-                $this->_views[] = $view;
+                if (!$this->_settings['no-create-info']) {
+                    $view  = "-- --------------------------------------------------------" .
+                            "\n\n" .
+                            "--\n" .
+                            "-- Table structure for view `$tablename`\n" .
+                            "--\n\n";
+                    $view .= $r['Create View'] . ";\n\n";
+                    $this->_views[] = $view;
+                }
                 return false;
             }
         }
@@ -305,6 +310,9 @@ class Mysqldump
 
         $onlyOnce = true; $lineSize = 0;
         $stmt = "SELECT * FROM `$tablename`";
+        if ($this->_settings['where']) {
+            $stmt .= " WHERE {$this->_settings['where']}";
+        }
         foreach ($this->_dbHandler->query($stmt, PDO::FETCH_NUM) as $r) {
             $vals = array();
             foreach ($r as $val) {
