@@ -30,7 +30,8 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
             'lock-tables' => false,
             'add-locks' => true,
             'extended-insert' => true,
-            'disable-foreign-keys-check' => false
+            'disable-foreign-keys-check' => false,
+            'where' => ''
         );
 
         $dump = new Mysqldump('clouddueling', 'root', 'password', 'localhost', 'mysql', $dumpSettings);
@@ -60,6 +61,8 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert
 - **disable-foreign-keys-check**
   - http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
+- **where**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_where
 
 ## Composer
 

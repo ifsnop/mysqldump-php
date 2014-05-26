@@ -55,7 +55,8 @@ class Mysqldump
             'lock-tables' => false,
             'add-locks' => true,
             'extended-insert' => true,
-            'disable-foreign-keys-check' => false
+            'disable-foreign-keys-check' => false,
+            'where' => '',
         );
 
         $this->db = $db;
@@ -304,7 +305,7 @@ class Mysqldump
         }
 
         $onlyOnce = true; $lineSize = 0;
-        $stmt = "SELECT * FROM `$tablename`";
+        $stmt = "SELECT * FROM `$tablename` " . $this->settings['where'];
         foreach ($this->_dbHandler->query($stmt, PDO::FETCH_NUM) as $r) {
             $vals = array();
             foreach ($r as $val) {
