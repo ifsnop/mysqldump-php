@@ -1,12 +1,10 @@
-# If someone would like to take ownership of this repo please open an issue and we can talk.  I can't support this anymore.
-
 # MySQLDump - PHP
 
 This is a php version of linux's mysqldump in terminal "$ mysqldump -u username -p...".
 
-[![Build Status](https://travis-ci.org/clouddueling/mysqldump-php.png?branch=master)](https://travis-ci.org/clouddueling/mysqldump-php)
-[![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/clouddueling/mysqldump-php/badges/quality-score.png?s=d02891e196a3ca1298619032a538ce8ae8cafd2b)](https://scrutinizer-ci.com/g/clouddueling/mysqldump-php/)
-[![Latest Stable Version](https://poser.pugx.org/clouddueling/mysqldump-php/v/stable.png)](https://packagist.org/packages/clouddueling/mysqldump-php)
+[![Build Status](https://travis-ci.org/ifsnop/mysqldump-php.png?branch=master)](https://travis-ci.org/clouddueling/mysqldump-php)
+[![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/ifsnop/mysqldump-php/badges/quality-score.png?s=d02891e196a3ca1298619032a538ce8ae8cafd2b)](https://scrutinizer-ci.com/g/ifsnop/mysqldump-php/)
+[![Latest Stable Version](https://poser.pugx.org/ifsnop/mysqldump-php/v/stable.png)](https://packagist.org/packages/ifsnop/mysqldump-php)
 
 ## Requirements
 
@@ -97,7 +95,3 @@ This project is open-sourced software licensed under the [MIT license](http://op
 
 Originally based on James Elliott's script from 2009.
 http://code.google.com/p/db-mysqldump/
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/clouddueling/mysqldump-php/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
