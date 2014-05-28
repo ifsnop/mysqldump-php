@@ -93,7 +93,7 @@ class Mysqldump
     /**
      * Connect with PDO
      *
-     * @return bool
+     * @return null
      */
     private function connect()
     {
@@ -131,7 +131,7 @@ class Mysqldump
      * Main call
      *
      * @param string $filename  Name of file to write sql dump to
-     * @return bool
+     * @return null
      */
     public function start($filename = '')
     {
@@ -220,7 +220,7 @@ class Mysqldump
     /**
      * Returns header for dump file
      *
-     * @return null
+     * @return string
      */
     private function getHeader()
     {
@@ -241,7 +241,7 @@ class Mysqldump
      * Table structure extractor
      *
      * @param string $tablename  Name of table to export
-     * @return null
+     * @return boolean
      */
     private function getTableStructure($tablename)
     {
@@ -367,6 +367,10 @@ abstract class CompressMethod
         "Bzip2"
     );
 
+    /**
+     * @param string $c
+     * @return boolean
+     */
     public static function isValid($c)
     {
         return in_array($c, self::$enums);
@@ -377,6 +381,9 @@ abstract class CompressManagerFactory
 {
     private $_fileHandle = null;
 
+    /**
+     * @param string $c
+     */
     public static function create($c)
     {
         $c = ucfirst(strtolower($c));
@@ -499,6 +506,10 @@ abstract class TypeAdapter
         "Mysql"
     );
 
+    /**
+     * @param string $c
+     * @return boolean
+     */
     public static function isValid($c)
     {
         return in_array($c, self::$enums);
