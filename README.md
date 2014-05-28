@@ -2,7 +2,7 @@
 
 This is a php version of linux's mysqldump in terminal "$ mysqldump -u username -p...".
 
-[![Build Status](https://travis-ci.org/ifsnop/mysqldump-php.png?branch=master)](https://travis-ci.org/clouddueling/mysqldump-php)
+[![Build Status](https://travis-ci.org/ifsnop/mysqldump-php.png?branch=master)](https://travis-ci.org/ifsnop/mysqldump-php)
 [![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/ifsnop/mysqldump-php/badges/quality-score.png?s=d02891e196a3ca1298619032a538ce8ae8cafd2b)](https://scrutinizer-ci.com/g/ifsnop/mysqldump-php/)
 [![Latest Stable Version](https://poser.pugx.org/ifsnop/mysqldump-php/v/stable.png)](https://packagist.org/packages/ifsnop/mysqldump-php)
 
@@ -15,7 +15,7 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 
     <?php
 
-        use Clouddueling\Mysqldump\Mysqldump;
+        use Ifsnop\Mysqldump\Mysqldump;
 
         $dumpSettings = array(
             'include-tables' => array('table1', 'table2'),
@@ -68,13 +68,13 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 ## Composer
 
 ```
-"clouddueling/mysqldump-php": "dev-master"
+"ifsnop/mysqldump-php": "dev-master"
 ```
 
 or
 
 ```
-"clouddueling/mysqldump-php": "1.0.*"
+"ifsnop/mysqldump-php": "1.0.*"
 ```
 
 ## Todo
