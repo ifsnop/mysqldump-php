@@ -379,7 +379,7 @@ abstract class CompressMethod
 
 abstract class CompressManagerFactory
 {
-    private $_fileHandle = null;
+    private $_fileHandler = null;
 
     /**
      * @param string $c
