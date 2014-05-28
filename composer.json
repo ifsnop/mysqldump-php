@@ -1,5 +1,5 @@
 {
-    "name": "clouddueling/mysqldump-php",
+    "name": "ifsnop/mysqldump-php",
     "description": "This is a php version of linux's mysqldump in terminal \"$ mysqldump -u username -p...\"",
     "type": "library",
     "version": "1.0.0",
@@ -11,7 +11,7 @@
     },
     "autoload": {
         "psr-0": {
-            "Clouddueling\\": "src/"
+            "ifsnop\\": "src/"
         }
     }
 }
