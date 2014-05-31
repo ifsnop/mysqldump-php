@@ -379,8 +379,6 @@ abstract class CompressMethod
 
 abstract class CompressManagerFactory
 {
-    private $_fileHandler = null;
-
     /**
      * @param string $c
      */
@@ -399,6 +397,8 @@ abstract class CompressManagerFactory
 
 class CompressBzip2 extends CompressManagerFactory
 {
+    private $_fileHandler = null;
+
     public function __construct()
     {
         if (! function_exists("bzopen")) {
@@ -434,6 +434,8 @@ class CompressBzip2 extends CompressManagerFactory
 
 class CompressGzip extends CompressManagerFactory
 {
+    private $_fileHandler = null;
+
     public function __construct()
     {
         if (! function_exists("gzopen") ) {
@@ -469,6 +471,8 @@ class CompressGzip extends CompressManagerFactory
 
 class CompressNone extends CompressManagerFactory
 {
+    private $_fileHandler = null;
+
     public function open($filename)
     {
         $this->_fileHandler = fopen($filename, "wb");
