@@ -1,14 +1,18 @@
 language: php
 
 php:
-  - 5.3
+  - 5.5
   - 5.4
+  - 5.3
+  - hhvm
 
 before_script:
   - curl -s http://getcomposer.org/installer | php
   - php composer.phar install --dev
 
-script: phpunit --coverage-clover=coverage.clover
+script:
+  - ./vendor/bin/phpcs --standard=PSR1,PSR2 src
+  - phpunit --coverage-clover=coverage.clover
 
 after_script:
   - wget https://scrutinizer-ci.com/ocular.phar

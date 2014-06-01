@@ -66,7 +66,7 @@ class Mysqldump
         $this->host = $host;
         $this->_dbType = strtolower($type);
         $this->_pdoOptions = $pdoOptions;
-        $this->_settings = Mysqldump::array_replace_recursive($defaultSettings, $settings);
+        $this->_settings = self::array_replace_recursive($defaultSettings, $settings);
     }
 
     /**
@@ -327,7 +327,7 @@ class Mysqldump
             } else {
                 $lineSize += $this->_compressManager->write(",(" . implode(",", $vals) . ")");
             }
-            if ( ($lineSize > Mysqldump::MAXLINESIZE) ||
+            if ( ($lineSize > self::MAXLINESIZE) ||
                     !$this->_settings['extended-insert'] ) {
                 $onlyOnce = true;
                 $lineSize = $this->_compressManager->write(";\n");
