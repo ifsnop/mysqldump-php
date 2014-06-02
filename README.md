@@ -14,6 +14,8 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 
 ## Getting started
 
+With autoloading/Composer:
+
     <?php
 
         use Ifsnop\Mysqldump as IMysqldump;
@@ -34,8 +36,20 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
             'no-create-info' => false
         );
 
-        $dump = new IMysqldump\Mysqldump('clouddueling', 'root', 'password', 'localhost', 'mysql', $dumpSettings);
+        $dump = new IMysqldump\Mysqldump('clouddueling', 'root', 'password', 'localhost', 'mysql', $dumpSettings );
         $dump->start('storage/work/dump.sql');
+
+    ?>
+
+Without autoloading/Composer:
+
+    <?php
+
+        include_once(dirname(__FILE__) . '/vendor/ifsnop/mysqldump-php/src/Ifsnop/Mysqldump/Mysqldump.php');
+        $dump = new Ifsnop\Mysqldump\Mysqldump( 'clouddueling', 'root', 'password', 'localhost', 'mysql', array() );
+        $dump->start('storage/work/dump.sql');
+
+    ?>
 
 ## API
 
