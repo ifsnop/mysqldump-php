@@ -1,4 +1,17 @@
 <?php
+/**
+ * Mysqldump File Doc Comment
+ *
+ * PHP version 5
+ *
+ * @category Library
+ * @package  Ifsnop\Mysqldump
+ * @author   Michael J. Calkins <clouddueling@github.com>
+ * @author   Diego Torres <ifsnop@github.com>
+ * @license  http://www.gnu.org/copyleft/gpl.html GNU General Public License
+ * @link     https://github.com/ifsnop/mysqldump-php
+ *
+ */
 
 namespace Ifsnop\Mysqldump;
 
@@ -6,6 +19,17 @@ use Exception;
 use PDO;
 use PDOException;
 
+/**
+ * Mysqldump Class Doc Comment
+ *
+ * @category Library
+ * @package  Ifsnop\Mysqldump
+ * @author   Michael J. Calkins <clouddueling@github.com>
+ * @author   Diego Torres <ifsnop@github.com>
+ * @license  http://www.gnu.org/copyleft/gpl.html GNU General Public License
+ * @link     https://github.com/ifsnop/mysqldump-php
+ *
+ */
 class Mysqldump
 {
     const MAXLINESIZE = 1000000;
@@ -31,19 +55,27 @@ class Mysqldump
      * Constructor of Mysqldump. Note that in the case of an SQLite database
      * connection, the filename must be in the $db parameter.
      *
-     * @param string $db        Database name
-     * @param string $user      SQL account username
-     * @param string $pass      SQL account password
-     * @param string $host      SQL server to connect to
-     * @param string $type      SQL database type
+     * @param string $db         Database name
+     * @param string $user       SQL account username
+     * @param string $pass       SQL account password
+     * @param string $host       SQL server to connect to
+     * @param string $type       SQL database type
+     * @param array  $settings   SQL database type
+     * @param array  $pdoOptions PDO configured attributes
+     *
      * @return null
      */
-    public function __construct($db = '', $user = '', $pass = '',
-        $host = 'localhost', $type = "mysql", $settings = array(),
+    public function __construct(
+        $db = '',
+        $user = '',
+        $pass = '',
+        $host = 'localhost',
+        $type = "mysql",
+        $settings = array(),
         $pdoOptions = array(PDO::ATTR_PERSISTENT => true,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"))
-    {
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")
+    ) {
         $defaultSettings = array(
             'include-tables' => array(),
             'exclude-tables' => array(),
@@ -71,12 +103,16 @@ class Mysqldump
 
     /**
      * Custom array_replace_recursive to be used if PHP < 5.3
+     * Replaces elements from passed arrays into the first array recursively
      *
-     * @return array
+     * @param array $array1 The array in which elements are replaced
+     * @param array $array2 The array from which elements will be extracted
+     *
+     * @return array Returns an array, or NULL if an error occurs.
      */
     public static function array_replace_recursive($array1, $array2)
     {
-        if ( function_exists('array_replace_recursive') ) {
+        if (function_exists('array_replace_recursive')) {
             return array_replace_recursive($array1, $array2);
         } else {
             foreach ($array2 as $key => $value) {
@@ -104,11 +140,15 @@ class Mysqldump
                 case 'sqlite':
                     $this->_dbHandler = new PDO("sqlite:" . $this->db, null, null, $this->_pdoOptions);
                     break;
-                case 'mysql': case 'pgsql': case 'dblib':
+                case 'mysql':
+                case 'pgsql':
+                case 'dblib':
                     $this->_dbHandler = new PDO(
                         $this->_dbType . ":host=" .
-                        $this->host.";dbname=" . $this->db, $this->user,
-                        $this->pass, $this->_pdoOptions
+                        $this->host . ";dbname=" . $this->db,
+                        $this->user,
+                        $this->pass,
+                        $this->_pdoOptions
                     );
                     // Fix for always-unicode output
                     $this->_dbHandler->exec("SET NAMES utf8");
@@ -119,7 +159,8 @@ class Mysqldump
         } catch (PDOException $e) {
             throw new Exception(
                 "Connection to " . $this->_dbType . " failed with message: " .
-                $e->getMessage(), 3
+                $e->getMessage(),
+                3
             );
         }
 
@@ -136,11 +177,11 @@ class Mysqldump
     public function start($filename = '')
     {
         // Output file can be redefined here
-        if ( !empty($filename) ) {
+        if (!empty($filename)) {
             $this->fileName = $filename;
         }
         // We must set a name to continue
-        if ( empty($this->fileName) ) {
+        if (empty($this->fileName)) {
             throw new Exception("Output file name is not set", 1);
         }
 
@@ -157,7 +198,7 @@ class Mysqldump
         // Formating dump file
         $this->_compressManager->write($this->getHeader());
 
-        if ( $this->_settings['add-drop-database'] ) {
+        if ($this->_settings['add-drop-database']) {
             $this->_compressManager->write($this->_typeAdapter->add_drop_database($this->db, $this->_dbHandler));
         }
 
@@ -165,7 +206,7 @@ class Mysqldump
         $this->_tables = array();
         if (empty($this->_settings['include-tables'])) {
             // include all tables for now, blacklisting happens later
-            foreach($this->_dbHandler->query($this->_typeAdapter->show_tables($this->db)) as $row) {
+            foreach ($this->_dbHandler->query($this->_typeAdapter->show_tables($this->db)) as $row) {
                 array_push($this->_tables, current($row));
             }
         } else {
@@ -173,19 +214,27 @@ class Mysqldump
             foreach ($this->_dbHandler->query($this->_typeAdapter->show_tables($this->db)) as $row) {
                 if (in_array(current($row), $this->_settings['include-tables'], true)) {
                     array_push($this->_tables, current($row));
-                    unset($this->_settings['include-tables'][array_search(current($row), $this->_settings['include-tables'])]);
+                    $elem = array_search(
+                        current($row),
+                        $this->_settings['include-tables']
+                    );
+                    unset($this->_settings['include-tables'][$elem]);
                 }
             }
         }
 
         // If there still are some tables in include-tables array, that means
         // that some tables weren't found. Give proper error and exit.
-        if ( 0 < count($this->_settings['include-tables']) ) {
-            throw new Exception("Table (" . implode(",", $this->_settings['include-tables']) . ") not found in database", 4);
+        if (0 < count($this->_settings['include-tables'])) {
+            $table = implode(",", $this->_settings['include-tables']);
+            throw new Exception(
+                "Table (" . $table . ") not found in database",
+                4
+            );
         }
 
         // Disable checking foreign keys
-        if ( $this->_settings['disable-foreign-keys-check'] ) {
+        if ($this->_settings['disable-foreign-keys-check']) {
             $this->_compressManager->write(
                 $this->_typeAdapter->start_disable_foreign_keys_check()
             );
@@ -196,8 +245,8 @@ class Mysqldump
             if (in_array($table, $this->_settings['exclude-tables'], true)) {
                 continue;
             }
-            $is_table = $this->getTableStructure($table);
-            if (true === $is_table && false === $this->_settings['no-data']) {
+            $isTable = $this->getTableStructure($table);
+            if (true === $isTable && false === $this->_settings['no-data']) {
                 $this->listValues($table);
             }
         }
@@ -208,7 +257,7 @@ class Mysqldump
         }
 
         // Enable checking foreign keys if needed
-        if ( $this->_settings['disable-foreign-keys-check'] ) {
+        if ($this->_settings['disable-foreign-keys-check']) {
             $this->_compressManager->write(
                 $this->_typeAdapter->end_disable_foreign_keys_check()
             );
@@ -264,7 +313,7 @@ class Mysqldump
                 return true;
             }
 
-            if ( isset($r['Create View']) ) {
+            if (isset($r['Create View'])) {
                 if (!$this->_settings['no-create-info']) {
                     $view  = "-- --------------------------------------------------------" .
                             "\n\n" .
@@ -293,22 +342,23 @@ class Mysqldump
             "--\n\n"
         );
 
-        if ( $this->_settings['single-transaction'] ) {
+        if ($this->_settings['single-transaction']) {
             $this->_dbHandler->exec($this->_typeAdapter->start_transaction());
         }
 
-        if ( $this->_settings['lock-tables'] ) {
+        if ($this->_settings['lock-tables']) {
             $lockstmt = $this->_typeAdapter->lock_table($tablename);
-            if ( strlen($lockstmt) ) {
+            if (strlen($lockstmt) > 0) {
                 $this->_dbHandler->exec($lockstmt);
             }
         }
 
-        if ( $this->_settings['add-locks'] ) {
+        if ($this->_settings['add-locks']) {
             $this->_compressManager->write($this->_typeAdapter->start_add_lock_table($tablename));
         }
 
-        $onlyOnce = true; $lineSize = 0;
+        $onlyOnce = true;
+        $lineSize = 0;
         $stmt = "SELECT * FROM `$tablename`";
         if ($this->_settings['where']) {
             $stmt .= " WHERE {$this->_settings['where']}";
@@ -319,7 +369,7 @@ class Mysqldump
                 $vals[] = is_null($val) ? "NULL" :
                 $this->_dbHandler->quote($val);
             }
-            if ($onlyOnce || !$this->_settings['extended-insert'] ) {
+            if ($onlyOnce || !$this->_settings['extended-insert']) {
                 $lineSize += $this->_compressManager->write(
                     "INSERT INTO `$tablename` VALUES (" . implode(",", $vals) . ")"
                 );
@@ -327,28 +377,28 @@ class Mysqldump
             } else {
                 $lineSize += $this->_compressManager->write(",(" . implode(",", $vals) . ")");
             }
-            if ( ($lineSize > self::MAXLINESIZE) ||
-                    !$this->_settings['extended-insert'] ) {
+            if (($lineSize > self::MAXLINESIZE) ||
+                    !$this->_settings['extended-insert']) {
                 $onlyOnce = true;
                 $lineSize = $this->_compressManager->write(";\n");
             }
         }
 
-        if ( !$onlyOnce ) {
+        if (!$onlyOnce) {
             $this->_compressManager->write(";\n");
         }
 
-        if ( $this->_settings['add-locks'] ) {
+        if ($this->_settings['add-locks']) {
             $this->_compressManager->write($this->_typeAdapter->end_add_lock_table($tablename));
         }
 
-        if ( $this->_settings['single-transaction'] ) {
+        if ($this->_settings['single-transaction']) {
             $this->_dbHandler->exec($this->_typeAdapter->commit_transaction());
         }
 
-        if ( $this->_settings['lock-tables'] ) {
+        if ($this->_settings['lock-tables']) {
             $lockstmt = $this->_typeAdapter->unlock_table($tablename);
-            if ( strlen($lockstmt) ) {
+            if (strlen($lockstmt) > 0) {
                 $this->_dbHandler->exec($lockstmt);
             }
         }
@@ -438,7 +488,7 @@ class CompressGzip extends CompressManagerFactory
 
     public function __construct()
     {
-        if (! function_exists("gzopen") ) {
+        if (! function_exists("gzopen")) {
             throw new Exception("Compression is enabled, but gzip lib is not installed or configured properly", 1);
         }
     }
@@ -616,7 +666,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function show_tables()
     {
-        if ( func_num_args() != 1 )
+        if (func_num_args() != 1)
             return "";
 
         $args = func_get_args();
@@ -640,7 +690,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function lock_table()
     {
-        if ( func_num_args() != 1 )
+        if (func_num_args() != 1)
             return "";
 
         $args = func_get_args();
@@ -655,7 +705,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function start_add_lock_table()
     {
-        if ( func_num_args() != 1 )
+        if (func_num_args() != 1)
             return "";
 
         $args = func_get_args();
@@ -684,7 +734,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
     public function add_drop_database()
     {
         $ret = "";
-        if ( func_num_args() != 2 )
+        if (func_num_args() != 2)
             return $ret;
 
         $args = func_get_args();
