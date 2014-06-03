@@ -397,9 +397,9 @@ class Mysqldump
         }
 
         if ($this->_settings['lock-tables']) {
-            $lockstmt = $this->_typeAdapter->unlock_table($tablename);
-            if (strlen($lockstmt) > 0) {
-                $this->_dbHandler->exec($lockstmt);
+            $unlockstmt = $this->_typeAdapter->unlock_table($tablename);
+            if (strlen($unlockstmt) > 0) {
+                $this->_dbHandler->exec($unlockstmt);
             }
         }
     }
