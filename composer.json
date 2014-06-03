@@ -2,7 +2,6 @@
     "name": "ifsnop/mysqldump-php",
     "description": "This is a php version of linux's mysqldump in terminal \"$ mysqldump -u username -p...\"",
     "type": "library",
-    "version": "1.0.0",
     "keywords": ["backup", "mysqldump"],
     "license": "MIT",
     "minimum-stability": "stable",
