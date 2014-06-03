@@ -1,15 +1,26 @@
 before_commands:
     - 'composer install --dev --prefer-source'
 tools:
-    external_code_coverage: true
     php_mess_detector: true
-    php_code_sniffer: true
     sensiolabs_security_checker: true
-    php_code_coverage: true
     php_pdepend: true
     php_loc:
         enabled: true
         excluded_dirs: [vendor, tests]
     php_cpd:
-        enabled: true
+        enabled: false
         excluded_dirs: [vendor, tests]
+        # PHP Similarity Analyzer and Copy/paste Detector cannot be used at
+        # the same time right now. Make sure to either remove, or disable one.
+
+    php_sim: true
+    php_code_sniffer:
+        enabled: true
+        config:
+            standard: "PSR1"
+            sniffs:
+                generic:
+                    naming_conventions:
+                        camel_caps_function_name_sniff:  false
+                    files:
+                        one_class_per_file_sniff:  false
