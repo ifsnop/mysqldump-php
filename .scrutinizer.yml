@@ -1,5 +1,9 @@
 before_commands:
     - 'composer install --dev --prefer-source'
+
+filter:
+    excluded_paths: [vendor/*, tests/*]
+
 tools:
     php_mess_detector:
         enabled: true
@@ -8,17 +12,22 @@ tools:
                 camel_case_method_name: false
 
     sensiolabs_security_checker: true
-    php_pdepend: false
+
+    # Analyzes the size and structure of a PHP project.
+    php_pdepend: true
     php_loc:
         enabled: true
-        excluded_dirs: [vendor, tests]
-    php_cpd:
-        enabled: false
-        excluded_dirs: [vendor, tests]
-        # PHP Similarity Analyzer and Copy/paste Detector cannot be used at
-        # the same time right now. Make sure to either remove, or disable one.
 
+    # We recommend to use PHP Code Similarity Analyzer instead as it is
+    # robust against code modifications and provides better targets for
+    # refactoring.
+    php_cpd: false
     php_sim: true
+
+    # PHP Analyzer is our own analysis tool for PHP code. It’s latest
+    # version is exclusively available through the hosted version on
+    # scrutinizer-ci.com.
+    php_analyzer: true
     php_code_sniffer:
         enabled: true
         config:
