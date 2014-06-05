@@ -363,11 +363,13 @@ class Mysqldump
         if ($this->_settings['where']) {
             $stmt .= " WHERE {$this->_settings['where']}";
         }
-        foreach ($this->_dbHandler->query($stmt, PDO::FETCH_NUM) as $r) {
+        $resultSet = $this->_dbHandler->query($stmt);
+        $resultSet->setFetchMode(PDO::FETCH_NUM);
+        foreach ($resultSet as $r) {
             $vals = array();
             foreach ($r as $val) {
                 $vals[] = is_null($val) ? "NULL" :
-                $this->_dbHandler->quote($val);
+                    $this->_dbHandler->quote($val);
             }
             if ($onlyOnce || !$this->_settings['extended-insert']) {
                 $lineSize += $this->_compressManager->write(
