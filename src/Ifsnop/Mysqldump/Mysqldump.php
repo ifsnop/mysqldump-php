@@ -470,11 +470,9 @@ class CompressBzip2 extends CompressManagerFactory
 
     public function write($str)
     {
-        $bytesWritten = 0;
         if (false === ($bytesWritten = bzwrite($this->_fileHandler, $str))) {
             throw new Exception("Writting to file failed! Probably, there is no more free space left?", 4);
         }
-
         return $bytesWritten;
     }
 
@@ -507,11 +505,9 @@ class CompressGzip extends CompressManagerFactory
 
     public function write($str)
     {
-        $bytesWritten = 0;
         if (false === ($bytesWritten = gzwrite($this->_fileHandler, $str))) {
             throw new Exception("Writting to file failed! Probably, there is no more free space left?", 4);
         }
-
         return $bytesWritten;
     }
 
@@ -537,11 +533,9 @@ class CompressNone extends CompressManagerFactory
 
     public function write($str)
     {
-        $bytesWritten = 0;
         if (false === ($bytesWritten = fwrite($this->_fileHandler, $str))) {
             throw new Exception("Writting to file failed! Probably, there is no more free space left?", 4);
         }
-
         return $bytesWritten;
     }
 
