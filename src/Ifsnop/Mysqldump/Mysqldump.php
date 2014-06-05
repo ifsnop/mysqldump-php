@@ -274,8 +274,8 @@ class Mysqldump
     private function getHeader()
     {
         // Some info about software, source and time
-        $header = "-- sqldump-php SQL Dump\n" .
-                "-- https://github.com/clouddueling/mysqldump-php\n" .
+        $header = "-- mysqldump-php\n" .
+                "-- https://github.com/ifsnop/mysqldump-php\n" .
                 "--\n" .
                 "-- Host: {$this->host}\n" .
                 "-- Generation Time: " . date('r') . "\n\n" .
