@@ -24,7 +24,7 @@ With autoloading/Composer:
 Without autoloading/Composer:
 
     <?php
-        include_once(dirname(__FILE__) . '/vendor/ifsnop/mysqldump-php/src/Ifsnop/Mysqldump/Mysqldump.php');
+        include_once(dirname(__FILE__) . '/src/Ifsnop/Mysqldump/Mysqldump.php');
         $dump = new Ifsnop\Mysqldump\Mysqldump( 'database', 'username', 'password');
         $dump->start('storage/work/dump.sql');
     ?>
