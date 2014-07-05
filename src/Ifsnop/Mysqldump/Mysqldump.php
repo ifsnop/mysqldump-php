@@ -580,6 +580,9 @@ abstract class TypeAdapter
  */
 abstract class TypeAdapterFactory
 {
+    /**
+     * @param string $c Type of database factory to create (Mysql, Sqlite,...)
+     */
     public static function create($c)
     {
         $c = ucfirst(strtolower($c));
