@@ -8,26 +8,50 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 
 ## Requirements
 
-- PHP 5 >= 5.3.0
-- PDO
+- PHP 5.3.0 or newer
+- MySQL 4.1.0 or newer
+- [PDO](http://php.net/pdo)
+
+## Installing
+
+Using [Composer](http://getcomposer.org):
+
+```
+$ composer require ifsnop/mysqldump-php:1.*
+```
+
+Using [Curl](http://curl.haxx.se):
+
+```
+$ curl --silent --location https://github.com/ifsnop/mysqldump-php/archive/v1.3.tar.gz | tar xvfz -
+```
 
 ## Getting started
 
-With autoloading/Composer:
+With [Autoloader](http://www.php-fig.org/psr/psr-4/)/[Composer](http://getcomposer.org):
 
-    <?php
-        use Ifsnop\Mysqldump as IMysqldump;
-        $dump = new IMysqldump\Mysqldump('database', 'username', 'password');
-        $dump->start('storage/work/dump.sql');
-    ?>
+<?php
 
-Without autoloading/Composer:
+use Ifsnop\Mysqldump as IMysqldump;
 
-    <?php
-        include_once(dirname(__FILE__) . '/src/Ifsnop/Mysqldump/Mysqldump.php');
-        $dump = new Ifsnop\Mysqldump\Mysqldump( 'database', 'username', 'password');
-        $dump->start('storage/work/dump.sql');
-    ?>
+try {
+    $dump = new IMysqldump\Mysqldump('database', 'username', 'password');
+    $dump->start('storage/work/dump.sql');
+} catch (\Exception $e) {
+    echo 'mysqldump-php error: ' . $e->getMessage();
+}
+
+?>
+
+Plain old PHP:
+
+<?php
+
+    include_once(dirname(__FILE__) . '/mysqldump-php-1.3/src/Ifsnop/Mysqldump/Mysqldump.php');
+    $dump = new Ifsnop\Mysqldump\Mysqldump( 'database', 'username', 'password');
+    $dump->start('storage/work/dump.sql');
+
+?>
 
 ## Constructor and default parameters
 
@@ -120,25 +144,6 @@ Without autoloading/Composer:
   - http://stackoverflow.com/questions/13728106/unexpectedly-hitting-php-memory-limit-with-a-single-pdo-query/13729745#13729745
   - http://www.php.net/manual/en/mysqlinfo.concepts.buffering.php
 
-## Composer
-
-```
-{
-    "require": {
-        "ifsnop/mysqldump-php": "dev-master",
-    }
-}
-```
-
-or
-
-```
-{
-    "require": {
-        "ifsnop/mysqldump-php": "1.0.*",
-    }
-}
-```
 
 ## Todo
 
