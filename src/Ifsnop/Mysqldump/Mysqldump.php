@@ -373,8 +373,12 @@ class Mysqldump
         foreach ($resultSet as $r) {
             $vals = array();
             foreach ($r as $val) {
-                $vals[] = is_null($val) ? "NULL" :
-                    $this->_dbHandler->quote($val);
+                if (is_null($val))
+                    $vals[] = "NULL";
+                else if (ctype_digit($val))
+                    $vals[] = $val;
+                else
+                    $vals[] = $this->_dbHandler->quote($val);
             }
             if ($onlyOnce || !$this->_dumpSettings['extended-insert']) {
                 $lineSize += $this->_compressManager->write(
