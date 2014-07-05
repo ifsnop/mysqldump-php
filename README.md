@@ -29,35 +29,7 @@ Without autoloading/Composer:
         $dump->start('storage/work/dump.sql');
     ?>
 
-## Default Parameters
-
-    $host = 'localhost';
-
-    $type = 'mysql';
-
-    $dumpSettings = array(
-        'include-tables' => array('table1', 'table2'),
-        'exclude-tables' => array('table3', 'table4'),
-        'compress' => 'GZIP',
-        'no-data' => false,
-        'add-drop-database' => false,
-        'add-drop-table' => false,
-        'single-transaction' => true,
-        'lock-tables' => false,
-        'add-locks' => true,
-        'extended-insert' => true,
-        'disable-foreign-keys-check' => false,
-        'where' => '',
-        'no-create-info' => false
-    );
-
-    $pdoSettings = array(PDO::ATTR_PERSISTENT => true,
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8",
-        PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false
-    );
-
-## API
+## Constructor and default parameters
 
     /**
      * Constructor of Mysqldump. Note that in the case of an SQLite database
@@ -82,6 +54,32 @@ Without autoloading/Composer:
         $dumpSettings = array(),
         $pdoSettings = array()
     )
+
+    $dumpSettingsDefault = array(
+        'include-tables' => array('table1', 'table2'),
+        'exclude-tables' => array('table3', 'table4'),
+        'compress' => 'GZIP',
+        'no-data' => false,
+        'add-drop-database' => false,
+        'add-drop-table' => false,
+        'single-transaction' => true,
+        'lock-tables' => false,
+        'add-locks' => true,
+        'extended-insert' => true,
+        'disable-foreign-keys-check' => false,
+        'where' => '',
+        'no-create-info' => false
+    );
+
+    $pdoSettingsDefaults = array(PDO::ATTR_PERSISTENT => true,
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8",
+        PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false
+    );
+
+    // missing settings in constructor will be replaced by default options
+    $this->_pdoSettings = self::array_replace_recursive($pdoSettingsDefault, $pdoSettings);
+    $this->_dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dumpSettings);
 
 ## Dump Settings
 
