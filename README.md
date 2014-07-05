@@ -157,3 +157,9 @@ This project is open-sourced software licensed under the [MIT license](http://op
 
 Originally based on James Elliott's script from 2009.
 http://code.google.com/p/db-mysqldump/
+
+Adapted and extended by Michael J. Calkins.
+https://github.com/clouddueling
+
+Currently maintained by Diego Torres.
+https://github.com/ifsnop
