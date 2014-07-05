@@ -390,6 +390,7 @@ class Mysqldump
                 $lineSize = $this->_compressManager->write(";\n");
             }
         }
+        $resultSet->closeCursor();
 
         if (!$onlyOnce) {
             $this->_compressManager->write(";\n");
@@ -744,12 +745,13 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
         $ret .= "/*!40000 DROP DATABASE IF EXISTS `" . $dbName . "`*/;\n";
 
-        $rs = $dbHandler->query("SHOW VARIABLES LIKE 'character_set_database';");
-        $characterSet = $rs->fetchColumn(1);
-        $rs->closeCursor();
+        $resultSet = $dbHandler->query("SHOW VARIABLES LIKE 'character_set_database';");
+        $characterSet = $resultSet->fetchColumn(1);
+        $resultSet->closeCursor();
 
-        $rs = $dbHandler->query("SHOW VARIABLES LIKE 'collation_database';");
-        $collationDb = $rs->fetchColumn(1);
+        $resultSet = $dbHandler->query("SHOW VARIABLES LIKE 'collation_database';");
+        $collationDb = $resultSet->fetchColumn(1);
+        $resultSet->closeCursor();
 
         $ret .= "CREATE DATABASE /*!32312 IF NOT EXISTS*/ `" . $dbName .
             "` /*!40100 DEFAULT CHARACTER SET " . $characterSet .
