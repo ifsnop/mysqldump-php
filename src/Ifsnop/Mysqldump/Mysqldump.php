@@ -104,6 +104,11 @@ class Mysqldump
         $this->_pdoSettings = self::array_replace_recursive($pdoSettingsDefault, $pdoSettings);
         $this->_dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dumpSettings);
 
+        $diff = array_diff(array_keys($this->_dumpSettings), array_keys($dumpSettingsDefault));
+        if (count($diff)>0) {
+            throw new Exception("Unexpected value in dumpSettings: (" . implode(",", $diff) . ")\n");
+        }
+
     }
 
     /**
