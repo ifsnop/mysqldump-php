@@ -441,6 +441,7 @@ abstract class CompressManagerFactory
 {
     /**
      * @param string $c
+     * @return CompressBzip2|CompressGzip|CompressNone
      */
     public static function create($c)
     {

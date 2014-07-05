@@ -56,9 +56,9 @@ Without autoloading/Composer:
     )
 
     $dumpSettingsDefault = array(
-        'include-tables' => array('table1', 'table2'),
-        'exclude-tables' => array('table3', 'table4'),
-        'compress' => 'GZIP',
+        'include-tables' => array(),
+        'exclude-tables' => array(),
+        'compress' => 'None',
         'no-data' => false,
         'add-drop-database' => false,
         'add-drop-table' => false,
@@ -84,11 +84,11 @@ Without autoloading/Composer:
 ## Dump Settings
 
 - **include-tables**
-  - Only include these tables
+  - Only include these tables (array of table names)
 - **exclude-tables**
-  - Exclude these tables
+  - Exclude these tables (array of table names)
 - **compress**
-  - GZIP, BZIP2, NONE
+  - Gzip, Bzip2, None
 - **no-data**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data
 - **add-drop-database**
