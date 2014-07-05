@@ -39,7 +39,7 @@ class Mysqldump
     public $user;
     public $pass;
     public $db;
-    public $fileName = 'dump.sql';
+    public $fileName;
 
     // Internal stuff
     private $_tables = array();
