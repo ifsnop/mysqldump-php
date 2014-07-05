@@ -30,6 +30,7 @@ $ curl --silent --location https://github.com/ifsnop/mysqldump-php/archive/v1.3.
 
 With [Autoloader](http://www.php-fig.org/psr/psr-4/)/[Composer](http://getcomposer.org):
 
+```
 <?php
 
 use Ifsnop\Mysqldump as IMysqldump;
@@ -42,9 +43,11 @@ try {
 }
 
 ?>
+```
 
 Plain old PHP:
 
+```
 <?php
 
     include_once(dirname(__FILE__) . '/mysqldump-php-1.3/src/Ifsnop/Mysqldump/Mysqldump.php');
@@ -52,6 +55,7 @@ Plain old PHP:
     $dump->start('storage/work/dump.sql');
 
 ?>
+```
 
 ## Constructor and default parameters
 
