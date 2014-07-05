@@ -16,46 +16,79 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 With autoloading/Composer:
 
     <?php
-
         use Ifsnop\Mysqldump as IMysqldump;
-
-        $dumpSettings = array(
-            'include-tables' => array('table1', 'table2'),
-            'exclude-tables' => array('table3', 'table4'),
-            'compress' => 'GZIP',
-            'no-data' => false,
-            'add-drop-database' => false,
-            'add-drop-table' => false,
-            'single-transaction' => true,
-            'lock-tables' => false,
-            'add-locks' => true,
-            'extended-insert' => true,
-            'disable-foreign-keys-check' => false,
-            'where' => '',
-            'no-create-info' => false
-        );
-
-        $dump = new IMysqldump\Mysqldump('clouddueling', 'root', 'password', 'localhost', 'mysql', $dumpSettings );
+        $dump = new IMysqldump\Mysqldump('database', 'username', 'password');
         $dump->start('storage/work/dump.sql');
-
     ?>
 
 Without autoloading/Composer:
 
     <?php
-
         include_once(dirname(__FILE__) . '/vendor/ifsnop/mysqldump-php/src/Ifsnop/Mysqldump/Mysqldump.php');
-        $dump = new Ifsnop\Mysqldump\Mysqldump( 'clouddueling', 'root', 'password', 'localhost', 'mysql', array() );
+        $dump = new Ifsnop\Mysqldump\Mysqldump( 'database', 'username', 'password');
         $dump->start('storage/work/dump.sql');
-
     ?>
+
+## Default Parameters
+
+    $host = 'localhost';
+
+    $type = 'mysql';
+
+    $dumpSettings = array(
+        'include-tables' => array('table1', 'table2'),
+        'exclude-tables' => array('table3', 'table4'),
+        'compress' => 'GZIP',
+        'no-data' => false,
+        'add-drop-database' => false,
+        'add-drop-table' => false,
+        'single-transaction' => true,
+        'lock-tables' => false,
+        'add-locks' => true,
+        'extended-insert' => true,
+        'disable-foreign-keys-check' => false,
+        'where' => '',
+        'no-create-info' => false
+    );
+
+    $pdoSettings = array(PDO::ATTR_PERSISTENT => true,
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8",
+        PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false
+    );
 
 ## API
 
+    /**
+     * Constructor of Mysqldump. Note that in the case of an SQLite database
+     * connection, the filename must be in the $db parameter.
+     *
+     * @param string $db         Database name
+     * @param string $user       SQL account username
+     * @param string $pass       SQL account password
+     * @param string $host       SQL server to connect to
+     * @param string $type       SQL database type ('mysql', 'sqlite', ...)
+     * @param array  $dumpSettings SQL database settings
+     * @param array  $pdoSettings  PDO configured attributes
+     *
+     * @return null
+     */
+    public function __construct(
+        $db = '',
+        $user = '',
+        $pass = '',
+        $host = 'localhost',
+        $type = 'mysql',
+        $dumpSettings = array(),
+        $pdoSettings = array()
+    )
+
+## Dump Settings
+
 - **include-tables**
-  - Only include these tables.
+  - Only include these tables
 - **exclude-tables**
-  - Exclude these tables.
+  - Exclude these tables
 - **compress**
   - GZIP, BZIP2, NONE
 - **no-data**
@@ -79,22 +112,39 @@ Without autoloading/Composer:
 - **no-create-info**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-create-info
 
+## PDO Settings
+
+- **PDO::ATTR_PERSISTENT**
+- **PDO::ATTR_ERRMODE**
+- **PDO::MYSQL_ATTR_INIT_COMMAND**
+- **PDO::MYSQL_ATTR_USE_BUFFERED_QUERY**
+  - http://www.php.net/manual/en/ref.pdo-mysql.php
+  - http://stackoverflow.com/questions/13728106/unexpectedly-hitting-php-memory-limit-with-a-single-pdo-query/13729745#13729745
+  - http://www.php.net/manual/en/mysqlinfo.concepts.buffering.php
+
 ## Composer
 
 ```
-"ifsnop/mysqldump-php": "dev-master"
+{
+    "require": {
+        "ifsnop/mysqldump-php": "dev-master",
+    }
+}
 ```
 
 or
 
 ```
-"ifsnop/mysqldump-php": "1.0.*"
+{
+    "require": {
+        "ifsnop/mysqldump-php": "1.0.*",
+    }
+}
 ```
 
 ## Todo
 
 - Write unit tests.
-- Refactor into one class.
 
 ## Contributing
 
