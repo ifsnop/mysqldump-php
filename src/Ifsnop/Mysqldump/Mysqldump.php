@@ -50,6 +50,7 @@ class Mysqldump
     private $_typeAdapter;
     private $_dumpSettings = array();
     private $_pdoSettings = array();
+    private $_version;
 
     /**
      * Constructor of Mysqldump. Note that in the case of an SQLite database
@@ -162,6 +163,8 @@ class Mysqldump
                     );
                     // Fix for always-unicode output
                     $this->_dbHandler->exec("SET NAMES utf8");
+                    // Store server version
+                    $this->_version = $this->_dbHandler->getAttribute(PDO::ATTR_SERVER_VERSION);
                     break;
                 default:
                     throw new Exception("Unsupported database type (" . $this->_dbType . ")");
@@ -280,14 +283,15 @@ class Mysqldump
     private function getHeader()
     {
         // Some info about software, source and time
-        $header = "-- mysqldump-php\n" .
-                "-- https://github.com/ifsnop/mysqldump-php\n" .
+        $header = "-- mysqldump-php https://github.com/ifsnop/mysqldump-php\n" .
                 "--\n" .
-                "-- Host: {$this->host}\n" .
-                "-- Generation Time: " . date('r') . "\n\n" .
-                "--\n" .
-                "-- Database: `{$this->db}`\n" .
-                "--\n\n";
+                "-- Host: {$this->host}\tDatabase: {$this->db}\n" .
+                "-- ------------------------------------------------------\n";
+
+        if (!empty($this->_version))
+            $header .= "-- Server version \t" . $this->_version . "\n";
+
+        $header .= "-- Date: " . date('r') . "\n\n";
 
         return $header;
     }
@@ -306,8 +310,6 @@ class Mysqldump
             if (isset($r['Create Table'])) {
                 if (!$this->_dumpSettings['no-create-info']) {
                     $this->_compressManager->write(
-                        "-- --------------------------------------------------------" .
-                        "\n\n" .
                         "--\n" .
                         "-- Table structure for table `$tablename`\n" .
                         "--\n\n"
