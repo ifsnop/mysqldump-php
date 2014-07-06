@@ -770,16 +770,15 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function add_drop_database()
     {
-        $ret = "";
         if (func_num_args() != 2) {
-             return $ret;
+             return "";
         }
 
         $args = func_get_args();
         $dbName = $args[0];
         $dbHandler = $args[1];
 
-        $ret .= "/*!40000 DROP DATABASE IF EXISTS `" . $dbName . "`*/;\n";
+        $ret = "/*!40000 DROP DATABASE IF EXISTS `" . $dbName . "`*/;\n";
 
         $resultSet = $dbHandler->query("SHOW VARIABLES LIKE 'character_set_database';");
         $characterSet = $resultSet->fetchColumn(1);
