@@ -1,10 +1,23 @@
-# MySQLDump - PHP
+MySQLDump - PHP
+=========
 
-This is a php version of linux's mysqldump in terminal "$ mysqldump -u username -p...".
+[Requirements](https://github.com/ifsnop/mysqldump-php#requirements) |
+[Installing](https://github.com/ifsnop/mysqldump-php#installing) |
+[Getting started](https://github.com/ifsnop/mysqldump-php#getting-started) |
+[API](https://github.com/ifsnop/mysqldump-php#constructor-and-default-parameters) |
+[Settings](https://github.com/ifsnop/mysqldump-php#dump-settings) |
+[PDO Settings](https://github.com/ifsnop/mysqldump-php#pdo-settings) |
+[TODO](https://github.com/ifsnop/mysqldump-php#todo) |
+[License](https://github.com/ifsnop/mysqldump-php#license) |
+[Credits](https://github.com/ifsnop/mysqldump-php#credits)
 
 [![Build Status](https://travis-ci.org/ifsnop/mysqldump-php.png?branch=master)](https://travis-ci.org/ifsnop/mysqldump-php)
 [![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/ifsnop/mysqldump-php/badges/quality-score.png?s=d02891e196a3ca1298619032a538ce8ae8cafd2b)](https://scrutinizer-ci.com/g/ifsnop/mysqldump-php/)
 [![Latest Stable Version](https://poser.pugx.org/ifsnop/mysqldump-php/v/stable.png)](https://packagist.org/packages/ifsnop/mysqldump-php)
+
+This is a php version of linux's mysqldump in terminal "$ mysqldump -u username -p...", without dependencies, output compression and sane defaults.
+
+Out of the box, MySQLDump-PHP supports backing up table structures, the data itself, views and triggers.
 
 ## Requirements
 
@@ -149,7 +162,7 @@ Plain old PHP:
   - http://www.php.net/manual/en/mysqlinfo.concepts.buffering.php
 
 
-## Todo
+## TODO
 
 - Write unit tests.
 
