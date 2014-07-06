@@ -353,8 +353,10 @@ class Mysqldump
         foreach ($arr as $val) {
             if (is_null($val)) {
                 $ret[] = "NULL";
-            } elseif ((string) intval($val) === $val) {
-                $ret[] = (int) $val;
+            } elseif (ctype_digit($val)) {
+                // faster than "(string) intval($val) === $val"
+                // but will quote negative integers (not a big deal IMHO)
+                $ret[] = $val;
             } else {
                 $ret[] = $this->dbHandler->quote($val);
             }
