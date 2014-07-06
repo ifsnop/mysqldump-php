@@ -337,9 +337,33 @@ class Mysqldump
     }
 
     /**
+     * Escape values with quotes when needed
+     *
+     * @param array $values String to be quoted
+     *
+     * @return string
+     */
+    private function escape($arr)
+    {
+        $ret = array();
+
+        foreach ($arr as $val) {
+            if (is_null($val))
+                $ret[] = "NULL";
+            else if ((string) intval($val) === $val)
+                $ret[] = (int) $val;
+            else
+                $ret[] = $this->_dbHandler->quote($val);
+        }
+
+        return $ret;
+    }
+
+    /**
      * Table rows extractor
      *
      * @param string $tablename  Name of table to export
+     *
      * @return null
      */
     private function listValues($tablename)
@@ -374,15 +398,7 @@ class Mysqldump
         $resultSet = $this->_dbHandler->query($stmt);
         $resultSet->setFetchMode(PDO::FETCH_NUM);
         foreach ($resultSet as $r) {
-            $vals = array();
-            foreach ($r as $val) {
-                if (is_null($val))
-                    $vals[] = "NULL";
-                else if (ctype_digit($val))
-                    $vals[] = $val;
-                else
-                    $vals[] = $this->_dbHandler->quote($val);
-            }
+            $vals = $this->escape($r);
             if ($onlyOnce || !$this->_dumpSettings['extended-insert']) {
                 $lineSize += $this->_compressManager->write(
                     "INSERT INTO `$tablename` VALUES (" . implode(",", $vals) . ")"
