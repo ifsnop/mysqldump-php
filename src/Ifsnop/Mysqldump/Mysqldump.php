@@ -125,16 +125,16 @@ class Mysqldump
     {
         if (function_exists('array_replace_recursive')) {
             return array_replace_recursive($array1, $array2);
-        } else {
-            foreach ($array2 as $key => $value) {
-                if (is_array($value)) {
-                    $array1[$key] = Mysqldump::array_replace_recursive($array1[$key], $value);
-                } else {
-                    $array1[$key] = $value;
-                }
-            }
-            return $array1;
         }
+
+        foreach ($array2 as $key => $value) {
+            if (is_array($value)) {
+                $array1[$key] = self::array_replace_recursive($array1[$key], $value);
+            } else {
+                $array1[$key] = $value;
+            }
+        }
+        return $array1;
     }
 
     /**
