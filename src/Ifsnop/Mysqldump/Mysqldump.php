@@ -689,7 +689,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     private $dbHandler = null;
 
-    public function __construct ($dbHandler) {
+    public function __construct ($dbHandler)
+    {
         $this->dbHandler = $dbHandler;
     }
 
@@ -724,8 +725,9 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function lock_table()
     {
-        if (func_num_args() != 1)
+        if (func_num_args() != 1) {
             return "";
+        }
 
         $args = func_get_args();
         //$tableName = $args[0];
@@ -741,8 +743,9 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function start_add_lock_table()
     {
-        if (func_num_args() != 1)
+        if (func_num_args() != 1) {
             return "";
+        }
 
         $args = func_get_args();
 
@@ -768,8 +771,9 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function add_drop_database()
     {
-        if (func_num_args() != 1)
+        if (func_num_args() != 1) {
              return "";
+        }
 
         $args = func_get_args();
 
