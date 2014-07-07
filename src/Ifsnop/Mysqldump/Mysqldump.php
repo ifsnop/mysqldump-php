@@ -342,7 +342,7 @@ class Mysqldump
     /**
      * Escape values with quotes when needed
      *
-     * @param array $values String to be quoted
+     * @param array $arr Array of strings to be quoted
      *
      * @return string
      */
@@ -604,6 +604,7 @@ abstract class TypeAdapterFactory
 {
     /**
      * @param string $c Type of database factory to create (Mysql, Sqlite,...)
+     * @param PDO $dbHandler
      */
     public static function create($c, $dbHandler = null)
     {
