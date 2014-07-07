@@ -83,7 +83,7 @@ class Mysqldump
             'add-drop-database' => false,
             'add-drop-table' => false,
             'single-transaction' => true,
-            'lock-tables' => false,
+            'lock-tables' => true,
             'add-locks' => true,
             'extended-insert' => true,
             'disable-foreign-keys-check' => false,
@@ -177,7 +177,7 @@ class Mysqldump
         }
 
         $this->dbHandler->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
-        $this->typeAdapter = TypeAdapterFactory::create($this->dbType);
+        $this->typeAdapter = TypeAdapterFactory::create($this->dbType, $this->dbHandler);
     }
 
     /**
@@ -211,7 +211,7 @@ class Mysqldump
         $this->compressManager->write($this->getHeader());
 
         if ($this->dumpSettings['add-drop-database']) {
-            $this->compressManager->write($this->typeAdapter->add_drop_database($this->db, $this->dbHandler));
+            $this->compressManager->write($this->typeAdapter->add_drop_database($this->db));
         }
 
         // Listing all tables from database
@@ -385,10 +385,7 @@ class Mysqldump
         }
 
         if ($this->dumpSettings['lock-tables']) {
-            $lockstmt = $this->typeAdapter->lock_table($tablename);
-            if (strlen($lockstmt) > 0) {
-                $this->dbHandler->exec($lockstmt);
-            }
+            $this->typeAdapter->lock_table($tablename);
         }
 
         if ($this->dumpSettings['add-locks']) {
@@ -434,10 +431,7 @@ class Mysqldump
         }
 
         if ($this->dumpSettings['lock-tables']) {
-            $unlockstmt = $this->typeAdapter->unlock_table($tablename);
-            if (strlen($unlockstmt) > 0) {
-                $this->dbHandler->exec($unlockstmt);
-            }
+            $this->typeAdapter->unlock_table($tablename);
         }
     }
 }
@@ -611,17 +605,15 @@ abstract class TypeAdapterFactory
     /**
      * @param string $c Type of database factory to create (Mysql, Sqlite,...)
      */
-    public static function create($c)
+    public static function create($c, $dbHandler = null)
     {
         $c = ucfirst(strtolower($c));
         if (! TypeAdapter::isValid($c)) {
             throw new Exception("Database type support for ($c) not yet available");
         }
-
         $method =  __NAMESPACE__ . "\\" . "TypeAdapter" . $c;
-        return new $method;
+        return new $method($dbHandler);
     }
-
     public function show_create_table($tablename)
     {
         return "SELECT tbl_name as 'Table', sql as 'Create Table' " .
@@ -694,6 +686,13 @@ class TypeAdapterSqlite extends TypeAdapterFactory
 
 class TypeAdapterMysql extends TypeAdapterFactory
 {
+
+    private $dbHandler = null;
+
+    public function __construct ($dbHandler) {
+        $this->dbHandler = $dbHandler;
+    }
+
     public function show_create_table($tableName)
     {
         return "SHOW CREATE TABLE `$tableName`";
@@ -701,15 +700,15 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function show_tables()
     {
-        if (func_num_args() != 1)
+        if (func_num_args() != 1) {
             return "";
+        }
 
         $args = func_get_args();
-        $dbName = $args[0];
 
         return "SELECT TABLE_NAME AS tbl_name " .
             "FROM INFORMATION_SCHEMA.TABLES " .
-            "WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='$dbName'";
+            "WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='${args[0]}'";
     }
 
     public function start_transaction()
@@ -725,30 +724,29 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function lock_table()
     {
-        if (func_num_args() != 1) {
+        if (func_num_args() != 1)
             return "";
-        }
 
         $args = func_get_args();
-        $tableName = $args[0];
-        return "LOCK TABLES `$tableName` READ LOCAL";
+        //$tableName = $args[0];
+        //return "LOCK TABLES `$tableName` READ LOCAL";
+        return $this->dbHandler->exec("LOCK TABLES `${args[0]}` READ LOCAL");
+
     }
 
     public function unlock_table()
     {
-        return "UNLOCK TABLES";
+        return $this->dbHandler->exec("UNLOCK TABLES");
     }
 
     public function start_add_lock_table()
     {
-        if (func_num_args() != 1) {
+        if (func_num_args() != 1)
             return "";
-        }
 
         $args = func_get_args();
-        $tableName = $args[0];
 
-        return "LOCK TABLES `$tableName` WRITE;\n";
+        return "LOCK TABLES `${args[0]}` WRITE;\n";
     }
 
     public function end_add_lock_table()
@@ -770,28 +768,25 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function add_drop_database()
     {
-        if (func_num_args() != 2) {
+        if (func_num_args() != 1)
              return "";
-        }
 
         $args = func_get_args();
-        $dbName = $args[0];
-        $dbHandler = $args[1];
 
-        $ret = "/*!40000 DROP DATABASE IF EXISTS `" . $dbName . "`*/;\n";
+        $ret = "/*!40000 DROP DATABASE IF EXISTS `${args[0]}`*/;\n";
 
-        $resultSet = $dbHandler->query("SHOW VARIABLES LIKE 'character_set_database';");
+        $resultSet = $this->dbHandler->query("SHOW VARIABLES LIKE 'character_set_database';");
         $characterSet = $resultSet->fetchColumn(1);
         $resultSet->closeCursor();
 
-        $resultSet = $dbHandler->query("SHOW VARIABLES LIKE 'collation_database';");
+        $resultSet = $this->dbHandler->query("SHOW VARIABLES LIKE 'collation_database';");
         $collationDb = $resultSet->fetchColumn(1);
         $resultSet->closeCursor();
 
-        $ret .= "CREATE DATABASE /*!32312 IF NOT EXISTS*/ `" . $dbName .
-            "` /*!40100 DEFAULT CHARACTER SET " . $characterSet .
+        $ret .= "CREATE DATABASE /*!32312 IF NOT EXISTS*/ `${args[0]}`".
+            " /*!40100 DEFAULT CHARACTER SET " . $characterSet .
             " COLLATE " . $collationDb . "*/;\n" .
-            "USE `" . $dbName . "`;\n\n";
+            "USE `${args[0]}`;\n\n";
 
         return $ret;
     }
