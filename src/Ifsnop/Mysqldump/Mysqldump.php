@@ -148,6 +148,9 @@ class Mysqldump
         // Connecting with PDO
         try {
             switch ($this->dbType) {
+                case 'mysql_existing':
+                    $this->dbHandler = $this->user;
+                    break;
                 case 'sqlite':
                     $this->dbHandler = new PDO("sqlite:" . $this->db, null, null, $this->pdoSettings);
                     break;
@@ -583,7 +586,8 @@ abstract class TypeAdapter
 {
     public static $enums = array(
         "Sqlite",
-        "Mysql"
+        "Mysql",
+        "Mysql_existing"
     );
 
     /**
@@ -795,4 +799,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
         return $ret;
     }
+}
+
+class TypeAdapterMysql_existing extends TypeAdapterMysql
+{
 }
