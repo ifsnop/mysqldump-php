@@ -203,9 +203,7 @@ class Mysqldump
         // Create a new compressManager to manage compressed output
         $this->compressManager = CompressManagerFactory::create($this->dumpSettings['compress']);
 
-        if (! $this->compressManager->open($this->fileName)) {
-            throw new Exception("Output file is not writable");
-        }
+        $this->compressManager->open($this->fileName);
 
         // Formating dump file
         $this->compressManager->write($this->getHeader());
@@ -492,7 +490,7 @@ class CompressBzip2 extends CompressManagerFactory
     {
         $this->fileHandler = bzopen($filename . ".bz2", "w");
         if (false === $this->fileHandler) {
-            return false;
+            throw new Exception("Output file is not writable");
         }
 
         return true;
@@ -527,7 +525,7 @@ class CompressGzip extends CompressManagerFactory
     {
         $this->fileHandler = gzopen($filename . ".gz", "wb");
         if (false === $this->fileHandler) {
-            return false;
+            throw new Exception("Output file is not writable");
         }
 
         return true;
@@ -555,7 +553,7 @@ class CompressNone extends CompressManagerFactory
     {
         $this->fileHandler = fopen($filename, "wb");
         if (false === $this->fileHandler) {
-            return false;
+            throw new Exception("Output file is not writable");
         }
 
         return true;
