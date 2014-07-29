@@ -173,7 +173,7 @@ http://www.php-fig.org/
 
 ## License
 
-This project is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT)
+This project is open-sourced software licensed under the [GPL license](http://www.gnu.org/copyleft/gpl.html)
 
 ## Credits
 
