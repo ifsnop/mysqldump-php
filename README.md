@@ -31,7 +31,16 @@ Using [Composer](http://getcomposer.org):
 
 ```
 $ composer require ifsnop/mysqldump-php:1.*
+
 ```
+
+Or via json file:
+
+````
+"require": {
+        "ifsnop/mysqldump-php":"1.*"
+}
+````
 
 Using [Curl](http://curl.haxx.se):
 
