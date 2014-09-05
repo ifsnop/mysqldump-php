@@ -351,9 +351,9 @@ class Mysqldump
         foreach ($arr as $val) {
             if (is_null($val)) {
                 $ret[] = "NULL";
-            } elseif (ctype_digit($val) && (string) intval($val) === $val) {
-            	// Since "(string) intval($val) === $val" is slower, first check ctype_digit, then run comparison
-            	// We can't use ctype_digit alone, as this will trim off leading zeros on string values
+            } elseif (ctype_digit($val) && ((string) intval($val) === $val)) {
+                // Since "(string) intval($val) === $val" is slower, first check ctype_digit, then run comparison
+                // We can't use ctype_digit alone, as this will trim off leading zeros on string values
                 // but will quote negative integers (not a big deal IMHO)
                 $ret[] = $val;
             } else {
