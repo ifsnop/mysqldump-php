@@ -146,7 +146,6 @@ class Mysqldump
      */
     private function connect()
     {
-
         // Connecting with PDO
         try {
             switch ($this->dbType) {
