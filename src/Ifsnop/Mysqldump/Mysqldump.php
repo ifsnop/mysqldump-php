@@ -338,6 +338,8 @@ class Mysqldump
 
     /**
      * Escape values with quotes when needed
+     * @todo use is_number instead of ctype_digit and intval
+     * @todo get column data type, use it to quote results
      *
      * @param array $arr Array of strings to be quoted
      *
