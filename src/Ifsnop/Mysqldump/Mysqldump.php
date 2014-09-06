@@ -110,6 +110,8 @@ class Mysqldump
             throw new Exception("Unexpected value in dumpSettings: (" . implode(",", $diff) . ")\n");
         }
 
+        // Create a new compressManager to manage compressed output
+        $this->compressManager = CompressManagerFactory::create($this->dumpSettings['compress']);
     }
 
     /**
@@ -199,9 +201,6 @@ class Mysqldump
 
         // Connect to database
         $this->connect();
-
-        // Create a new compressManager to manage compressed output
-        $this->compressManager = CompressManagerFactory::create($this->dumpSettings['compress']);
 
         $this->compressManager->open($this->fileName);
 
