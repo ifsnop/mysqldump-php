@@ -37,9 +37,25 @@ class Mysqldump
     const MAXLINESIZE = 1000000;
 
     // Available compression methods as constants
-    const GZIP = "Gzip";
-    const BZIP2 = "Bzip2";
-    const NONE = "None";
+    const GZIP = 'Gzip';
+    const BZIP2 = 'Bzip2';
+    const NONE = 'None';
+
+    // Numerical Mysql types
+    public $mysqlNumericalTypes = array(
+        'bit',
+        'tinyint',
+        'smallint',
+        'mediumint',
+        'int',
+        'integer',
+        'bigint',
+        'real',
+        'double',
+        'float',
+        'decimal',
+        'numeric'
+    );
 
     // This can be set both on constructor or manually
     public $host;
@@ -58,6 +74,7 @@ class Mysqldump
     private $dumpSettings = array();
     private $pdoSettings = array();
     private $version;
+    private $tableColumnTypes = array();
 
     /**
      * Constructor of Mysqldump. Note that in the case of an SQLite database
@@ -393,10 +410,50 @@ class Mysqldump
                     }
                     $this->compressManager->write($r['Create Table'] . ";" . PHP_EOL . PHP_EOL);
                 }
-                return;
+
+                break;
             }
             throw new Exception("Error getting table structure, unknown output");
         }
+
+        $columnTypes = array();
+        $columns = $this->dbHandler->query($this->typeAdapter->show_columns($tableName),
+            PDO::FETCH_ASSOC
+        );
+
+        foreach($columns as $key => $col) {
+            $types = $this->parseColumnType($col);
+            $columnTypes[$col['Field']] = $types['is_numeric'];
+        }
+        $this->tableColumnTypes[$tableName] = $columnTypes;
+        return;
+    }
+
+    /**
+     * Decode column metadata and fill info structure.
+     * type and is_numeric will always be available.
+     *
+     * @param array $colType Array returned from "SHOW COLUMNS FROM tableName"
+     * @return array
+     */
+    private function parseColumnType($colType)
+    {
+        $colInfo = array();
+        $colParts = explode(" ", $colType['Type']);
+
+        if($fparen = strpos($colParts[0], "("))
+        {
+            $colInfo['type'] = substr($colParts[0], 0, $fparen);
+            $colInfo['length']  = str_replace(")", "", substr($colParts[0], $fparen+1));
+            $colInfo['attributes'] = isset($colParts[1]) ? $colParts[1] : NULL;
+        }
+        else
+        {
+            $colInfo['type'] = $colParts[0];
+        }
+        $colInfo['is_numeric'] = in_array($colInfo['type'], $this->mysqlNumericalTypes);
+
+        return $colInfo;
     }
 
     /**
@@ -433,27 +490,27 @@ class Mysqldump
      * @todo use is_number instead of ctype_digit and intval
      * @todo get column data type, use it to quote results
      *
-     * @param array $arr Array of strings to be quoted
+     * @param string $tableName Name of table which contains rows
+     * @param array $row Associative array of column names and values to be quoted
      *
      * @return string
      */
-    private function escape($arr)
+    private function escape($tableName, $row)
     {
         $ret = array();
-
-        foreach ($arr as $val) {
-            if (is_null($val)) {
+        foreach ($row as $colName => $colValue) {
+            if (is_null($colValue)) {
                 $ret[] = "NULL";
-            } elseif (ctype_digit($val) && ((string) intval($val) === $val)) {
+            } elseif ($this->tableColumnTypes[$tableName][$colName]) {
+                // if (ctype_digit($val) && ((string) intval($val) === $val)) {
                 // Since "(string) intval($val) === $val" is slower, first check ctype_digit, then run comparison
                 // We can't use ctype_digit alone, as this will trim off leading zeros on string values
                 // but will quote negative integers (not a big deal IMHO)
-                $ret[] = $val;
+                $ret[] = $colValue;
             } else {
-                $ret[] = $this->dbHandler->quote($val);
+                $ret[] = $this->dbHandler->quote($colValue);
             }
         }
-
         return $ret;
     }
 
@@ -464,11 +521,11 @@ class Mysqldump
      *
      * @return null
      */
-    private function listValues($tablename)
+    private function listValues($tableName)
     {
         $this->compressManager->write(
             "--" . PHP_EOL .
-            "-- Dumping data for table `$tablename`" .  PHP_EOL .
+            "-- Dumping data for table `$tableName`" .  PHP_EOL .
             "--" . PHP_EOL . PHP_EOL
         );
 
@@ -477,26 +534,26 @@ class Mysqldump
         }
 
         if ($this->dumpSettings['lock-tables']) {
-            $this->typeAdapter->lock_table($tablename);
+            $this->typeAdapter->lock_table($tableName);
         }
 
         if ($this->dumpSettings['add-locks']) {
-            $this->compressManager->write($this->typeAdapter->start_add_lock_table($tablename));
+            $this->compressManager->write($this->typeAdapter->start_add_lock_table($tableName));
         }
 
         $onlyOnce = true;
         $lineSize = 0;
-        $stmt = "SELECT * FROM `$tablename`";
+        $stmt = "SELECT * FROM `$tableName`";
         if ($this->dumpSettings['where']) {
             $stmt .= " WHERE {$this->dumpSettings['where']}";
         }
         $resultSet = $this->dbHandler->query($stmt);
-        $resultSet->setFetchMode(PDO::FETCH_NUM);
-        foreach ($resultSet as $r) {
-            $vals = $this->escape($r);
+        $resultSet->setFetchMode(PDO::FETCH_ASSOC);
+        foreach ($resultSet as $row) {
+            $vals = $this->escape($tableName, $row);
             if ($onlyOnce || !$this->dumpSettings['extended-insert']) {
                 $lineSize += $this->compressManager->write(
-                    "INSERT INTO `$tablename` VALUES (" . implode(",", $vals) . ")"
+                    "INSERT INTO `$tableName` VALUES (" . implode(",", $vals) . ")"
                 );
                 $onlyOnce = false;
             } else {
@@ -515,7 +572,7 @@ class Mysqldump
         }
 
         if ($this->dumpSettings['add-locks']) {
-            $this->compressManager->write($this->typeAdapter->end_add_lock_table($tablename));
+            $this->compressManager->write($this->typeAdapter->end_add_lock_table($tableName));
         }
 
         if ($this->dumpSettings['single-transaction']) {
@@ -523,7 +580,7 @@ class Mysqldump
         }
 
         if ($this->dumpSettings['lock-tables']) {
-            $this->typeAdapter->unlock_table($tablename);
+            $this->typeAdapter->unlock_table($tableName);
         }
 
         $this->compressManager->write(PHP_EOL);
@@ -735,6 +792,11 @@ abstract class TypeAdapterFactory
         return "SELECT tbl_name FROM sqlite_master where type='view'";
     }
 
+    public function show_columns($tableName)
+    {
+        return "pragma table_info($tableName)";
+    }
+
     public function start_transaction()
     {
         return "BEGIN EXCLUSIVE";
@@ -837,6 +899,17 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return "SELECT TABLE_NAME AS tbl_name " .
             "FROM INFORMATION_SCHEMA.TABLES " .
             "WHERE TABLE_TYPE='VIEW' AND TABLE_SCHEMA='${args[0]}'";
+    }
+
+    public function show_columns()
+    {
+        if (func_num_args() != 1) {
+            return "";
+        }
+
+        $args = func_get_args();
+
+        return "SHOW COLUMNS FROM `${args[0]}`;";
     }
 
     public function start_transaction()
