@@ -170,9 +170,26 @@ Plain old PHP:
   - http://stackoverflow.com/questions/13728106/unexpectedly-hitting-php-memory-limit-with-a-single-pdo-query/13729745#13729745
   - http://www.php.net/manual/en/mysqlinfo.concepts.buffering.php
 
+## Errors
+
+To dump a database, you need the following privileges :
+
+- **SELECT**
+  - In order to dump table structures and data.
+- **SHOW VIEW**
+  - If any databases has views, else you will get an error.
+- **TRIGGER**
+  - If any table has one or more triggers.
+- **LOCK TABLES**
+  - If "lock tables" option was enabled.
+
+Use **SHOW GRANTS FOR user@host;** to know what privileges user has. See the following link for more information:
+
+[Which are the minimum privileges required to get a backup of a MySQL database schema?](http://dba.stackexchange.com/questions/55546/which-are-the-minimum-privileges-required-to-get-a-backup-of-a-mysql-database-sc/55572#55572)
 
 ## TODO
 
+- Write any tests.
 - Write unit tests.
 
 ## Contributing

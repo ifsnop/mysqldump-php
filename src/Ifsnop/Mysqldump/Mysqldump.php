@@ -201,41 +201,24 @@ class Mysqldump
         // Connect to database
         $this->connect();
 
+        // Create output file
         $this->compressManager->open($this->fileName);
 
-        // Formating dump file
+        // Write some basic info to output file
         $this->compressManager->write($this->getHeader());
 
         if ($this->dumpSettings['add-drop-database']) {
             $this->compressManager->write($this->typeAdapter->add_drop_database($this->db));
         }
 
-        // Listing all tables from database
-        $this->tables = array();
-        if (empty($this->dumpSettings['include-tables'])) {
-            // include all tables for now, blacklisting happens later
-            foreach ($this->dbHandler->query($this->typeAdapter->show_tables($this->db)) as $row) {
-                array_push($this->tables, current($row));
-            }
-        } else {
-            // include only the tables mentioned in include-tables
-            foreach ($this->dbHandler->query($this->typeAdapter->show_tables($this->db)) as $row) {
-                if (in_array(current($row), $this->dumpSettings['include-tables'], true)) {
-                    array_push($this->tables, current($row));
-                    $elem = array_search(
-                        current($row),
-                        $this->dumpSettings['include-tables']
-                    );
-                    unset($this->dumpSettings['include-tables'][$elem]);
-                }
-            }
-        }
+        $this->getDatabaseStructure();
 
-        // If there still are some tables in include-tables array, that means
-        // that some tables weren't found. Give proper error and exit.
+        // If there still are some tables/views in include-tables array,
+        // that means that some tables or views weren't found.
+        // Give proper error and exit.
         if (0 < count($this->dumpSettings['include-tables'])) {
-            $table = implode(",", $this->dumpSettings['include-tables']);
-            throw new Exception("Table (" . $table . ") not found in database");
+            $name = implode(",", $this->dumpSettings['include-tables']);
+            throw new Exception("Table or View (" . $name . ") not found in database");
         }
 
         // Disable checking foreign keys
@@ -245,21 +228,8 @@ class Mysqldump
             );
         }
 
-        // Exporting tables one by one
-        foreach ($this->tables as $table) {
-            if (in_array($table, $this->dumpSettings['exclude-tables'], true)) {
-                continue;
-            }
-            $isTable = $this->getTableStructure($table);
-            if (true === $isTable && false === $this->dumpSettings['no-data']) {
-                $this->listValues($table);
-            }
-        }
-
-        // Exporting views one by one
-        foreach ($this->views as $view) {
-            $this->compressManager->write($view);
-        }
+        $this->exportTables();
+        $this->exportViews();
 
         // Enable checking foreign keys if needed
         if ($this->dumpSettings['disable-foreign-keys-check']) {
@@ -294,45 +264,146 @@ class Mysqldump
     }
 
     /**
-     * Table structure extractor. Will return true if it's a table,
-     * false if it's a view.
+     * Reads table and views names from database.
+     * Fills $this->tables array so they will be dumped later.
      *
-     * @param string $tablename  Name of table to export
+     * @return null
+     */
+    private function getDatabaseStructure()
+    {
+        // Listing all tables from database
+        $this->tables = array();
+        if (empty($this->dumpSettings['include-tables'])) {
+            // include all tables for now, blacklisting happens later
+            foreach ($this->dbHandler->query($this->typeAdapter->show_tables($this->db)) as $row) {
+                array_push($this->tables, current($row));
+            }
+        } else {
+            // include only the tables mentioned in include-tables
+            foreach ($this->dbHandler->query($this->typeAdapter->show_tables($this->db)) as $row) {
+                if (in_array(current($row), $this->dumpSettings['include-tables'], true)) {
+                    array_push($this->tables, current($row));
+                    $elem = array_search(
+                        current($row),
+                        $this->dumpSettings['include-tables']
+                    );
+                    unset($this->dumpSettings['include-tables'][$elem]);
+                }
+            }
+        }
+
+        // Listing all views from database
+        $this->views = array();
+        if (empty($this->dumpSettings['include-tables'])) {
+            // include all views for now, blacklisting happens later
+            foreach ($this->dbHandler->query($this->typeAdapter->show_views($this->db)) as $row) {
+                array_push($this->views, current($row));
+            }
+        } else {
+            // include only the tables mentioned in include-tables
+            foreach ($this->dbHandler->query($this->typeAdapter->show_views($this->db)) as $row) {
+                if (in_array(current($row), $this->dumpSettings['include-tables'], true)) {
+                    array_push($this->views, current($row));
+                    $elem = array_search(
+                        current($row),
+                        $this->dumpSettings['include-tables']
+                    );
+                    unset($this->dumpSettings['include-tables'][$elem]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Exports all the tables selected from database
+     *
+     * @return null
+     */
+    private function exportTables()
+    {
+        // Exporting tables one by one
+        foreach ($this->tables as $table) {
+            if (in_array($table, $this->dumpSettings['exclude-tables'], true)) {
+                continue;
+            }
+            $this->getTableStructure($table);
+            if (false === $this->dumpSettings['no-data']) {
+                $this->listValues($table);
+            }
+        }
+    }
+
+    /**
+     * Exports all the views found in database
+     *
+     * @return null
+     */
+    private function exportViews()
+    {
+        // Exporting views one by one
+        foreach ($this->views as $view) {
+            if (in_array($view, $this->dumpSettings['exclude-tables'], true)) {
+                continue;
+            }
+            $this->getViewStructure($view);
+        }
+    }
+
+    /**
+     * Table structure extractor.
+     *
+     * @param string $tableName  Name of table to export
      * @return boolean
      */
-    private function getTableStructure($tablename)
+    private function getTableStructure($tableName)
     {
-        $stmt = $this->typeAdapter->show_create_table($tablename);
+        $stmt = $this->typeAdapter->show_create_table($tableName);
         foreach ($this->dbHandler->query($stmt) as $r) {
             if (isset($r['Create Table'])) {
                 if (!$this->dumpSettings['no-create-info']) {
                     $this->compressManager->write(
                         "--\n" .
-                        "-- Table structure for table `$tablename`\n" .
+                        "-- Table structure for table `$tableName`\n" .
                         "--\n\n"
                     );
                     if ($this->dumpSettings['add-drop-table']) {
-                        $this->compressManager->write("DROP TABLE IF EXISTS `$tablename`;\n\n");
+                        $this->compressManager->write("/*!50001 DROP TABLE IF EXISTS `$tableName`*/;\n\n");
                     }
                     $this->compressManager->write($r['Create Table'] . ";\n\n");
                 }
                 return true;
             }
+            throw new Exception("Error getting table structure, unknown output");
+        }
+    }
 
+    /**
+     * View structure extractor.
+     *
+     * @param string $viewName  Name of view to export
+     * @return boolean
+     */
+    private function getViewStructure($viewName)
+    {
+        $stmt = $this->typeAdapter->show_create_view($viewName);
+        foreach ($this->dbHandler->query($stmt) as $r) {
             if (isset($r['Create View'])) {
                 if (!$this->dumpSettings['no-create-info']) {
-                    $view  = "-- --------------------------------------------------------" .
-                            "\n\n" .
-                            "--\n" .
-                            "-- Table structure for view `$tablename`\n" .
-                            "--\n\n";
-                    $view .= $r['Create View'] . ";\n\n";
-                    $this->views[] = $view;
+                    $this->compressManager->write(
+                        "--\n" .
+                        "-- Table structure for view `$viewName`\n" .
+                        "--\n\n"
+                    );
+                    if ($this->dumpSettings['add-drop-table']) {
+                        $this->compressManager->write("/*!50001 DROP TABLE IF EXISTS `$viewName`*/;\n");
+                        $this->compressManager->write("/*!50001 DROP VIEW IF EXISTS `$viewName`*/;\n\n");
+                    }
+                    $this->compressManager->write($r['Create View'] . ";\n\n");
                 }
-                return false;
+                return true;
             }
+            throw new Exception("Error getting view structure, unknown output");
         }
-        throw new Exception("Error getting table structure, unknown output");
     }
 
     /**
@@ -432,6 +503,9 @@ class Mysqldump
         if ($this->dumpSettings['lock-tables']) {
             $this->typeAdapter->unlock_table($tablename);
         }
+
+        $this->compressManager->write("\n");
+
     }
 }
 
@@ -614,16 +688,29 @@ abstract class TypeAdapterFactory
         $method =  __NAMESPACE__ . "\\" . "TypeAdapter" . $c;
         return new $method($dbHandler);
     }
-    public function show_create_table($tablename)
+
+    public function show_create_table($tableName)
     {
         return "SELECT tbl_name as 'Table', sql as 'Create Table' " .
             "FROM sqlite_master " .
-            "WHERE type='table' AND tbl_name='$tablename'";
+            "WHERE type='table' AND tbl_name='$tableName'";
+    }
+
+    public function show_create_view($viewName)
+    {
+        return "SELECT tbl_name as 'View', sql as 'Create View' " .
+            "FROM sqlite_master " .
+            "WHERE type='view' AND tbl_name='$viewName'";
     }
 
     public function show_tables()
     {
         return "SELECT tbl_name FROM sqlite_master where type='table'";
+    }
+
+    public function show_views()
+    {
+        return "SELECT tbl_name FROM sqlite_master where type='view'";
     }
 
     public function start_transaction()
@@ -699,6 +786,11 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return "SHOW CREATE TABLE `$tableName`";
     }
 
+    public function show_create_view($viewName)
+    {
+        return "SHOW CREATE VIEW `$viewName`";
+    }
+
     public function show_tables()
     {
         if (func_num_args() != 1) {
@@ -710,6 +802,19 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return "SELECT TABLE_NAME AS tbl_name " .
             "FROM INFORMATION_SCHEMA.TABLES " .
             "WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='${args[0]}'";
+    }
+
+    public function show_views()
+    {
+        if (func_num_args() != 1) {
+            return "";
+        }
+
+        $args = func_get_args();
+
+        return "SELECT TABLE_NAME AS tbl_name " .
+            "FROM INFORMATION_SCHEMA.TABLES " .
+            "WHERE TABLE_TYPE='VIEW' AND TABLE_SCHEMA='${args[0]}'";
     }
 
     public function start_transaction()
