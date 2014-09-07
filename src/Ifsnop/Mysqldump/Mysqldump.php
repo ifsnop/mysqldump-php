@@ -350,10 +350,10 @@ class Mysqldump
     }
 
     /**
-     * Table structure extractor.
+     * Table structure extractor
      *
      * @param string $tableName  Name of table to export
-     * @return boolean
+     * @return null
      */
     private function getTableStructure($tableName)
     {
@@ -371,17 +371,17 @@ class Mysqldump
                     }
                     $this->compressManager->write($r['Create Table'] . ";\n\n");
                 }
-                return true;
+                return;
             }
             throw new Exception("Error getting table structure, unknown output");
         }
     }
 
     /**
-     * View structure extractor.
+     * View structure extractor
      *
      * @param string $viewName  Name of view to export
-     * @return boolean
+     * @return null
      */
     private function getViewStructure($viewName)
     {
@@ -400,7 +400,7 @@ class Mysqldump
                     }
                     $this->compressManager->write($r['Create View'] . ";\n\n");
                 }
-                return true;
+                return;
             }
             throw new Exception("Error getting view structure, unknown output");
         }
