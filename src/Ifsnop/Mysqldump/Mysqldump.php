@@ -32,7 +32,14 @@ use PDOException;
  */
 class Mysqldump
 {
+
+    // Same as mysqldump
     const MAXLINESIZE = 1000000;
+
+    // Available compression methods as constants
+    const GZIP = "Gzip";
+    const BZIP2 = "Bzip2";
+    const NONE = "None";
 
     // This can be set both on constructor or manually
     public $host;
