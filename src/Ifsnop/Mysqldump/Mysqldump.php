@@ -114,7 +114,7 @@ class Mysqldump
 
         $diff = array_diff(array_keys($this->dumpSettings), array_keys($dumpSettingsDefault));
         if (count($diff)>0) {
-            throw new Exception("Unexpected value in dumpSettings: (" . implode(",", $diff) . ")\n");
+            throw new Exception("Unexpected value in dumpSettings: (" . implode(",", $diff) . ")");
         }
 
         // Create a new compressManager to manage compressed output
@@ -245,6 +245,9 @@ class Mysqldump
             );
         }
 
+        // Write some stats to output file
+        $this->compressManager->write($this->getFooter());
+        // Close output file
         $this->compressManager->close();
     }
 
@@ -256,18 +259,30 @@ class Mysqldump
     private function getHeader()
     {
         // Some info about software, source and time
-        $header = "-- mysqldump-php https://github.com/ifsnop/mysqldump-php\n" .
-                "--\n" .
-                "-- Host: {$this->host}\tDatabase: {$this->db}\n" .
-                "-- ------------------------------------------------------\n";
+        $header = "-- mysqldump-php https://github.com/ifsnop/mysqldump-php" . PHP_EOL .
+                "--" . PHP_EOL .
+                "-- Host: {$this->host}\tDatabase: {$this->db}" . PHP_EOL .
+                "-- ------------------------------------------------------" . PHP_EOL;
 
         if (!empty($this->version)) {
-            $header .= "-- Server version \t" . $this->version . "\n";
+            $header .= "-- Server version \t" . $this->version . PHP_EOL;
         }
 
-        $header .= "-- Date: " . date('r') . "\n\n";
+        $header .= "-- Date: " . date('r') . PHP_EOL . PHP_EOL;
 
         return $header;
+    }
+
+    /**
+     * Returns footer for dump file
+     *
+     * @return string
+     */
+    private function getFooter()
+    {
+        $footer = "-- Dump completed on: " . date('r') . PHP_EOL;
+
+        return $footer;
     }
 
     /**
@@ -369,14 +384,14 @@ class Mysqldump
             if (isset($r['Create Table'])) {
                 if (!$this->dumpSettings['no-create-info']) {
                     $this->compressManager->write(
-                        "--\n" .
-                        "-- Table structure for table `$tableName`\n" .
-                        "--\n\n"
+                        "--" . PHP_EOL .
+                        "-- Table structure for table `$tableName`" . PHP_EOL .
+                        "--" . PHP_EOL . PHP_EOL
                     );
                     if ($this->dumpSettings['add-drop-table']) {
-                        $this->compressManager->write("/*!50001 DROP TABLE IF EXISTS `$tableName`*/;\n\n");
+                        $this->compressManager->write("/*!50001 DROP TABLE IF EXISTS `$tableName`*/;" . PHP_EOL . PHP_EOL);
                     }
-                    $this->compressManager->write($r['Create Table'] . ";\n\n");
+                    $this->compressManager->write($r['Create Table'] . ";" . PHP_EOL . PHP_EOL);
                 }
                 return;
             }
@@ -397,15 +412,15 @@ class Mysqldump
             if (isset($r['Create View'])) {
                 if (!$this->dumpSettings['no-create-info']) {
                     $this->compressManager->write(
-                        "--\n" .
-                        "-- Table structure for view `$viewName`\n" .
-                        "--\n\n"
+                        "--" . PHP_EOL .
+                        "-- Table structure for view `$viewName`" . PHP_EOL .
+                        "--" . PHP_EOL . PHP_EOL
                     );
                     if ($this->dumpSettings['add-drop-table']) {
-                        $this->compressManager->write("/*!50001 DROP TABLE IF EXISTS `$viewName`*/;\n");
-                        $this->compressManager->write("/*!50001 DROP VIEW IF EXISTS `$viewName`*/;\n\n");
+                        $this->compressManager->write("/*!50001 DROP TABLE IF EXISTS `$viewName`*/;" . PHP_EOL);
+                        $this->compressManager->write("/*!50001 DROP VIEW IF EXISTS `$viewName`*/;" . PHP_EOL . PHP_EOL);
                     }
-                    $this->compressManager->write($r['Create View'] . ";\n\n");
+                    $this->compressManager->write($r['Create View'] . ";" . PHP_EOL . PHP_EOL);
                 }
                 return;
             }
@@ -452,9 +467,9 @@ class Mysqldump
     private function listValues($tablename)
     {
         $this->compressManager->write(
-            "--\n" .
-            "-- Dumping data for table `$tablename`\n" .
-            "--\n\n"
+            "--" . PHP_EOL .
+            "-- Dumping data for table `$tablename`" .  PHP_EOL .
+            "--" . PHP_EOL . PHP_EOL
         );
 
         if ($this->dumpSettings['single-transaction']) {
@@ -490,13 +505,13 @@ class Mysqldump
             if (($lineSize > self::MAXLINESIZE) ||
                     !$this->dumpSettings['extended-insert']) {
                 $onlyOnce = true;
-                $lineSize = $this->compressManager->write(";\n");
+                $lineSize = $this->compressManager->write(";" . PHP_EOL);
             }
         }
         $resultSet->closeCursor();
 
         if (!$onlyOnce) {
-            $this->compressManager->write(";\n");
+            $this->compressManager->write(";" . PHP_EOL);
         }
 
         if ($this->dumpSettings['add-locks']) {
@@ -511,7 +526,7 @@ class Mysqldump
             $this->typeAdapter->unlock_table($tablename);
         }
 
-        $this->compressManager->write("\n");
+        $this->compressManager->write(PHP_EOL);
 
     }
 }
@@ -742,27 +757,27 @@ abstract class TypeAdapterFactory
 
     public function start_add_lock_table()
     {
-        return "\n";
+        return PHP_EOL;
     }
 
     public function end_add_lock_table()
     {
-        return "\n";
+        return PHP_EOL;
     }
 
     public function start_disable_foreign_keys_check()
     {
-        return "\n";
+        return PHP_EOL;
     }
 
     public function end_disable_foreign_keys_check()
     {
-        return "\n";
+        return PHP_EOL;
     }
 
     public function add_drop_database()
     {
-        return "\n";
+        return PHP_EOL;
     }
 }
 
@@ -861,24 +876,24 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
         $args = func_get_args();
 
-        return "LOCK TABLES `${args[0]}` WRITE;\n";
+        return "LOCK TABLES `${args[0]}` WRITE;" . PHP_EOL;
     }
 
     public function end_add_lock_table()
     {
-        return "UNLOCK TABLES;\n";
+        return "UNLOCK TABLES;" . PHP_EOL;
     }
 
     public function start_disable_foreign_keys_check()
     {
-        return "-- Ignore checking of foreign keys\n" .
-            "SET FOREIGN_KEY_CHECKS = 0;\n\n";
+        return "-- Ignore checking of foreign keys" . PHP_EOL .
+            "SET FOREIGN_KEY_CHECKS = 0;" . PHP_EOL . PHP_EOL;
     }
 
     public function end_disable_foreign_keys_check()
     {
-        return "\n-- Unignore checking of foreign keys\n" .
-            "SET FOREIGN_KEY_CHECKS = 1; \n\n";
+        return "-- Unignore checking of foreign keys" . PHP_EOL .
+            "SET FOREIGN_KEY_CHECKS = 1;" . PHP_EOL . PHP_EOL;
     }
 
     public function add_drop_database()
@@ -889,7 +904,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
         $args = func_get_args();
 
-        $ret = "/*!40000 DROP DATABASE IF EXISTS `${args[0]}`*/;\n";
+        $ret = "/*!40000 DROP DATABASE IF EXISTS `${args[0]}`*/;" . PHP_EOL;
 
         $resultSet = $this->dbHandler->query("SHOW VARIABLES LIKE 'character_set_database';");
         $characterSet = $resultSet->fetchColumn(1);
@@ -901,8 +916,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
         $ret .= "CREATE DATABASE /*!32312 IF NOT EXISTS*/ `${args[0]}`".
             " /*!40100 DEFAULT CHARACTER SET " . $characterSet .
-            " COLLATE " . $collationDb . "*/;\n" .
-            "USE `${args[0]}`;\n\n";
+            " COLLATE " . $collationDb . "*/;" . PHP_EOL .
+            "USE `${args[0]}`;" . PHP_EOL . PHP_EOL;
 
         return $ret;
     }
