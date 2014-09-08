@@ -498,10 +498,11 @@ class Mysqldump
     private function escape($tableName, $row)
     {
         $ret = array();
+        $columnTypes = $this->tableColumnTypes[$tableName];
         foreach ($row as $colName => $colValue) {
             if (is_null($colValue)) {
                 $ret[] = "NULL";
-            } elseif ($this->tableColumnTypes[$tableName][$colName]) {
+            } elseif ($columnTypes[$colName]) {
                 // if (ctype_digit($val) && ((string) intval($val) === $val)) {
                 // Since "(string) intval($val) === $val" is slower, first check ctype_digit, then run comparison
                 // We can't use ctype_digit alone, as this will trim off leading zeros on string values
