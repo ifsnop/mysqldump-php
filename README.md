@@ -110,18 +110,20 @@ Plain old PHP:
         'exclude-tables' => array(),
         'compress' => 'None',
         'no-data' => false,
-        'add-drop-database' => false,
         'add-drop-table' => false,
         'single-transaction' => true,
         'lock-tables' => false,
         'add-locks' => true,
         'extended-insert' => true,
+        'disable-keys' => true,
         'disable-foreign-keys-check' => false,
         'where' => '',
         'no-create-info' => false,
         'skip-triggers' => false,
         'add-drop-trigger' => true,
-        'hex-blob' => true
+        'hex-blob' => true,
+        'databases' => false,
+        'add-drop-database' => false
     );
 
     $pdoSettingsDefaults = array(PDO::ATTR_PERSISTENT => true,
@@ -144,8 +146,6 @@ Plain old PHP:
   - Gzip, Bzip2, None
 - **no-data**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data
-- **add-drop-database**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-database
 - **add-drop-table**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table
 - **single-transaction**
@@ -156,6 +156,8 @@ Plain old PHP:
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks
 - **extended-insert**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert
+- **disable-keys**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_disable-keys
 - **disable-foreign-keys-check**
   - http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
 - **where**
@@ -168,6 +170,10 @@ Plain old PHP:
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-trigger
 - **hex-blob**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_hex-blob
+- **databases**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_databases
+- **add-drop-database**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-database
 
 ## PDO Settings
 

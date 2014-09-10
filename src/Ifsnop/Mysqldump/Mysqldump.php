@@ -116,18 +116,20 @@ class Mysqldump
             'exclude-tables' => array(),
             'compress' => 'None',
             'no-data' => false,
-            'add-drop-database' => false,
             'add-drop-table' => false,
             'single-transaction' => true,
             'lock-tables' => true,
             'add-locks' => true,
             'extended-insert' => true,
+            'disable-keys' => true,
             'disable-foreign-keys-check' => false,
             'where' => '',
             'no-create-info' => false,
             'skip-triggers' => false,
             'add-drop-trigger' => true,
-            'hex-blob' => true
+            'hex-blob' => true,
+            'databases' => false,
+            'add-drop-database' => false,
         );
 
         $pdoSettingsDefault = array(PDO::ATTR_PERSISTENT => true,
@@ -246,11 +248,20 @@ class Mysqldump
         // Write some basic info to output file
         $this->compressManager->write($this->getHeader());
 
-        if ($this->dumpSettings['add-drop-database']) {
-            $this->compressManager->write($this->typeAdapter->add_drop_database($this->db));
+        if ($this->dumpSettings['databases'] &&
+            $this->dumpSettings['add-drop-database']) {
+            $this->compressManager->write(
+                $this->typeAdapter->add_drop_database($this->db)
+            );
         }
 
         $this->getDatabaseStructure();
+
+        if ($this->dumpSettings['databases']) {
+            $this->compressManager->write(
+                $this->typeAdapter->databases($this->db)
+            );
+        }
 
         // If there still are some tables/views in include-tables array,
         // that means that some tables or views weren't found.
@@ -445,9 +456,13 @@ class Mysqldump
                         "--" . PHP_EOL . PHP_EOL
                     );
                     if ($this->dumpSettings['add-drop-table']) {
-                        $this->compressManager->write("/*!50001 DROP TABLE IF EXISTS `$tableName`*/;" . PHP_EOL . PHP_EOL);
+                        $this->compressManager->write(
+                            $this->typeAdapter->drop_table($tableName)
+                        );
                     }
-                    $this->compressManager->write($r['Create Table'] . ";" . PHP_EOL . PHP_EOL);
+                    $this->compressManager->write(
+                        $this->typeAdapter->create_table($r)
+                    );
                 }
 
                 break;
@@ -518,8 +533,9 @@ class Mysqldump
                         "--" . PHP_EOL . PHP_EOL
                     );
                     if ($this->dumpSettings['add-drop-table']) {
-                        $this->compressManager->write("/*!50001 DROP TABLE IF EXISTS `$viewName`*/;" . PHP_EOL);
-                        $this->compressManager->write("/*!50001 DROP VIEW IF EXISTS `$viewName`*/;" . PHP_EOL . PHP_EOL);
+                        $this->compressManager->write(
+                            $this->typeAdapter->drop_view($viewName)
+                        );
                     }
                     $this->compressManager->write($r['Create View'] . ";" . PHP_EOL . PHP_EOL);
                 }
@@ -605,7 +621,15 @@ class Mysqldump
         }
 
         if ($this->dumpSettings['add-locks']) {
-            $this->compressManager->write($this->typeAdapter->start_add_lock_table($tableName));
+            $this->compressManager->write(
+                $this->typeAdapter->start_add_lock_table($tableName)
+            );
+        }
+
+        if ($this->dumpSettings['disable-keys']) {
+            $this->compressManager->write(
+                $this->typeAdapter->start_add_disable_keys($tableName)
+            );
         }
 
         $onlyOnce = true;
@@ -638,8 +662,16 @@ class Mysqldump
             $this->compressManager->write(";" . PHP_EOL);
         }
 
+        if ($this->dumpSettings['disable-keys']) {
+            $this->compressManager->write(
+                $this->typeAdapter->end_add_disable_keys($tableName)
+            );
+        }
+
         if ($this->dumpSettings['add-locks']) {
-            $this->compressManager->write($this->typeAdapter->end_add_lock_table($tableName));
+            $this->compressManager->write(
+                $this->typeAdapter->end_add_lock_table($tableName)
+            );
         }
 
         if ($this->dumpSettings['single-transaction']) {
@@ -835,11 +867,29 @@ abstract class TypeAdapterFactory
         return new $method($dbHandler);
     }
 
+    /**
+     * function databases Add sql to create and use database
+     * @todo make it do something with sqlite
+     */
+    public function databases()
+    {
+        return "";
+    }
+
     public function show_create_table($tableName)
     {
         return "SELECT tbl_name as 'Table', sql as 'Create Table' " .
             "FROM sqlite_master " .
             "WHERE type='table' AND tbl_name='$tableName'";
+    }
+
+    /**
+     * function create_table Get table creation code from database
+     * @todo make it do something with sqlite
+     */
+    public function create_table($row)
+    {
+        return "";
     }
 
     public function show_create_view($viewName)
@@ -851,7 +901,7 @@ abstract class TypeAdapterFactory
 
     /**
      * function show_create_trigger Get trigger creation code from database
-     * @todo make it do something
+     * @todo make it do something with sqlite
      */
     public function show_create_trigger($triggerName)
     {
@@ -860,7 +910,7 @@ abstract class TypeAdapterFactory
 
     /**
      * function create_trigger Modify trigger code, add delimiters, etc
-     * @todo make it do something
+     * @todo make it do something with sqlite
      */
     public function create_trigger($triggerName)
     {
@@ -923,6 +973,16 @@ abstract class TypeAdapterFactory
         return PHP_EOL;
     }
 
+    public function start_add_disable_keys()
+    {
+        return PHP_EOL;
+    }
+
+    public function end_add_disable_keys()
+    {
+        return PHP_EOL;
+    }
+
     public function start_disable_foreign_keys_check()
     {
         return PHP_EOL;
@@ -942,6 +1002,17 @@ abstract class TypeAdapterFactory
     {
         return PHP_EOL;
     }
+
+    public function drop_table()
+    {
+        return PHP_EOL;
+    }
+
+    public function drop_view()
+    {
+        return PHP_EOL;
+    }
+
 }
 
 class TypeAdapterPgsql extends TypeAdapterFactory
@@ -966,6 +1037,35 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $this->dbHandler = $dbHandler;
     }
 
+    public function databases()
+    {
+        if (func_num_args() != 1) {
+             return "";
+        }
+
+        $args = func_get_args();
+
+        $resultSet = $this->dbHandler->query("SHOW VARIABLES LIKE 'character_set_database';");
+        $characterSet = $resultSet->fetchColumn(1);
+        $resultSet->closeCursor();
+
+        $resultSet = $this->dbHandler->query("SHOW VARIABLES LIKE 'collation_database';");
+        $collationDb = $resultSet->fetchColumn(1);
+        $resultSet->closeCursor();
+        $ret = "";
+
+        if (false === $this->dumpSettings['add-drop-database']) {
+            $ret = $this->getDatabaseHeader();
+        }
+
+        $ret .= "CREATE DATABASE /*!32312 IF NOT EXISTS*/ `${args[0]}`".
+            " /*!40100 DEFAULT CHARACTER SET " . $characterSet .
+            " COLLATE " . $collationDb . "*/;" . PHP_EOL . PHP_EOL .
+            "USE `${args[0]}`;" . PHP_EOL . PHP_EOL;
+
+        return $ret;
+    }
+
     public function show_create_table($tableName)
     {
         return "SHOW CREATE TABLE `$tableName`";
@@ -981,22 +1081,42 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return "SHOW CREATE TRIGGER `$triggerName`";
     }
 
+    public function create_table($row)
+    {
+        $ret = "";
+        if (isset($row['Create Table'])) {
+            $ret = $row['Create Table'] . PHP_EOL . PHP_EOL;
+        } else {
+            throw new Exception("Error getting trigger code, unknown output");
+        }
+        return $ret;
+
+    }
+
     public function create_trigger($row)
     {
         $ret = "";
         if (isset($row['SQL Original Statement'])) {
             $triggerStmt = $row['SQL Original Statement'];
-            $triggerStmtReplaced = str_replace("CREATE", "/*!50003 CREATE*/", $triggerStmt);
+            $triggerStmtReplaced = str_replace(
+                "CREATE DEFINER",
+                "/*!50003 CREATE*/ /*!50017 DEFINER",
+                $triggerStmt
+            );
+            $triggerStmtReplaced = str_replace(
+                " TRIGGER",
+                "*/ /*!50003 TRIGGER",
+                $triggerStmtReplaced
+            );
             if ( false === $triggerStmtReplaced ) {
                 $triggerStmtReplaced = $triggerStmt;
             }
             $ret = "DELIMITER ;;" . PHP_EOL .
-                $triggerStmtReplaced . ";;" . PHP_EOL .
+                $triggerStmtReplaced . "*/;;" . PHP_EOL .
                 "DELIMITER ;" . PHP_EOL . PHP_EOL;
         } else {
             throw new Exception("Error getting trigger code, unknown output");
         }
-
         return $ret;
     }
 
@@ -1094,6 +1214,24 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return "UNLOCK TABLES;" . PHP_EOL;
     }
 
+    public function start_add_disable_keys()
+    {
+        if (func_num_args() != 1) {
+            return "";
+        }
+        $args = func_get_args();
+        return "/*!40000 ALTER TABLE `${args[0]}` DISABLE KEYS */;" . PHP_EOL;
+    }
+
+    public function end_add_disable_keys()
+    {
+        if (func_num_args() != 1) {
+            return "";
+        }
+        $args = func_get_args();
+        return "/*!40000 ALTER TABLE `${args[0]}` ENABLE KEYS */;" . PHP_EOL;
+    }
+
     public function start_disable_foreign_keys_check()
     {
         return "-- Ignore checking of foreign keys" . PHP_EOL .
@@ -1117,22 +1255,9 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
         $args = func_get_args();
 
-        $ret = "/*!40000 DROP DATABASE IF EXISTS `${args[0]}`*/;" . PHP_EOL;
-
-        $resultSet = $this->dbHandler->query("SHOW VARIABLES LIKE 'character_set_database';");
-        $characterSet = $resultSet->fetchColumn(1);
-        $resultSet->closeCursor();
-
-        $resultSet = $this->dbHandler->query("SHOW VARIABLES LIKE 'collation_database';");
-        $collationDb = $resultSet->fetchColumn(1);
-        $resultSet->closeCursor();
-
-        $ret .= "CREATE DATABASE /*!32312 IF NOT EXISTS*/ `${args[0]}`".
-            " /*!40100 DEFAULT CHARACTER SET " . $characterSet .
-            " COLLATE " . $collationDb . "*/;" . PHP_EOL .
-            "USE `${args[0]}`;" . PHP_EOL . PHP_EOL;
-
-        return $ret;
+        return $this->getDatabaseHeader($args[0]) .
+            "/*!40000 DROP DATABASE IF EXISTS `${args[0]}`*/;" .
+            PHP_EOL . PHP_EOL;
     }
 
     public function add_drop_trigger()
@@ -1144,5 +1269,40 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $args = func_get_args();
 
         return "DROP TRIGGER IF EXISTS `${args[0]}`;" . PHP_EOL;
+    }
+
+    public function drop_table()
+    {
+        if (func_num_args() != 1) {
+            return "";
+        }
+
+        $args = func_get_args();
+
+        return "DROP TABLE IF EXISTS `${args[0]}`;" . PHP_EOL;
+    }
+
+    public function drop_view()
+    {
+        if (func_num_args() != 1) {
+            return "";
+        }
+
+        $args = func_get_args();
+
+        return "DROP TABLE IF EXISTS `${args[0]}`;" . PHP_EOL .
+                "/*!50001 DROP VIEW IF EXISTS `${args[0]}`*/;" . PHP_EOL;
+    }
+
+    public function getDatabaseHeader() {
+        if (func_num_args() != 1) {
+            return "";
+        }
+
+        $args = func_get_args();
+
+        return "--" . PHP_EOL .
+            "-- Current Database: `${args[0]}`" . PHP_EOL .
+            "--" . PHP_EOL . PHP_EOL;
     }
 }
