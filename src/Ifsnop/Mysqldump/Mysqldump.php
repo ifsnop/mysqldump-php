@@ -42,19 +42,30 @@ class Mysqldump
     const NONE = 'None';
 
     // Numerical Mysql types
-    public $mysqlNumericalTypes = array(
-        'bit',
-        'tinyint',
-        'smallint',
-        'mediumint',
-        'int',
-        'integer',
-        'bigint',
-        'real',
-        'double',
-        'float',
-        'decimal',
-        'numeric'
+    public $mysqlTypes = array(
+        'numerical' => array(
+            'bit',
+            'tinyint',
+            'smallint',
+            'mediumint',
+            'int',
+            'integer',
+            'bigint',
+            'real',
+            'double',
+            'float',
+            'decimal',
+            'numeric'
+        ),
+        'blob' => array(
+            'tinyblob',
+            'blob',
+            'mediumblob',
+            'longblob',
+            'binary',
+            'varbinary',
+            'bit'
+        )
     );
 
     // This can be set both on constructor or manually
@@ -115,7 +126,8 @@ class Mysqldump
             'where' => '',
             'no-create-info' => false,
             'skip-triggers' => false,
-            'add-drop-trigger' => true
+            'add-drop-trigger' => true,
+            'hex-blob' => true
         );
 
         $pdoSettingsDefault = array(PDO::ATTR_PERSISTENT => true,
@@ -450,7 +462,10 @@ class Mysqldump
 
         foreach($columns as $key => $col) {
             $types = $this->parseColumnType($col);
-            $columnTypes[$col['Field']] = $types['is_numeric'];
+            $columnTypes[$col['Field']] = array(
+                'is_numeric'=> $types['is_numeric'],
+                'is_blob' => $types['is_blob']
+            );
         }
         $this->tableColumnTypes[$tableName] = $columnTypes;
         return;
@@ -458,7 +473,7 @@ class Mysqldump
 
     /**
      * Decode column metadata and fill info structure.
-     * type and is_numeric will always be available.
+     * type, is_numeric and is_blob will always be available.
      *
      * @param array $colType Array returned from "SHOW COLUMNS FROM tableName"
      * @return array
@@ -478,7 +493,8 @@ class Mysqldump
         {
             $colInfo['type'] = $colParts[0];
         }
-        $colInfo['is_numeric'] = in_array($colInfo['type'], $this->mysqlNumericalTypes);
+        $colInfo['is_numeric'] = in_array($colInfo['type'], $this->mysqlTypes['numerical']);
+        $colInfo['is_blob'] = in_array($colInfo['type'], $this->mysqlTypes['blob']);
 
         return $colInfo;
     }
@@ -554,12 +570,10 @@ class Mysqldump
         foreach ($row as $colName => $colValue) {
             if (is_null($colValue)) {
                 $ret[] = "NULL";
-            } elseif ($columnTypes[$colName]) {
-                // if (ctype_digit($val) && ((string) intval($val) === $val)) {
-                // Since "(string) intval($val) === $val" is slower, first check ctype_digit, then run comparison
-                // We can't use ctype_digit alone, as this will trim off leading zeros on string values
-                // but will quote negative integers (not a big deal IMHO)
+            } elseif ($columnTypes[$colName]['is_numeric']) {
                 $ret[] = $colValue;
+            } elseif ($this->dumpSettings['hex-blob'] && $columnTypes[$colName]['is_blob']) {
+                $ret[] = '0x' . bin2hex($colValue);
             } else {
                 $ret[] = $this->dbHandler->quote($colValue);
             }
@@ -1129,6 +1143,6 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
         $args = func_get_args();
 
-        return "DROP TRIGGER IF EXISTS `${args[0]};" . PHP_EOL;
+        return "DROP TRIGGER IF EXISTS `${args[0]}`;" . PHP_EOL;
     }
 }

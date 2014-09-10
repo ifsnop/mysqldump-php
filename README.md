@@ -120,7 +120,8 @@ Plain old PHP:
         'where' => '',
         'no-create-info' => false,
         'skip-triggers' => false,
-        'add-drop-trigger' => true
+        'add-drop-trigger' => true,
+        'hex-blob' => true
     );
 
     $pdoSettingsDefaults = array(PDO::ATTR_PERSISTENT => true,
@@ -165,6 +166,8 @@ Plain old PHP:
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_triggers
 - **add-drop-triggers**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-trigger
+- **hex-blob**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_hex-blob
 
 ## PDO Settings
 
