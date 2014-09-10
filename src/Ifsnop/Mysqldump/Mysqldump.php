@@ -67,6 +67,7 @@ class Mysqldump
     // Internal stuff
     private $tables = array();
     private $views = array();
+    private $triggers = array();
     private $dbHandler;
     private $dbType;
     private $compressManager;
@@ -112,7 +113,9 @@ class Mysqldump
             'extended-insert' => true,
             'disable-foreign-keys-check' => false,
             'where' => '',
-            'no-create-info' => false
+            'no-create-info' => false,
+            'skip-triggers' => false,
+            'add-drop-trigger' => true
         );
 
         $pdoSettingsDefault = array(PDO::ATTR_PERSISTENT => true,
@@ -254,6 +257,7 @@ class Mysqldump
 
         $this->exportTables();
         $this->exportViews();
+        $this->exportTriggers();
 
         // Enable checking foreign keys if needed
         if ($this->dumpSettings['disable-foreign-keys-check']) {
@@ -351,6 +355,14 @@ class Mysqldump
                 }
             }
         }
+
+        // Listing all triggers from database
+        $this->triggers = array();
+        if (false === $this->dumpSettings['skip-triggers']) {
+            foreach ($this->dbHandler->query($this->typeAdapter->show_triggers($this->db)) as $row) {
+                array_push($this->triggers, $row['Trigger']);
+            }
+        }
     }
 
     /**
@@ -389,8 +401,23 @@ class Mysqldump
     }
 
     /**
+     * Exports all the triggers found in database
+     *
+     * @return null
+     */
+    private function exportTriggers()
+    {
+        // Exporting views one by one
+        foreach ($this->triggers as $trigger) {
+            $this->getTriggerStructure($trigger);
+        }
+    }
+
+
+    /**
      * Table structure extractor
      *
+     * @todo move specific mysql code to typeAdapter
      * @param string $tableName  Name of table to export
      * @return null
      */
@@ -459,6 +486,7 @@ class Mysqldump
     /**
      * View structure extractor
      *
+     * @todo move mysql specific code to typeAdapter
      * @param string $viewName  Name of view to export
      * @return null
      */
@@ -484,6 +512,30 @@ class Mysqldump
             throw new Exception("Error getting view structure, unknown output");
         }
     }
+
+    /**
+     * Trigger structure extractor
+     *
+     * @param string $triggerName  Name of trigger to export
+     * @return null
+     */
+    private function getTriggerStructure($triggerName)
+    {
+        $stmt = $this->typeAdapter->show_create_trigger($triggerName);
+        foreach ($this->dbHandler->query($stmt) as $r) {
+            if ($this->dumpSettings['add-drop-trigger']) {
+                $this->compressManager->write(
+                    $this->typeAdapter->add_drop_trigger($triggerName)
+                );
+            }
+            $this->compressManager->write(
+                $this->typeAdapter->create_trigger($r)
+            );
+            return;
+        }
+
+    }
+
 
     /**
      * Escape values with quotes when needed
@@ -518,7 +570,7 @@ class Mysqldump
     /**
      * Table rows extractor
      *
-     * @param string $tablename  Name of table to export
+     * @param string $tableName  Name of table to export
      *
      * @return null
      */
@@ -783,14 +835,37 @@ abstract class TypeAdapterFactory
             "WHERE type='view' AND tbl_name='$viewName'";
     }
 
+    /**
+     * function show_create_trigger Get trigger creation code from database
+     * @todo make it do something
+     */
+    public function show_create_trigger($triggerName)
+    {
+        return "";
+    }
+
+    /**
+     * function create_trigger Modify trigger code, add delimiters, etc
+     * @todo make it do something
+     */
+    public function create_trigger($triggerName)
+    {
+        return "";
+    }
+
     public function show_tables()
     {
-        return "SELECT tbl_name FROM sqlite_master where type='table'";
+        return "SELECT tbl_name FROM sqlite_master WHERE type='table'";
     }
 
     public function show_views()
     {
-        return "SELECT tbl_name FROM sqlite_master where type='view'";
+        return "SELECT tbl_name FROM sqlite_master WHERE type='view'";
+    }
+
+    public function show_triggers()
+    {
+        return "SELECT name FROM sqlite_master WHERE type='trigger'";
     }
 
     public function show_columns($tableName)
@@ -842,6 +917,11 @@ abstract class TypeAdapterFactory
     {
         return PHP_EOL;
     }
+
+    public function add_drop_trigger()
+    {
+        return PHP_EOL;
+    }
 }
 
 class TypeAdapterPgsql extends TypeAdapterFactory
@@ -876,6 +956,30 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return "SHOW CREATE VIEW `$viewName`";
     }
 
+    public function show_create_trigger($triggerName)
+    {
+        return "SHOW CREATE TRIGGER `$triggerName`";
+    }
+
+    public function create_trigger($row)
+    {
+        $ret = "";
+        if (isset($row['SQL Original Statement'])) {
+            $triggerStmt = $row['SQL Original Statement'];
+            $triggerStmtReplaced = str_replace("CREATE", "/*!50003 CREATE*/", $triggerStmt);
+            if ( false === $triggerStmtReplaced ) {
+                $triggerStmtReplaced = $triggerStmt;
+            }
+            $ret = "DELIMITER ;;" . PHP_EOL .
+                $triggerStmtReplaced . ";;" . PHP_EOL .
+                "DELIMITER ;" . PHP_EOL . PHP_EOL;
+        } else {
+            throw new Exception("Error getting trigger code, unknown output");
+        }
+
+        return $ret;
+    }
+
     public function show_tables()
     {
         if (func_num_args() != 1) {
@@ -901,6 +1005,18 @@ class TypeAdapterMysql extends TypeAdapterFactory
             "FROM INFORMATION_SCHEMA.TABLES " .
             "WHERE TABLE_TYPE='VIEW' AND TABLE_SCHEMA='${args[0]}'";
     }
+
+    public function show_triggers()
+    {
+        if (func_num_args() != 1) {
+            return "";
+        }
+
+        $args = func_get_args();
+
+        return "SHOW TRIGGERS FROM `${args[0]}`;";
+    }
+
 
     public function show_columns()
     {
@@ -961,13 +1077,16 @@ class TypeAdapterMysql extends TypeAdapterFactory
     public function start_disable_foreign_keys_check()
     {
         return "-- Ignore checking of foreign keys" . PHP_EOL .
+            "SET AUTOCOMMIT = 0;" . PHP_EOL .
             "SET FOREIGN_KEY_CHECKS = 0;" . PHP_EOL . PHP_EOL;
     }
 
     public function end_disable_foreign_keys_check()
     {
         return "-- Unignore checking of foreign keys" . PHP_EOL .
-            "SET FOREIGN_KEY_CHECKS = 1;" . PHP_EOL . PHP_EOL;
+            "SET FOREIGN_KEY_CHECKS = 1;" . PHP_EOL .
+            "COMMIT;" . PHP_EOL .
+            "SET AUTOCOMMIT = 1;" . PHP_EOL . PHP_EOL;
     }
 
     public function add_drop_database()
@@ -994,5 +1113,9 @@ class TypeAdapterMysql extends TypeAdapterFactory
             "USE `${args[0]}`;" . PHP_EOL . PHP_EOL;
 
         return $ret;
+    }
+
+    public function add_drop_trigger($triggerName) {
+        return "DROP TRIGGER IF EXISTS `$triggerName`;" . PHP_EOL;
     }
 }

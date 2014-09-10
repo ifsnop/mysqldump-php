@@ -118,7 +118,9 @@ Plain old PHP:
         'extended-insert' => true,
         'disable-foreign-keys-check' => false,
         'where' => '',
-        'no-create-info' => false
+        'no-create-info' => false,
+        'skip-triggers' => false,
+        'add-drop-trigger' => true
     );
 
     $pdoSettingsDefaults = array(PDO::ATTR_PERSISTENT => true,
@@ -159,6 +161,10 @@ Plain old PHP:
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_where
 - **no-create-info**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-create-info
+- **skip-triggers**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_triggers
+- **add-drop-triggers**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-trigger
 
 ## PDO Settings
 
