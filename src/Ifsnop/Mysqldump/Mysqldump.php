@@ -868,9 +868,15 @@ abstract class TypeAdapterFactory
         return "SELECT name FROM sqlite_master WHERE type='trigger'";
     }
 
-    public function show_columns($tableName)
+    public function show_columns()
     {
-        return "pragma table_info($tableName)";
+        if (func_num_args() != 1) {
+            return "";
+        }
+
+        $args = func_get_args();
+
+        return "pragma table_info(${args[0]})";
     }
 
     public function start_transaction()
@@ -1115,7 +1121,14 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return $ret;
     }
 
-    public function add_drop_trigger($triggerName) {
-        return "DROP TRIGGER IF EXISTS `$triggerName`;" . PHP_EOL;
+    public function add_drop_trigger()
+    {
+        if (func_num_args() != 1) {
+            return "";
+        }
+
+        $args = func_get_args();
+
+        return "DROP TRIGGER IF EXISTS `${args[0]};" . PHP_EOL;
     }
 }
