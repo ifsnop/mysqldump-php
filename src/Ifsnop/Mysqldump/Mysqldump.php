@@ -1085,7 +1085,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
     {
         $ret = "";
         if (isset($row['Create Table'])) {
-            $ret = $row['Create Table'] . PHP_EOL . PHP_EOL;
+            $ret = $row['Create Table'] . ";" . PHP_EOL . PHP_EOL;
         } else {
             throw new Exception("Error getting trigger code, unknown output");
         }
