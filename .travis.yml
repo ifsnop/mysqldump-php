@@ -13,7 +13,7 @@ services:
 before_script:
   - curl -s http://getcomposer.org/installer | php
   - php composer.phar install --dev
-  - mysql -e 'create database mysqldump;'
 
 script:
   - php src/Ifsnop/Mysqldump/Mysqldump.php
+  - cd tests && ./test.sh
