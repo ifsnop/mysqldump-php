@@ -589,7 +589,11 @@ class Mysqldump
             } elseif ($columnTypes[$colName]['is_numeric']) {
                 $ret[] = $colValue;
             } elseif ($this->dumpSettings['hex-blob'] && $columnTypes[$colName]['is_blob']) {
-                $ret[] = '0x' . bin2hex($colValue);
+                if (empty($colValue)) {
+                    $ret[] = "''";
+                } else {
+                    $ret[] = '0x' . bin2hex($colValue);
+                }
             } else {
                 $ret[] = $this->dbHandler->quote($colValue);
             }
