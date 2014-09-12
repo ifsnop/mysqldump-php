@@ -471,7 +471,8 @@ class Mysqldump
         }
 
         $columnTypes = array();
-        $columns = $this->dbHandler->query($this->typeAdapter->show_columns($tableName),
+        $columns = $this->dbHandler->query(
+            $this->typeAdapter->show_columns($tableName),
             PDO::FETCH_ASSOC
         );
 
@@ -479,7 +480,8 @@ class Mysqldump
             $types = $this->parseColumnType($col);
             $columnTypes[$col['Field']] = array(
                 'is_numeric'=> $types['is_numeric'],
-                'is_blob' => $types['is_blob']
+                'is_blob' => $types['is_blob'],
+                'type' => $types['type']
             );
         }
         $this->tableColumnTypes[$tableName] = $columnTypes;
@@ -571,8 +573,6 @@ class Mysqldump
 
     /**
      * Escape values with quotes when needed
-     * @todo use is_number instead of ctype_digit and intval
-     * @todo get column data type, use it to quote results
      *
      * @param string $tableName Name of table which contains rows
      * @param array $row Associative array of column names and values to be quoted
@@ -586,14 +586,18 @@ class Mysqldump
         foreach ($row as $colName => $colValue) {
             if (is_null($colValue)) {
                 $ret[] = "NULL";
+            } elseif ($this->dumpSettings['hex-blob'] && $columnTypes[$colName]['is_blob']) {
+                if ($columnTypes[$colName]['type'] == 'bit') {
+                    $ret[] = '0x' . bin2hex(chr($colValue));
+                } else {
+                    if (empty($colValue)) {
+                        $ret[] = "''";
+                    } else {
+                        $ret[] = '0x' . bin2hex($colValue);
+                    }
+                }
             } elseif ($columnTypes[$colName]['is_numeric']) {
                 $ret[] = $colValue;
-            } elseif ($this->dumpSettings['hex-blob'] && $columnTypes[$colName]['is_blob']) {
-                if (empty($colValue)) {
-                    $ret[] = "''";
-                } else {
-                    $ret[] = '0x' . bin2hex($colValue);
-                }
             } else {
                 $ret[] = $this->dbHandler->quote($colValue);
             }
