@@ -525,25 +525,24 @@ class Mysqldump
      */
     private function getViewStructure($viewName)
     {
-        $stmt = $this->typeAdapter->show_create_view($viewName);
-        foreach ($this->dbHandler->query($stmt) as $r) {
-            if (isset($r['Create View'])) {
-                if (!$this->dumpSettings['no-create-info']) {
+        if (!$this->dumpSettings['no-create-info']) {
+            $ret = "--" . PHP_EOL .
+                "-- Table structure for view `${viewName}`" . PHP_EOL .
+                "--" . PHP_EOL . PHP_EOL;
+            $this->compressManager->write($ret);
+
+            $stmt = $this->typeAdapter->show_create_view($viewName);
+            foreach ($this->dbHandler->query($stmt) as $r) {
+                if ($this->dumpSettings['add-drop-table']) {
                     $this->compressManager->write(
-                        "--" . PHP_EOL .
-                        "-- Table structure for view `$viewName`" . PHP_EOL .
-                        "--" . PHP_EOL . PHP_EOL
+                        $this->typeAdapter->drop_view($viewName)
                     );
-                    if ($this->dumpSettings['add-drop-table']) {
-                        $this->compressManager->write(
-                            $this->typeAdapter->drop_view($viewName)
-                        );
-                    }
-                    $this->compressManager->write($r['Create View'] . ";" . PHP_EOL . PHP_EOL);
                 }
-                return;
+                $this->compressManager->write(
+                    $this->typeAdapter->create_view($r)
+                );
+                break;
             }
-            throw new Exception("Error getting view structure, unknown output");
         }
     }
 
@@ -588,12 +587,12 @@ class Mysqldump
                 $ret[] = "NULL";
             } elseif ($this->dumpSettings['hex-blob'] && $columnTypes[$colName]['is_blob']) {
                 if ($columnTypes[$colName]['type'] == 'bit') {
-                    $ret[] = '0x' . bin2hex(chr($colValue));
+                    $ret[] = '0x' . strtoupper(bin2hex(chr($colValue)));
                 } else {
                     if (empty($colValue)) {
                         $ret[] = "''";
                     } else {
-                        $ret[] = '0x' . bin2hex($colValue);
+                        $ret[] = '0x' . strtoupper(bin2hex($colValue));
                     }
                 }
             } elseif ($columnTypes[$colName]['is_numeric']) {
@@ -908,6 +907,15 @@ abstract class TypeAdapterFactory
     }
 
     /**
+     * function create_view Get view creation code from database
+     * @todo make it do something with sqlite
+     */
+    public function create_view($row)
+    {
+        return "";
+    }
+
+    /**
      * function show_create_trigger Get trigger creation code from database
      * @todo make it do something with sqlite
      */
@@ -1095,10 +1103,43 @@ class TypeAdapterMysql extends TypeAdapterFactory
         if (isset($row['Create Table'])) {
             $ret = $row['Create Table'] . ";" . PHP_EOL . PHP_EOL;
         } else {
-            throw new Exception("Error getting trigger code, unknown output");
+            throw new Exception("Error getting table code, unknown output");
         }
         return $ret;
+    }
 
+    public function create_view($row)
+    {
+        $ret = "";
+        if (isset($row['Create View'])) {
+            $triggerStmt = $row['Create View'];
+            $triggerStmtReplaced1 = str_replace(
+                "CREATE ALGORITHM",
+                "/*!50001 CREATE ALGORITHM",
+                $triggerStmt
+            );
+            $triggerStmtReplaced2 = str_replace(
+                " DEFINER=",
+                " */" . PHP_EOL . "/*!50013 DEFINER=",
+                $triggerStmtReplaced1
+            );
+            $triggerStmtReplaced3 = str_replace(
+                " VIEW ",
+                " */" . PHP_EOL . "/*!50001 VIEW ",
+                $triggerStmtReplaced2
+            );
+            if (false === $triggerStmtReplaced1 ||
+                false === $triggerStmtReplaced2 ||
+                false === $triggerStmtReplaced3) {
+                $triggerStmtReplaced = $triggerStmt;
+            } else {
+                $triggerStmtReplaced = $triggerStmtReplaced3 . " */;";
+            }
+            $ret .= $triggerStmtReplaced . PHP_EOL . PHP_EOL;
+            return $ret;
+        } else {
+            throw new Exception("Error getting view structure, unknown output");
+        }
     }
 
     public function create_trigger($row)
