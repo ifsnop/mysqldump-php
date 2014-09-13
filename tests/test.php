@@ -1,4 +1,9 @@
 <?php
+/*
+for($i=0;$i<128;$i++) {
+    echo "$i>" . bin2hex(chr($i)) . "<" . PHP_EOL;
+}
+*/
 
 error_reporting(E_ALL);
 

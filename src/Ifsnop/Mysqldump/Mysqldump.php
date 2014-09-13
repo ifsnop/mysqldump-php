@@ -526,12 +526,12 @@ class Mysqldump
                 $ret[] = "NULL";
             } elseif ($this->dumpSettings['hex-blob'] && $columnTypes[$colName]['is_blob']) {
                 if ($columnTypes[$colName]['type'] == 'bit') {
-                    $ret[] = '0x' . bin2hex(chr($colValue));
+                    $ret[] = "0x${colValue}";
                 } else {
                     if (empty($colValue)) {
                         $ret[] = "''";
                     } else {
-                        $ret[] = '0x' . bin2hex($colValue);
+                        $ret[] = "0x${colValue}";
                     }
                 }
             } elseif ($columnTypes[$colName]['is_numeric']) {
@@ -580,7 +580,20 @@ class Mysqldump
 
         $onlyOnce = true;
         $lineSize = 0;
-        $stmt = "SELECT * FROM `$tableName`";
+        $colStmt = array();
+
+        foreach($this->tableColumnTypes[$tableName] as $colName => $colType) {
+            if ($colType['type'] == 'bit' && $this->dumpSettings['hex-blob']) {
+                $colStmt[] = "LPAD(HEX(`${colName}`),2,'0') AS `${colName}`";
+            } else if ($colType['is_blob'] && $this->dumpSettings['hex-blob']) {
+                $colStmt[] = "HEX(`${colName}`) AS `${colName}`";
+            } else {
+                $colStmt[] = "`${colName}`";
+            }
+        }
+        $colStmt = implode($colStmt, ",");
+        $stmt = "SELECT $colStmt FROM `$tableName`";
+
         if ($this->dumpSettings['where']) {
             $stmt .= " WHERE {$this->dumpSettings['where']}";
         }
@@ -1054,10 +1067,10 @@ class TypeAdapterMysql extends TypeAdapterFactory
             $ret = $this->getDatabaseHeader(); // include headers now
         }
 
-        $ret .= "CREATE DATABASE /*!32312 IF NOT EXISTS*/ `${args[0]}`".
+        $ret .= "CREATE DATABASE /*!32312 IF NOT EXISTS*/ `${databaseName}`".
             " /*!40100 DEFAULT CHARACTER SET " . $characterSet .
-            " COLLATE " . $collationDb . "*/;" . PHP_EOL . PHP_EOL .
-            "USE `${args[0]}`;" . PHP_EOL . PHP_EOL;
+            " COLLATE ${collationDb} */;" . PHP_EOL . PHP_EOL .
+            "USE `${databaseName}`;" . PHP_EOL . PHP_EOL;
 
         return $ret;
     }
@@ -1081,7 +1094,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
     {
         $ret = "";
         if (isset($row['Create Table'])) {
-            $ret = $row['Create Table'] . ";" . PHP_EOL . PHP_EOL;
+            $ret .= $row['Create Table'] . ";" . PHP_EOL . PHP_EOL;
         } else {
             throw new Exception("Error getting table code, unknown output");
         }
@@ -1140,7 +1153,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
             if ( false === $triggerStmtReplaced ) {
                 $triggerStmtReplaced = $triggerStmt;
             }
-            $ret = "DELIMITER ;;" . PHP_EOL .
+            $ret .= "DELIMITER ;;" . PHP_EOL .
                 $triggerStmtReplaced . "*/;;" . PHP_EOL .
                 "DELIMITER ;" . PHP_EOL . PHP_EOL;
         } else {
