@@ -525,7 +525,7 @@ class Mysqldump
      */
     private function getViewStructure($viewName)
     {
-        if (!$this->dumpSettings['no-create-info']) {
+        if (false === $this->dumpSettings['no-create-info']) {
             $ret = "--" . PHP_EOL .
                 "-- Table structure for view `${viewName}`" . PHP_EOL .
                 "--" . PHP_EOL . PHP_EOL;
