@@ -41,33 +41,6 @@ class Mysqldump
     const BZIP2 = 'Bzip2';
     const NONE = 'None';
 
-    // Numerical Mysql types
-    public $mysqlTypes = array(
-        'numerical' => array(
-            'bit',
-            'tinyint',
-            'smallint',
-            'mediumint',
-            'int',
-            'integer',
-            'bigint',
-            'real',
-            'double',
-            'float',
-            'decimal',
-            'numeric'
-        ),
-        'blob' => array(
-            'tinyblob',
-            'blob',
-            'mediumblob',
-            'longblob',
-            'binary',
-            'varbinary',
-            'bit'
-        )
-    );
-
     // This can be set both on constructor or manually
     public $host;
     public $user;
@@ -259,7 +232,7 @@ class Mysqldump
 
         if ($this->dumpSettings['databases']) {
             $this->compressManager->write(
-                $this->typeAdapter->databases($this->db)
+                $this->typeAdapter->databases($this->db, $this->dumpSettings)
             );
         }
 
@@ -414,12 +387,14 @@ class Mysqldump
      */
     private function exportViews()
     {
-        // Exporting views one by one
-        foreach ($this->views as $view) {
-            if (in_array($view, $this->dumpSettings['exclude-tables'], true)) {
-                continue;
+        if (false === $this->dumpSettings['no-create-info']) {
+            // Exporting views one by one
+            foreach ($this->views as $view) {
+                if (in_array($view, $this->dumpSettings['exclude-tables'], true)) {
+                    continue;
+                }
+                $this->getViewStructure($view);
             }
-            $this->getViewStructure($view);
         }
     }
 
@@ -430,12 +405,11 @@ class Mysqldump
      */
     private function exportTriggers()
     {
-        // Exporting views one by one
+        // Exporting triggers one by one
         foreach ($this->triggers as $trigger) {
             $this->getTriggerStructure($trigger);
         }
     }
-
 
     /**
      * Table structure extractor
@@ -446,28 +420,23 @@ class Mysqldump
      */
     private function getTableStructure($tableName)
     {
-        $stmt = $this->typeAdapter->show_create_table($tableName);
-        foreach ($this->dbHandler->query($stmt) as $r) {
-            if (isset($r['Create Table'])) {
-                if (!$this->dumpSettings['no-create-info']) {
+        if (!$this->dumpSettings['no-create-info']) {
+            $ret = "--" . PHP_EOL .
+                "-- Table structure for table `$tableName`" . PHP_EOL .
+                "--" . PHP_EOL . PHP_EOL;
+            $stmt = $this->typeAdapter->show_create_table($tableName);
+            foreach ($this->dbHandler->query($stmt) as $r) {
+                $this->compressManager->write($ret);
+                if ($this->dumpSettings['add-drop-table']) {
                     $this->compressManager->write(
-                        "--" . PHP_EOL .
-                        "-- Table structure for table `$tableName`" . PHP_EOL .
-                        "--" . PHP_EOL . PHP_EOL
-                    );
-                    if ($this->dumpSettings['add-drop-table']) {
-                        $this->compressManager->write(
-                            $this->typeAdapter->drop_table($tableName)
-                        );
-                    }
-                    $this->compressManager->write(
-                        $this->typeAdapter->create_table($r)
+                        $this->typeAdapter->drop_table($tableName)
                     );
                 }
-
+                $this->compressManager->write(
+                    $this->typeAdapter->create_table($r)
+                );
                 break;
             }
-            throw new Exception("Error getting table structure, unknown output");
         }
 
         $columnTypes = array();
@@ -477,7 +446,7 @@ class Mysqldump
         );
 
         foreach($columns as $key => $col) {
-            $types = $this->parseColumnType($col);
+            $types = $this->typeAdapter->parseColumnType($col);
             $columnTypes[$col['Field']] = array(
                 'is_numeric'=> $types['is_numeric'],
                 'is_blob' => $types['is_blob'],
@@ -488,33 +457,6 @@ class Mysqldump
         return;
     }
 
-    /**
-     * Decode column metadata and fill info structure.
-     * type, is_numeric and is_blob will always be available.
-     *
-     * @param array $colType Array returned from "SHOW COLUMNS FROM tableName"
-     * @return array
-     */
-    private function parseColumnType($colType)
-    {
-        $colInfo = array();
-        $colParts = explode(" ", $colType['Type']);
-
-        if($fparen = strpos($colParts[0], "("))
-        {
-            $colInfo['type'] = substr($colParts[0], 0, $fparen);
-            $colInfo['length']  = str_replace(")", "", substr($colParts[0], $fparen+1));
-            $colInfo['attributes'] = isset($colParts[1]) ? $colParts[1] : NULL;
-        }
-        else
-        {
-            $colInfo['type'] = $colParts[0];
-        }
-        $colInfo['is_numeric'] = in_array($colInfo['type'], $this->mysqlTypes['numerical']);
-        $colInfo['is_blob'] = in_array($colInfo['type'], $this->mysqlTypes['blob']);
-
-        return $colInfo;
-    }
 
     /**
      * View structure extractor
@@ -525,24 +467,21 @@ class Mysqldump
      */
     private function getViewStructure($viewName)
     {
-        if (false === $this->dumpSettings['no-create-info']) {
-            $ret = "--" . PHP_EOL .
-                "-- Table structure for view `${viewName}`" . PHP_EOL .
-                "--" . PHP_EOL . PHP_EOL;
-            $this->compressManager->write($ret);
-
-            $stmt = $this->typeAdapter->show_create_view($viewName);
-            foreach ($this->dbHandler->query($stmt) as $r) {
-                if ($this->dumpSettings['add-drop-table']) {
-                    $this->compressManager->write(
-                        $this->typeAdapter->drop_view($viewName)
-                    );
-                }
+        $ret = "--" . PHP_EOL .
+            "-- Table structure for view `${viewName}`" . PHP_EOL .
+            "--" . PHP_EOL . PHP_EOL;
+        $this->compressManager->write($ret);
+        $stmt = $this->typeAdapter->show_create_view($viewName);
+        foreach ($this->dbHandler->query($stmt) as $r) {
+            if ($this->dumpSettings['add-drop-table']) {
                 $this->compressManager->write(
-                    $this->typeAdapter->create_view($r)
+                    $this->typeAdapter->drop_view($viewName)
                 );
-                break;
             }
+            $this->compressManager->write(
+                $this->typeAdapter->create_view($r)
+            );
+            break;
         }
     }
 
@@ -1029,6 +968,18 @@ abstract class TypeAdapterFactory
         return PHP_EOL;
     }
 
+    /**
+     * Decode column metadata and fill info structure.
+     * type, is_numeric and is_blob will always be available.
+     *
+     * @param array $colType Array returned from "SHOW COLUMNS FROM tableName"
+     * @return array
+     */
+    public function parseColumnType($colType)
+    {
+        return array();
+    }
+
 }
 
 class TypeAdapterPgsql extends TypeAdapterFactory
@@ -1048,6 +999,33 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     private $dbHandler = null;
 
+    // Numerical Mysql types
+    public $mysqlTypes = array(
+        'numerical' => array(
+            'bit',
+            'tinyint',
+            'smallint',
+            'mediumint',
+            'int',
+            'integer',
+            'bigint',
+            'real',
+            'double',
+            'float',
+            'decimal',
+            'numeric'
+        ),
+        'blob' => array(
+            'tinyblob',
+            'blob',
+            'mediumblob',
+            'longblob',
+            'binary',
+            'varbinary',
+            'bit'
+        )
+    );
+
     public function __construct ($dbHandler)
     {
         $this->dbHandler = $dbHandler;
@@ -1055,11 +1033,13 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function databases()
     {
-        if (func_num_args() != 1) {
+        if (func_num_args() != 2) {
              return "";
         }
 
         $args = func_get_args();
+        $databaseName = $args[0];
+        $dumpSettings = $args[1];
 
         $resultSet = $this->dbHandler->query("SHOW VARIABLES LIKE 'character_set_database';");
         $characterSet = $resultSet->fetchColumn(1);
@@ -1070,8 +1050,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $resultSet->closeCursor();
         $ret = "";
 
-        if (false === $this->dumpSettings['add-drop-database']) {
-            $ret = $this->getDatabaseHeader();
+        if (false === $dumpSettings['add-drop-database']) { // if wasn't included before...
+            $ret = $this->getDatabaseHeader(); // include headers now
         }
 
         $ret .= "CREATE DATABASE /*!32312 IF NOT EXISTS*/ `${args[0]}`".
@@ -1354,4 +1334,33 @@ class TypeAdapterMysql extends TypeAdapterFactory
             "-- Current Database: `${args[0]}`" . PHP_EOL .
             "--" . PHP_EOL . PHP_EOL;
     }
+
+    /**
+     * Decode column metadata and fill info structure.
+     * type, is_numeric and is_blob will always be available.
+     *
+     * @param array $colType Array returned from "SHOW COLUMNS FROM tableName"
+     * @return array
+     */
+    public function parseColumnType($colType)
+    {
+        $colInfo = array();
+        $colParts = explode(" ", $colType['Type']);
+
+        if($fparen = strpos($colParts[0], "("))
+        {
+            $colInfo['type'] = substr($colParts[0], 0, $fparen);
+            $colInfo['length']  = str_replace(")", "", substr($colParts[0], $fparen+1));
+            $colInfo['attributes'] = isset($colParts[1]) ? $colParts[1] : NULL;
+        }
+        else
+        {
+            $colInfo['type'] = $colParts[0];
+        }
+        $colInfo['is_numeric'] = in_array($colInfo['type'], $this->mysqlTypes['numerical']);
+        $colInfo['is_blob'] = in_array($colInfo['type'], $this->mysqlTypes['blob']);
+
+        return $colInfo;
+    }
+
 }
