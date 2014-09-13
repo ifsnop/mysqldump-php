@@ -526,12 +526,12 @@ class Mysqldump
                 $ret[] = "NULL";
             } elseif ($this->dumpSettings['hex-blob'] && $columnTypes[$colName]['is_blob']) {
                 if ($columnTypes[$colName]['type'] == 'bit') {
-                    $ret[] = '0x' . strtoupper(bin2hex(chr($colValue)));
+                    $ret[] = '0x' . bin2hex(chr($colValue));
                 } else {
                     if (empty($colValue)) {
                         $ret[] = "''";
                     } else {
-                        $ret[] = '0x' . strtoupper(bin2hex($colValue));
+                        $ret[] = '0x' . bin2hex($colValue);
                     }
                 }
             } elseif ($columnTypes[$colName]['is_numeric']) {
