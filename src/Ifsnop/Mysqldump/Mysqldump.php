@@ -441,9 +441,9 @@ class Mysqldump
 
         $columnTypes = array();
         $columns = $this->dbHandler->query(
-            $this->typeAdapter->show_columns($tableName),
-            PDO::FETCH_ASSOC
+            $this->typeAdapter->show_columns($tableName)
         );
+        $columns->setFetchMode(PDO::FETCH_ASSOC);
 
         foreach($columns as $key => $col) {
             $types = $this->typeAdapter->parseColumnType($col);
