@@ -143,7 +143,8 @@ Plain old PHP:
 - **exclude-tables**
   - Exclude these tables (array of table names)
 - **compress**
-  - Gzip, Bzip2, None
+  - Gzip, Bzip2, None.
+  - Could be specified using the declared consts: IMysqldump\Mysqldump::GZIP, IMysqldump\Mysqldump::BZIP2 or IMysqldump\Mysqldump::NONE
 - **no-data**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data
 - **add-drop-table**
