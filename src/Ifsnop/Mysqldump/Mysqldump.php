@@ -311,7 +311,6 @@ class Mysqldump
     private function getDatabaseStructure()
     {
         // Listing all tables from database
-        $this->tables = array();
         if (empty($this->dumpSettings['include-tables'])) {
             // include all tables for now, blacklisting happens later
             foreach ($this->dbHandler->query($this->typeAdapter->show_tables($this->db)) as $row) {
@@ -332,7 +331,6 @@ class Mysqldump
         }
 
         // Listing all views from database
-        $this->views = array();
         if (empty($this->dumpSettings['include-tables'])) {
             // include all views for now, blacklisting happens later
             foreach ($this->dbHandler->query($this->typeAdapter->show_views($this->db)) as $row) {
@@ -353,7 +351,6 @@ class Mysqldump
         }
 
         // Listing all triggers from database
-        $this->triggers = array();
         if (false === $this->dumpSettings['skip-triggers']) {
             foreach ($this->dbHandler->query($this->typeAdapter->show_triggers($this->db)) as $row) {
                 array_push($this->triggers, $row['Trigger']);
