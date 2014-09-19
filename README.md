@@ -110,15 +110,20 @@ Plain old PHP:
         'exclude-tables' => array(),
         'compress' => 'None',
         'no-data' => false,
-        'add-drop-database' => false,
         'add-drop-table' => false,
         'single-transaction' => true,
         'lock-tables' => false,
         'add-locks' => true,
         'extended-insert' => true,
+        'disable-keys' => true,
         'disable-foreign-keys-check' => false,
         'where' => '',
-        'no-create-info' => false
+        'no-create-info' => false,
+        'skip-triggers' => false,
+        'add-drop-trigger' => true,
+        'hex-blob' => true,
+        'databases' => false,
+        'add-drop-database' => false
     );
 
     $pdoSettingsDefaults = array(PDO::ATTR_PERSISTENT => true,
@@ -138,11 +143,10 @@ Plain old PHP:
 - **exclude-tables**
   - Exclude these tables (array of table names)
 - **compress**
-  - Gzip, Bzip2, None
+  - Gzip, Bzip2, None.
+  - Could be specified using the declared consts: IMysqldump\Mysqldump::GZIP, IMysqldump\Mysqldump::BZIP2 or IMysqldump\Mysqldump::NONE
 - **no-data**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data
-- **add-drop-database**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-database
 - **add-drop-table**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table
 - **single-transaction**
@@ -153,12 +157,24 @@ Plain old PHP:
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks
 - **extended-insert**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert
+- **disable-keys**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_disable-keys
 - **disable-foreign-keys-check**
   - http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
 - **where**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_where
 - **no-create-info**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-create-info
+- **skip-triggers**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_triggers
+- **add-drop-triggers**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-trigger
+- **hex-blob**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_hex-blob
+- **databases**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_databases
+- **add-drop-database**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-database
 
 ## PDO Settings
 
@@ -170,9 +186,28 @@ Plain old PHP:
   - http://stackoverflow.com/questions/13728106/unexpectedly-hitting-php-memory-limit-with-a-single-pdo-query/13729745#13729745
   - http://www.php.net/manual/en/mysqlinfo.concepts.buffering.php
 
+## Errors
+
+To dump a database, you need the following privileges :
+
+- **SELECT**
+  - In order to dump table structures and data.
+- **SHOW VIEW**
+  - If any databases has views, else you will get an error.
+- **TRIGGER**
+  - If any table has one or more triggers.
+- **LOCK TABLES**
+  - If "lock tables" option was enabled.
+- **SUPER**
+  - If "single-transaction" option was enabled.
+
+Use **SHOW GRANTS FOR user@host;** to know what privileges user has. See the following link for more information:
+
+[Which are the minimum privileges required to get a backup of a MySQL database schema?](http://dba.stackexchange.com/questions/55546/which-are-the-minimum-privileges-required-to-get-a-backup-of-a-mysql-database-sc/55572#55572)
 
 ## TODO
 
+- Write any tests.
 - Write unit tests.
 
 ## Contributing
