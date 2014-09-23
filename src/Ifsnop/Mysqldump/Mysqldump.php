@@ -537,14 +537,10 @@ class Mysqldump
             if (is_null($colValue)) {
                 $ret[] = "NULL";
             } elseif ($this->dumpSettings['hex-blob'] && $columnTypes[$colName]['is_blob']) {
-                if ($columnTypes[$colName]['type'] == 'bit') {
+                if ($columnTypes[$colName]['type'] == 'bit' || !empty($colValue)) {
                     $ret[] = "0x${colValue}";
                 } else {
-                    if (empty($colValue)) {
-                        $ret[] = "''";
-                    } else {
-                        $ret[] = "0x${colValue}";
-                    }
+                    $ret[] = "''";
                 }
             } elseif ($columnTypes[$colName]['is_numeric']) {
                 $ret[] = $colValue;
