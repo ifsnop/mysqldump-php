@@ -592,25 +592,16 @@ class Mysqldump
 
         $onlyOnce = true;
         $lineSize = 0;
-        $colStmt = array();
 
-        foreach($this->tableColumnTypes[$tableName] as $colName => $colType) {
-            if ($colType['type'] == 'bit' && $this->dumpSettings['hex-blob']) {
-                $colStmt[] = "LPAD(HEX(`${colName}`),2,'0') AS `${colName}`";
-            } else if ($colType['is_blob'] && $this->dumpSettings['hex-blob']) {
-                $colStmt[] = "HEX(`${colName}`) AS `${colName}`";
-            } else {
-                $colStmt[] = "`${colName}`";
-            }
-        }
-        $colStmt = implode($colStmt, ",");
+        $colStmt = getColumnStmt($tableName);
         $stmt = "SELECT $colStmt FROM `$tableName`";
 
         if ($this->dumpSettings['where']) {
-            $stmt .= " WHERE {$this->dumpSettings['where']}";
+            $stmt .= " WHERE ${this->dumpSettings['where']}";
         }
         $resultSet = $this->dbHandler->query($stmt);
         $resultSet->setFetchMode(PDO::FETCH_ASSOC);
+
         foreach ($resultSet as $row) {
             $vals = $this->escape($tableName, $row);
             if ($onlyOnce || !$this->dumpSettings['extended-insert']) {
@@ -654,7 +645,30 @@ class Mysqldump
         }
 
         $this->compressManager->write(PHP_EOL);
+    }
 
+    /**
+     * Build SQL List of all columns on current table
+     *
+     * @param string $tableName  Name of table to get columns
+     *
+     * @return string SQL sentence with columns
+     */
+    function getColumnStmt($tableName)
+    {
+        $colStmt = array();
+        foreach($this->tableColumnTypes[$tableName] as $colName => $colType) {
+            if ($colType['type'] == 'bit' && $this->dumpSettings['hex-blob']) {
+                $colStmt[] = "LPAD(HEX(`${colName}`),2,'0') AS `${colName}`";
+            } else if ($colType['is_blob'] && $this->dumpSettings['hex-blob']) {
+                $colStmt[] = "HEX(`${colName}`) AS `${colName}`";
+            } else {
+                $colStmt[] = "`${colName}`";
+            }
+        }
+        $colStmt = implode($colStmt, ",");
+
+        return $colStmt;
     }
 }
 
