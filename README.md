@@ -123,7 +123,8 @@ Plain old PHP:
         'add-drop-trigger' => true,
         'hex-blob' => true,
         'databases' => false,
-        'add-drop-database' => false
+        'add-drop-database' => false,
+        'skip-tz-utc' => false
     );
 
     $pdoSettingsDefaults = array(PDO::ATTR_PERSISTENT => true,
@@ -175,6 +176,8 @@ Plain old PHP:
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_databases
 - **add-drop-database**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-database
+- **skip-tz-utz**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_tz-utc
 
 ## PDO Settings
 
@@ -227,5 +230,5 @@ http://code.google.com/p/db-mysqldump/
 Adapted and extended by Michael J. Calkins.
 https://github.com/clouddueling
 
-Currently maintained by Diego Torres.
+Currently maintained and developed by Diego Torres.
 https://github.com/ifsnop

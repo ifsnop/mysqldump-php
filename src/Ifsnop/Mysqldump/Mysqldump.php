@@ -103,6 +103,7 @@ class Mysqldump
             'hex-blob' => true,
             'databases' => false,
             'add-drop-database' => false,
+            'skip-tz-utz' => false
         );
 
         $pdoSettingsDefault = array(PDO::ATTR_PERSISTENT => true,
@@ -219,15 +220,25 @@ class Mysqldump
         $this->compressManager->open($this->fileName);
 
         // Write some basic info to output file
-        $this->compressManager->write($this->getHeader());
+        $this->compressManager->write($this->getDumpFileHeader());
 
-        if ($this->dumpSettings['databases'] &&
-            $this->dumpSettings['add-drop-database']) {
+        // Store server settings and use sanner defaults to dump
+        $this->compressManager->write(
+            $this->typeAdapter->backup_parameters($this->dumpSettings)
+        );
+
+        if ($this->dumpSettings['databases']) {
             $this->compressManager->write(
-                $this->typeAdapter->add_drop_database($this->db)
+                $this->typeAdapter->getDatabaseHeader($this->db)
             );
+            if ($this->dumpSettings['add-drop-database']) {
+                $this->compressManager->write(
+                    $this->typeAdapter->add_drop_database($this->db)
+                );
+            }
         }
 
+        // Get table, view and trigger structures from database
         $this->getDatabaseStructure();
 
         if ($this->dumpSettings['databases']) {
@@ -262,8 +273,12 @@ class Mysqldump
             );
         }
 
+        // Restore saved parameters
+        $this->compressManager->write(
+            $this->typeAdapter->restore_parameters($this->dumpSettings)
+        );
         // Write some stats to output file
-        $this->compressManager->write($this->getFooter());
+        $this->compressManager->write($this->getDumpFileFooter());
         // Close output file
         $this->compressManager->close();
     }
@@ -273,7 +288,7 @@ class Mysqldump
      *
      * @return string
      */
-    private function getHeader()
+    private function getDumpFileHeader()
     {
         // Some info about software, source and time
         $header = "-- mysqldump-php https://github.com/ifsnop/mysqldump-php" . PHP_EOL .
@@ -295,7 +310,7 @@ class Mysqldump
      *
      * @return string
      */
-    private function getFooter()
+    private function getDumpFileFooter()
     {
         $footer = "-- Dump completed on: " . date('r') . PHP_EOL;
 
@@ -989,7 +1004,16 @@ abstract class TypeAdapterFactory
     {
         return array();
     }
+    
+    public function backup_parameters()
+    {
+        return PHP_EOL;
+    }
 
+    public function restore_parameters()
+    {
+        return PHP_EOL;
+    }
 }
 
 class TypeAdapterPgsql extends TypeAdapterFactory
@@ -1043,13 +1067,12 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function databases()
     {
-        if (func_num_args() != 2) {
-             return "";
+        if (func_num_args() != 1) {
+            throw new Exception("Unexpected parameter passed to " . __METHOD__);
         }
 
         $args = func_get_args();
         $databaseName = $args[0];
-        $dumpSettings = $args[1];
 
         $resultSet = $this->dbHandler->query("SHOW VARIABLES LIKE 'character_set_database';");
         $characterSet = $resultSet->fetchColumn(1);
@@ -1060,12 +1083,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $resultSet->closeCursor();
         $ret = "";
 
-        if (false === $dumpSettings['add-drop-database']) { // if wasn't included before...
-            $ret = $this->getDatabaseHeader(); // include headers now
-        }
-
         $ret .= "CREATE DATABASE /*!32312 IF NOT EXISTS*/ `${databaseName}`".
-            " /*!40100 DEFAULT CHARACTER SET " . $characterSet .
+            " /*!40100 DEFAULT CHARACTER SET ${characterSet} " .
             " COLLATE ${collationDb} */;" . PHP_EOL . PHP_EOL .
             "USE `${databaseName}`;" . PHP_EOL . PHP_EOL;
 
@@ -1259,7 +1278,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
             return "";
         }
         $args = func_get_args();
-        return "/*!40000 ALTER TABLE `${args[0]}` DISABLE KEYS */;" . PHP_EOL;
+        return "/*!40000 ALTER TABLE `${args[0]}` DISABLE KEYS */;" .
+            PHP_EOL;
     }
 
     public function end_add_disable_keys()
@@ -1268,7 +1288,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
             return "";
         }
         $args = func_get_args();
-        return "/*!40000 ALTER TABLE `${args[0]}` ENABLE KEYS */;" . PHP_EOL;
+        return "/*!40000 ALTER TABLE `${args[0]}` ENABLE KEYS */;" .
+            PHP_EOL;
     }
 
     public function start_disable_foreign_keys_check()
@@ -1294,8 +1315,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
         $args = func_get_args();
 
-        return $this->getDatabaseHeader($args[0]) .
-            "/*!40000 DROP DATABASE IF EXISTS `${args[0]}`*/;" .
+        return "/*!40000 DROP DATABASE IF EXISTS `${args[0]}`*/;" .
             PHP_EOL . PHP_EOL;
     }
 
@@ -1333,7 +1353,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
                 "/*!50001 DROP VIEW IF EXISTS `${args[0]}`*/;" . PHP_EOL;
     }
 
-    public function getDatabaseHeader() {
+    public function getDatabaseHeader()
+    {
         if (func_num_args() != 1) {
             return "";
         }
@@ -1373,4 +1394,54 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return $colInfo;
     }
 
+    public function backup_parameters()
+    {
+        if (func_num_args() != 1) {
+            throw new Exception("Unexpected parameter passed to " . __METHOD__);
+        }
+
+        $args = func_get_args();
+        $dumpSettings = $args[0];
+        $ret = "/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;" . PHP_EOL .
+            "/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;" . PHP_EOL .
+            "/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;" . PHP_EOL .
+            "/*!40101 SET NAMES utf8 */;" . PHP_EOL;
+
+        if (false === $dumpSettings['skip-tz-utz']) {
+            $ret .= "/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;" . PHP_EOL .
+                "/*!40103 SET TIME_ZONE='+00:00' */;" . PHP_EOL;
+        }
+
+        $ret .= "/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;" . PHP_EOL .
+            "/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;" . PHP_EOL .
+            "/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;" . PHP_EOL .
+            "/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;" . PHP_EOL .PHP_EOL;
+
+        return $ret;
+    }
+
+    public function restore_parameters()
+    {
+        if (func_num_args() != 1) {
+            throw new Exception("Unexpected parameter passed to " . __METHOD__);
+        }
+
+        $args = func_get_args();
+        $dumpSettings = $args[0];
+        $ret = "";
+
+        if (false === $dumpSettings['skip-tz-utz']) {
+            $ret .= "/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;" . PHP_EOL;
+        }
+
+        $ret .= "/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;" . PHP_EOL .
+            "/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;" . PHP_EOL .
+            "/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;" . PHP_EOL .
+            "/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;" . PHP_EOL .
+            "/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;" . PHP_EOL .
+            "/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;" . PHP_EOL .
+            "/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;" . PHP_EOL . PHP_EOL;
+
+        return $ret;
+    }
 }
