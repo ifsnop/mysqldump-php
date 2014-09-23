@@ -243,7 +243,7 @@ class Mysqldump
 
         if ($this->dumpSettings['databases']) {
             $this->compressManager->write(
-                $this->typeAdapter->databases($this->db, $this->dumpSettings)
+                $this->typeAdapter->databases($this->db)
             );
         }
 
@@ -589,11 +589,11 @@ class Mysqldump
         $onlyOnce = true;
         $lineSize = 0;
 
-        $colStmt = getColumnStmt($tableName);
+        $colStmt = $this->getColumnStmt($tableName);
         $stmt = "SELECT $colStmt FROM `$tableName`";
 
         if ($this->dumpSettings['where']) {
-            $stmt .= " WHERE ${this->dumpSettings['where']}";
+            $stmt .= " WHERE {$this->dumpSettings['where']}";
         }
         $resultSet = $this->dbHandler->query($stmt);
         $resultSet->setFetchMode(PDO::FETCH_ASSOC);
