@@ -560,31 +560,7 @@ class Mysqldump
      */
     private function listValues($tableName)
     {
-        $this->compressManager->write(
-            "--" . PHP_EOL .
-            "-- Dumping data for table `$tableName`" .  PHP_EOL .
-            "--" . PHP_EOL . PHP_EOL
-        );
-
-        if ($this->dumpSettings['single-transaction']) {
-            $this->dbHandler->exec($this->typeAdapter->start_transaction());
-        }
-
-        if ($this->dumpSettings['lock-tables']) {
-            $this->typeAdapter->lock_table($tableName);
-        }
-
-        if ($this->dumpSettings['add-locks']) {
-            $this->compressManager->write(
-                $this->typeAdapter->start_add_lock_table($tableName)
-            );
-        }
-
-        if ($this->dumpSettings['disable-keys']) {
-            $this->compressManager->write(
-                $this->typeAdapter->start_add_disable_keys($tableName)
-            );
-        }
+        $this->prepareListValues($tableName);
 
         $onlyOnce = true;
         $lineSize = 0;
@@ -620,6 +596,56 @@ class Mysqldump
             $this->compressManager->write(";" . PHP_EOL);
         }
 
+        $this->endListValues($tableName);
+    }
+
+    /**
+     * Table rows extractor, append information prior to dump
+     *
+     * @param string $tableName  Name of table to export
+     *
+     * @return null
+     */
+    function prepareListValues($tableName)
+    {
+        $this->compressManager->write(
+            "--" . PHP_EOL .
+            "-- Dumping data for table `$tableName`" .  PHP_EOL .
+            "--" . PHP_EOL . PHP_EOL
+        );
+
+        if ($this->dumpSettings['single-transaction']) {
+            $this->dbHandler->exec($this->typeAdapter->start_transaction());
+        }
+
+        if ($this->dumpSettings['lock-tables']) {
+            $this->typeAdapter->lock_table($tableName);
+        }
+
+        if ($this->dumpSettings['add-locks']) {
+            $this->compressManager->write(
+                $this->typeAdapter->start_add_lock_table($tableName)
+            );
+        }
+
+        if ($this->dumpSettings['disable-keys']) {
+            $this->compressManager->write(
+                $this->typeAdapter->start_add_disable_keys($tableName)
+            );
+        }
+
+        return;
+    }
+
+    /**
+     * Table rows extractor, close locks and commits after dump
+     *
+     * @param string $tableName  Name of table to export
+     *
+     * @return null
+     */
+    function endListValues($tableName)
+    {
         if ($this->dumpSettings['disable-keys']) {
             $this->compressManager->write(
                 $this->typeAdapter->end_add_disable_keys($tableName)
@@ -641,6 +667,8 @@ class Mysqldump
         }
 
         $this->compressManager->write(PHP_EOL);
+
+        return;
     }
 
     /**
