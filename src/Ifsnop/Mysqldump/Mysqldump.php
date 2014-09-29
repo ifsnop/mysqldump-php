@@ -95,7 +95,6 @@ class Mysqldump
             'add-locks' => true,
             'extended-insert' => true,
             'disable-keys' => true,
-            'disable-foreign-keys-check' => false,
             'where' => '',
             'no-create-info' => false,
             'skip-triggers' => false,
@@ -103,7 +102,10 @@ class Mysqldump
             'hex-blob' => true,
             'databases' => false,
             'add-drop-database' => false,
-            'skip-tz-utz' => false
+            'skip-tz-utz' => false,
+            'no-autocommit' => true,
+            /* deprecated */
+            'disable-foreign-keys-check' => true
         );
 
         $pdoSettingsDefault = array(PDO::ATTR_PERSISTENT => true,
@@ -255,23 +257,9 @@ class Mysqldump
             throw new Exception("Table or View (" . $name . ") not found in database");
         }
 
-        // Disable checking foreign keys
-        if ($this->dumpSettings['disable-foreign-keys-check']) {
-            $this->compressManager->write(
-                $this->typeAdapter->start_disable_foreign_keys_check()
-            );
-        }
-
         $this->exportTables();
         $this->exportViews();
         $this->exportTriggers();
-
-        // Enable checking foreign keys if needed
-        if ($this->dumpSettings['disable-foreign-keys-check']) {
-            $this->compressManager->write(
-                $this->typeAdapter->end_disable_foreign_keys_check()
-            );
-        }
 
         // Restore saved parameters
         $this->compressManager->write(
@@ -469,7 +457,6 @@ class Mysqldump
         return;
     }
 
-
     /**
      * View structure extractor
      *
@@ -634,6 +621,13 @@ class Mysqldump
             );
         }
 
+        // Disable autocommit for faster reload
+        if ($this->dumpSettings['no-autocommit']) {
+            $this->compressManager->write(
+                $this->typeAdapter->start_disable_autocommit()
+            );
+        }
+
         return;
     }
 
@@ -664,6 +658,13 @@ class Mysqldump
 
         if ($this->dumpSettings['lock-tables']) {
             $this->typeAdapter->unlock_table($tableName);
+        }
+
+        // Commit to enable autocommit
+        if ($this->dumpSettings['no-autocommit']) {
+            $this->compressManager->write(
+                $this->typeAdapter->end_disable_autocommit()
+            );
         }
 
         $this->compressManager->write(PHP_EOL);
@@ -1146,73 +1147,78 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function create_table($row)
     {
-        $ret = "";
-        if (isset($row['Create Table'])) {
-            $ret .= $row['Create Table'] . ";" . PHP_EOL . PHP_EOL;
-        } else {
+        if (!isset($row['Create Table'])) {
             throw new Exception("Error getting table code, unknown output");
         }
+
+        $ret = "/*!40101 SET @saved_cs_client     = @@character_set_client */;" . PHP_EOL .
+            "/*!40101 SET character_set_client = utf8 */;" . PHP_EOL .
+            $row['Create Table'] . ";" . PHP_EOL .
+            "/*!40101 SET character_set_client = @saved_cs_client */;" . PHP_EOL .
+            PHP_EOL;
         return $ret;
     }
 
     public function create_view($row)
     {
         $ret = "";
-        if (isset($row['Create View'])) {
-            $triggerStmt = $row['Create View'];
-            $triggerStmtReplaced1 = str_replace(
-                "CREATE ALGORITHM",
-                "/*!50001 CREATE ALGORITHM",
-                $triggerStmt
-            );
-            $triggerStmtReplaced2 = str_replace(
-                " DEFINER=",
-                " */" . PHP_EOL . "/*!50013 DEFINER=",
-                $triggerStmtReplaced1
-            );
-            $triggerStmtReplaced3 = str_replace(
-                " VIEW ",
-                " */" . PHP_EOL . "/*!50001 VIEW ",
-                $triggerStmtReplaced2
-            );
-            if (false === $triggerStmtReplaced1 ||
-                false === $triggerStmtReplaced2 ||
-                false === $triggerStmtReplaced3) {
-                $triggerStmtReplaced = $triggerStmt;
-            } else {
-                $triggerStmtReplaced = $triggerStmtReplaced3 . " */;";
-            }
-            $ret .= $triggerStmtReplaced . PHP_EOL . PHP_EOL;
-            return $ret;
-        } else {
-            throw new Exception("Error getting view structure, unknown output");
+        if (!isset($row['Create View'])) {
+                throw new Exception("Error getting view structure, unknown output");
         }
+
+        $triggerStmt = $row['Create View'];
+        $triggerStmtReplaced1 = str_replace(
+            "CREATE ALGORITHM",
+            "/*!50001 CREATE ALGORITHM",
+            $triggerStmt
+        );
+        $triggerStmtReplaced2 = str_replace(
+            " DEFINER=",
+            " */" . PHP_EOL . "/*!50013 DEFINER=",
+            $triggerStmtReplaced1
+        );
+        $triggerStmtReplaced3 = str_replace(
+            " VIEW ",
+            " */" . PHP_EOL . "/*!50001 VIEW ",
+            $triggerStmtReplaced2
+        );
+        if (false === $triggerStmtReplaced1 ||
+            false === $triggerStmtReplaced2 ||
+            false === $triggerStmtReplaced3) {
+            $triggerStmtReplaced = $triggerStmt;
+        } else {
+            $triggerStmtReplaced = $triggerStmtReplaced3 . " */;";
+        }
+
+        $ret .= $triggerStmtReplaced . PHP_EOL . PHP_EOL;
+        return $ret;
     }
 
     public function create_trigger($row)
     {
         $ret = "";
-        if (isset($row['SQL Original Statement'])) {
-            $triggerStmt = $row['SQL Original Statement'];
-            $triggerStmtReplaced = str_replace(
-                "CREATE DEFINER",
-                "/*!50003 CREATE*/ /*!50017 DEFINER",
-                $triggerStmt
-            );
-            $triggerStmtReplaced = str_replace(
-                " TRIGGER",
-                "*/ /*!50003 TRIGGER",
-                $triggerStmtReplaced
-            );
-            if ( false === $triggerStmtReplaced ) {
-                $triggerStmtReplaced = $triggerStmt;
-            }
-            $ret .= "DELIMITER ;;" . PHP_EOL .
-                $triggerStmtReplaced . "*/;;" . PHP_EOL .
-                "DELIMITER ;" . PHP_EOL . PHP_EOL;
-        } else {
+        if (!isset($row['SQL Original Statement'])) {
             throw new Exception("Error getting trigger code, unknown output");
         }
+
+        $triggerStmt = $row['SQL Original Statement'];
+        $triggerStmtReplaced = str_replace(
+            "CREATE DEFINER",
+            "/*!50003 CREATE*/ /*!50017 DEFINER",
+            $triggerStmt
+        );
+        $triggerStmtReplaced = str_replace(
+            " TRIGGER",
+            "*/ /*!50003 TRIGGER",
+            $triggerStmtReplaced
+        );
+        if ( false === $triggerStmtReplaced ) {
+            $triggerStmtReplaced = $triggerStmt;
+        }
+
+        $ret .= "DELIMITER ;;" . PHP_EOL .
+            $triggerStmtReplaced . "*/;;" . PHP_EOL .
+            "DELIMITER ;" . PHP_EOL . PHP_EOL;
         return $ret;
     }
 
@@ -1330,19 +1336,14 @@ class TypeAdapterMysql extends TypeAdapterFactory
             PHP_EOL;
     }
 
-    public function start_disable_foreign_keys_check()
+    public function start_disable_autocommit()
     {
-        return "-- Ignore checking of foreign keys" . PHP_EOL .
-            "SET AUTOCOMMIT = 0;" . PHP_EOL .
-            "SET FOREIGN_KEY_CHECKS = 0;" . PHP_EOL . PHP_EOL;
+        return "SET autocommit=0;" . PHP_EOL;
     }
 
-    public function end_disable_foreign_keys_check()
+    public function end_disable_autocommit()
     {
-        return "-- Unignore checking of foreign keys" . PHP_EOL .
-            "SET FOREIGN_KEY_CHECKS = 1;" . PHP_EOL .
-            "COMMIT;" . PHP_EOL .
-            "SET AUTOCOMMIT = 1;" . PHP_EOL . PHP_EOL;
+        return "COMMIT;" . PHP_EOL;
     }
 
     public function add_drop_database()

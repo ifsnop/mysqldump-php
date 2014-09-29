@@ -116,7 +116,6 @@ Plain old PHP:
         'add-locks' => true,
         'extended-insert' => true,
         'disable-keys' => true,
-        'disable-foreign-keys-check' => false,
         'where' => '',
         'no-create-info' => false,
         'skip-triggers' => false,
@@ -160,8 +159,6 @@ Plain old PHP:
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert
 - **disable-keys**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_disable-keys
-- **disable-foreign-keys-check**
-  - http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
 - **where**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_where
 - **no-create-info**
@@ -178,6 +175,12 @@ Plain old PHP:
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-database
 - **skip-tz-utz**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_tz-utc
+
+The following options are now enabled by default, and there is no way to disable them since
+they should always be used.
+
+- **disable-foreign-keys-check**
+  - http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
 
 ## PDO Settings
 
