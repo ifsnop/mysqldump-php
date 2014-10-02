@@ -79,6 +79,8 @@ Plain old PHP:
 ?>
 ```
 
+Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) for some examples and a comparision between mysqldump and mysqldump-php dumps.
+
 ## Constructor and default parameters
 
     /**
