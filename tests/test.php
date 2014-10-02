@@ -14,14 +14,12 @@ use Ifsnop\Mysqldump as IMysqldump;
 $dumpSettings = array(
     'compress' => IMysqldump\Mysqldump::NONE,
     'no-data' => false,
-
     'add-drop-table' => true,
     'single-transaction' => false,
     'lock-tables' => true,
     'add-locks' => true,
     'extended-insert' => false,
     'disable-keys' => true,
-    'disable-foreign-keys-check' => true,
     'skip-triggers' => false,
     'add-drop-trigger' => true,
     'databases' => false,
