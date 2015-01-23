@@ -45,7 +45,7 @@ Or via json file:
 Using [Curl](http://curl.haxx.se):
 
 ```
-$ curl --silent --location https://github.com/ifsnop/mysqldump-php/archive/v1.3.tar.gz | tar xvfz -
+$ curl --silent --location https://github.com/ifsnop/mysqldump-php/archive/v1.4.1.tar.gz | tar xvfz -
 ```
 
 ## Getting started
@@ -72,7 +72,7 @@ Plain old PHP:
 ```
 <?php
 
-    include_once(dirname(__FILE__) . '/mysqldump-php-1.3/src/Ifsnop/Mysqldump/Mysqldump.php');
+    include_once(dirname(__FILE__) . '/mysqldump-php-1.4.1/src/Ifsnop/Mysqldump/Mysqldump.php');
     $dump = new Ifsnop\Mysqldump\Mysqldump( 'database', 'username', 'password');
     $dump->start('storage/work/dump.sql');
 
