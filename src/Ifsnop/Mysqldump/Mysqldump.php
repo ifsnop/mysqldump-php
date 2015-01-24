@@ -72,8 +72,6 @@ class Mysqldump
      * @param string $type       SQL database type
      * @param array  $dumpSettings SQL database settings
      * @param array  $pdoSettings  PDO configured attributes
-     *
-     * @return null
      */
     public function __construct(
         $db = '',
