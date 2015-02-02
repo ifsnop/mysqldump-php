@@ -274,13 +274,9 @@ class Mysqldump
      *
      * @return string
      */
-    public function getFilename($filename = null)
+    public function getFilename()
     {
-        if ($filename === null) {
-            return $this->compressManager->getArchiveFilename();
-        } else {
-            return $filename . CompressMethod::getFileExtension($this->dumpSettings['compress']);
-        }
+        return $this->compressManager->getArchiveFilename();
     }
 
     /**
@@ -716,9 +712,9 @@ class Mysqldump
 abstract class CompressMethod
 {
     public static $enums = array(
-        "None"  => '',
-        "Gzip"  => '.gz',
-        "Bzip2" => '.bz2'
+        "None",
+        "Gzip",
+        "Bzip2"
     );
 
     /**
@@ -727,22 +723,12 @@ abstract class CompressMethod
      */
     public static function isValid($c)
     {
-        return isset(self::$enums[$c]);
-    }
-
-    /**
-     * @param string $c
-     * @return string
-     */
-    public static function getFileExtension($c)
-    {
-        return isset(self::$enums[$c]) ? self::$enums[$c] : '';
+        return in_array($c, self::$enums);
     }
 }
 
 abstract class CompressManagerFactory
 {
-    protected $archiveExtension = '';
     protected $archiveFilename;
 
     /**
@@ -758,9 +744,7 @@ abstract class CompressManagerFactory
 
         $method =  __NAMESPACE__ . "\\" . "Compress" . $c;
 
-        $instance = new $method;
-        $instance->archiveExtension = CompressMethod::getFileExtension($c);
-        return $instance;
+        return new $method;
     }
 
     public function getArchiveFilename()
@@ -782,7 +766,7 @@ class CompressBzip2 extends CompressManagerFactory
 
     public function open($filename)
     {
-        $this->archiveFilename = $filename . $this->archiveExtension;
+        $this->archiveFilename = $filename . ".bz2";
         $this->fileHandler = bzopen($this->archiveFilename, "w");
         if (false === $this->fileHandler) {
             throw new Exception("Output file is not writable");
@@ -818,7 +802,7 @@ class CompressGzip extends CompressManagerFactory
 
     public function open($filename)
     {
-        $this->archiveFilename = $filename . $this->archiveExtension;
+        $this->archiveFilename = $filename . ".gz";
         $this->fileHandler = gzopen($this->archiveFilename, "wb");
         if (false === $this->fileHandler) {
             throw new Exception("Output file is not writable");
@@ -847,7 +831,7 @@ class CompressNone extends CompressManagerFactory
 
     public function open($filename)
     {
-        $this->archiveFilename = $filename . $this->archiveExtension;
+        $this->archiveFilename = $filename;
         $this->fileHandler = fopen($this->archiveFilename, "wb");
         if (false === $this->fileHandler) {
             throw new Exception("Output file is not writable");
