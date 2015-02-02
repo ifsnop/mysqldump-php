@@ -766,7 +766,7 @@ class CompressBzip2 extends CompressManagerFactory
 
     public function open($filename)
     {
-        $this->archiveFilename = $filename . ".bz2";
+        $this->archiveFilename = $filename;
         $this->fileHandler = bzopen($this->archiveFilename, "w");
         if (false === $this->fileHandler) {
             throw new Exception("Output file is not writable");
@@ -802,7 +802,7 @@ class CompressGzip extends CompressManagerFactory
 
     public function open($filename)
     {
-        $this->archiveFilename = $filename . ".gz";
+        $this->archiveFilename = $filename;
         $this->fileHandler = gzopen($this->archiveFilename, "wb");
         if (false === $this->fileHandler) {
             throw new Exception("Output file is not writable");
