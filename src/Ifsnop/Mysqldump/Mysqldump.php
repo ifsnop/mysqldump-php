@@ -126,7 +126,7 @@ class Mysqldump
         $this->dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dumpSettings);
 
         if (!isset($this->pdoSettings[PDO::MYSQL_ATTR_INIT_COMMAND])) {
-            $this->pdoSetttings[PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES " . $this->dumpSettings['default-character-set'];
+            $this->pdoSettings[PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES " . $this->dumpSettings['default-character-set'];
         }
 
         $diff = array_diff(array_keys($this->dumpSettings), array_keys($dumpSettingsDefault));
