@@ -41,6 +41,10 @@ class Mysqldump
     const BZIP2 = 'Bzip2';
     const NONE = 'None';
 
+    // Available connection strings
+    const UTF8 = 'utf8';
+    const UTF8MB4 = 'utf8mb4';
+
     // This can be set both on constructor or manually
     public $host;
     public $user;
@@ -85,7 +89,7 @@ class Mysqldump
         $dumpSettingsDefault = array(
             'include-tables' => array(),
             'exclude-tables' => array(),
-            'compress' => 'None',
+            'compress' => Mysqldump::NONE,
             'no-data' => false,
             'add-drop-table' => false,
             'single-transaction' => true,
@@ -102,13 +106,14 @@ class Mysqldump
             'add-drop-database' => false,
             'skip-tz-utz' => false,
             'no-autocommit' => true,
+            'default-character-set' => Mysqldump::UTF8,
             /* deprecated */
             'disable-foreign-keys-check' => true
         );
 
-        $pdoSettingsDefault = array(PDO::ATTR_PERSISTENT => true,
+        $pdoSettingsDefault = array(
+            PDO::ATTR_PERSISTENT => true,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8",
             PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false
         );
 
@@ -119,6 +124,10 @@ class Mysqldump
         $this->dbType = strtolower($type);
         $this->pdoSettings = self::array_replace_recursive($pdoSettingsDefault, $pdoSettings);
         $this->dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dumpSettings);
+
+        if (!isset($this->pdoSettings[PDO::MYSQL_ATTR_INIT_COMMAND])) {
+            $this->pdoSetttings[PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES " . $this->dumpSettings['default-character-set'];
+        }
 
         $diff = array_diff(array_keys($this->dumpSettings), array_keys($dumpSettingsDefault));
         if (count($diff)>0) {
@@ -178,7 +187,7 @@ class Mysqldump
                         $this->pdoSettings
                     );
                     // Fix for always-unicode output
-                    $this->dbHandler->exec("SET NAMES utf8");
+                    $this->dbHandler->exec("SET NAMES " . $this->dumpSettings['default-character-set']);
                     // Store server version
                     $this->version = $this->dbHandler->getAttribute(PDO::ATTR_SERVER_VERSION);
                     break;
@@ -441,7 +450,7 @@ class Mysqldump
                     );
                 }
                 $this->compressManager->write(
-                    $this->typeAdapter->create_table($r)
+                    $this->typeAdapter->create_table($r, $this->dumpSettings)
                 );
                 break;
             }
@@ -915,7 +924,7 @@ abstract class TypeAdapterFactory
      * function create_table Get table creation code from database
      * @todo make it do something with sqlite
      */
-    public function create_table($row)
+    public function create_table($row, $dumpSettings)
     {
         return "";
     }
@@ -1163,14 +1172,14 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return "SHOW CREATE TRIGGER `$triggerName`";
     }
 
-    public function create_table($row)
+    public function create_table($row, $dumpSettings)
     {
         if (!isset($row['Create Table'])) {
             throw new Exception("Error getting table code, unknown output");
         }
 
         $ret = "/*!40101 SET @saved_cs_client     = @@character_set_client */;" . PHP_EOL .
-            "/*!40101 SET character_set_client = utf8 */;" . PHP_EOL .
+            "/*!40101 SET character_set_client = " . $dumpSettings['default-character-set'] . " */;" . PHP_EOL .
             $row['Create Table'] . ";" . PHP_EOL .
             "/*!40101 SET character_set_client = @saved_cs_client */;" . PHP_EOL .
             PHP_EOL;
@@ -1462,7 +1471,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $ret = "/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;" . PHP_EOL .
             "/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;" . PHP_EOL .
             "/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;" . PHP_EOL .
-            "/*!40101 SET NAMES utf8 */;" . PHP_EOL;
+            "/*!40101 SET NAMES " . $dumpSettings['default-character-set'] . " */;" . PHP_EOL;
 
         if (false === $dumpSettings['skip-tz-utz']) {
             $ret .= "/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;" . PHP_EOL .

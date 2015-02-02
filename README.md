@@ -125,12 +125,14 @@ Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) f
         'hex-blob' => true,
         'databases' => false,
         'add-drop-database' => false,
-        'skip-tz-utc' => false
+        'skip-tz-utc' => false,
+        'no-autocommit' => true,
+        'default-character-set' => 'utf8',
     );
 
-    $pdoSettingsDefaults = array(PDO::ATTR_PERSISTENT => true,
+    $pdoSettingsDefaults = array(
+        PDO::ATTR_PERSISTENT => true,
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8",
         PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false
     );
 
@@ -177,6 +179,14 @@ Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) f
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-database
 - **skip-tz-utz**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_tz-utc
+- **no-autocommit**
+  - Option to disable autocommit (faster inserts, no problems with index keys)
+  - http://dev.mysql.com/doc/refman/4.1/en/commit.html
+- **default-character-set**
+  - utf8 (default, compatible option), utf8mb4 (for full utf8 compliance)
+  - Could be specified using the declared consts: IMysqldump\Mysqldump::UTF8 or IMysqldump\Mysqldump::UTF8MB4BZIP2
+  - http://dev.mysql.com/doc/refman/5.5/en/charset-unicode-utf8mb4.html
+  - https://mathiasbynens.be/notes/mysql-utf8mb4
 
 The following options are now enabled by default, and there is no way to disable them since
 they should always be used.
@@ -215,7 +225,6 @@ Use **SHOW GRANTS FOR user@host;** to know what privileges user has. See the fol
 
 ## TODO
 
-- Write any tests.
 - Write unit tests.
 
 ## Contributing

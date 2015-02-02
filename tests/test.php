@@ -37,6 +37,19 @@ $dump = new IMysqldump\Mysqldump(
     "mysql",
     $dumpSettings);
 
-$dump->start("mysqldump-php.sql");
+$dump->start("mysqldump-php_test001.sql");
+
+
+$dumpSettings['default-character-set'] = IMysqldump\Mysqldump::UTF8MB4;
+
+$dump = new IMysqldump\Mysqldump(
+    "test002",
+    "travis",
+    "",
+    "localhost",
+    "mysql",
+    $dumpSettings);
+
+$dump->start("mysqldump-php_test002.sql");
 
 exit;
