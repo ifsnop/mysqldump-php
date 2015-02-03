@@ -734,11 +734,6 @@ abstract class CompressManagerFactory
 
         return new $method;
     }
-
-    public function getArchiveFilename()
-    {
-        return $this->archiveFilename;
-    }
 }
 
 class CompressBzip2 extends CompressManagerFactory
@@ -817,8 +812,7 @@ class CompressNone extends CompressManagerFactory
 
     public function open($filename)
     {
-        $this->archiveFilename = $filename;
-        $this->fileHandler = fopen($this->archiveFilename, "wb");
+        $this->fileHandler = fopen($filename, "wb");
         if (false === $this->fileHandler) {
             throw new Exception("Output file is not writable");
         }
