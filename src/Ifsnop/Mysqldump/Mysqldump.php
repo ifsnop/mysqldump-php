@@ -279,16 +279,6 @@ class Mysqldump
     }
 
     /**
-     * Returns written archive filename
-     *
-     * @return string
-     */
-    public function getFilename()
-    {
-        return $this->compressManager->getArchiveFilename();
-    }
-
-    /**
      * Returns header for dump file
      *
      * @return string
@@ -738,8 +728,6 @@ abstract class CompressMethod
 
 abstract class CompressManagerFactory
 {
-    protected $archiveFilename;
-
     /**
      * @param string $c
      * @return CompressBzip2|CompressGzip|CompressNone
@@ -754,11 +742,6 @@ abstract class CompressManagerFactory
         $method =  __NAMESPACE__ . "\\" . "Compress" . $c;
 
         return new $method;
-    }
-
-    public function getArchiveFilename()
-    {
-        return $this->archiveFilename;
     }
 }
 
@@ -775,8 +758,7 @@ class CompressBzip2 extends CompressManagerFactory
 
     public function open($filename)
     {
-        $this->archiveFilename = $filename . ".bz2";
-        $this->fileHandler = bzopen($this->archiveFilename, "w");
+        $this->fileHandler = bzopen($filename, "w");
         if (false === $this->fileHandler) {
             throw new Exception("Output file is not writable");
         }
@@ -811,8 +793,7 @@ class CompressGzip extends CompressManagerFactory
 
     public function open($filename)
     {
-        $this->archiveFilename = $filename . ".gz";
-        $this->fileHandler = gzopen($this->archiveFilename, "wb");
+        $this->fileHandler = gzopen($filename, "wb");
         if (false === $this->fileHandler) {
             throw new Exception("Output file is not writable");
         }
@@ -840,8 +821,7 @@ class CompressNone extends CompressManagerFactory
 
     public function open($filename)
     {
-        $this->archiveFilename = $filename;
-        $this->fileHandler = fopen($this->archiveFilename, "wb");
+        $this->fileHandler = fopen($filename, "wb");
         if (false === $this->fileHandler) {
             throw new Exception("Output file is not writable");
         }
