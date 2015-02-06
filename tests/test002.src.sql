@@ -11,3 +11,4 @@ INSERT INTO `test201` VALUES ('áéíóú');
 INSERT INTO `test201` VALUES ('🎲');
 INSERT INTO `test201` VALUES ('🎭');
 INSERT INTO `test201` VALUES ('💩');
+INSERT INTO `test201` VALUES ('🐈');
