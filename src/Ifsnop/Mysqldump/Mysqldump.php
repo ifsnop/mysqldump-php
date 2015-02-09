@@ -609,6 +609,7 @@ class Mysqldump
         );
 
         if ($this->dumpSettings['single-transaction']) {
+            $this->dbHandler->exec($this->typeAdapter->setup_transaction());
             $this->dbHandler->exec($this->typeAdapter->start_transaction());
         }
 
@@ -969,6 +970,11 @@ abstract class TypeAdapterFactory
         return "pragma table_info(${args[0]})";
     }
 
+    public function setup_transaction()
+    {
+        return "";
+    }
+
     public function start_transaction()
     {
         return "BEGIN EXCLUSIVE";
@@ -1278,10 +1284,14 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return "SHOW COLUMNS FROM `${args[0]}`;";
     }
 
+    public function setup_transaction()
+    {
+        return "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ";
+    }
+
     public function start_transaction()
     {
-        return "SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ; " .
-            "START TRANSACTION";
+        return "START TRANSACTION";
     }
 
     public function commit_transaction()

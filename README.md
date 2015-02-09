@@ -216,8 +216,6 @@ To dump a database, you need the following privileges :
   - If any table has one or more triggers.
 - **LOCK TABLES**
   - If "lock tables" option was enabled.
-- **SUPER**
-  - If "single-transaction" option was enabled.
 
 Use **SHOW GRANTS FOR user@host;** to know what privileges user has. See the following link for more information:
 
