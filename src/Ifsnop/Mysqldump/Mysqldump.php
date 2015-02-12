@@ -47,6 +47,7 @@ class Mysqldump
 
     // This can be set both on constructor or manually
     public $host;
+    public $port;
     public $user;
     public $pass;
     public $db;
@@ -120,7 +121,16 @@ class Mysqldump
         $this->db = $db;
         $this->user = $user;
         $this->pass = $pass;
-        $this->host = $host;
+
+        $colonPos = strpos($host, ':');
+        if (false !== $colonPos) {
+            $this->port = substr($host, $colonPos + 1);
+            $this->host = substr($host, 0, $colonPos);
+        } else {
+            $this->port = null;
+            $this->host = $host;
+        }
+
         $this->dbType = strtolower($type);
         $this->pdoSettings = self::array_replace_recursive($pdoSettingsDefault, $pdoSettings);
         $this->dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dumpSettings);
@@ -179,9 +189,12 @@ class Mysqldump
                 case 'mysql':
                 case 'pgsql':
                 case 'dblib':
+                    $dsn =  $this->dbType .
+                        ":host=" . $this->host .
+                         (isset($this->port) ? ";port=" . $this->port : "") .
+                        ";dbname=" . $this->db;
                     $this->dbHandler = new PDO(
-                        $this->dbType . ":host=" .
-                        $this->host . ";dbname=" . $this->db,
+                        $dsn,
                         $this->user,
                         $this->pass,
                         $this->pdoSettings

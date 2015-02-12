@@ -33,7 +33,7 @@ $dump = new IMysqldump\Mysqldump(
     "test001",
     "travis",
     "",
-    "localhost",
+    "localhost:3306",
     "mysql",
     $dumpSettings);
 
