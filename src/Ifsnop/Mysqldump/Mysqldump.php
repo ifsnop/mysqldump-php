@@ -108,6 +108,8 @@ class Mysqldump
             'skip-tz-utz' => false,
             'no-autocommit' => true,
             'default-character-set' => Mysqldump::UTF8,
+            'skip-comments' => false,
+            'skip-dump-date' => false,
             /* deprecated */
             'disable-foreign-keys-check' => true
         );
@@ -298,18 +300,20 @@ class Mysqldump
      */
     private function getDumpFileHeader()
     {
-        // Some info about software, source and time
-        $header = "-- mysqldump-php https://github.com/ifsnop/mysqldump-php" . PHP_EOL .
-                "--" . PHP_EOL .
-                "-- Host: {$this->host}\tDatabase: {$this->db}" . PHP_EOL .
-                "-- ------------------------------------------------------" . PHP_EOL;
+        $header = '';
+        if (!$this->dumpSettings['skip-comments']) {
+            // Some info about software, source and time
+            $header = "-- mysqldump-php https://github.com/ifsnop/mysqldump-php" . PHP_EOL .
+                    "--" . PHP_EOL .
+                    "-- Host: {$this->host}\tDatabase: {$this->db}" . PHP_EOL .
+                    "-- ------------------------------------------------------" . PHP_EOL;
 
-        if (!empty($this->version)) {
-            $header .= "-- Server version \t" . $this->version . PHP_EOL;
+            if (!empty($this->version)) {
+                $header .= "-- Server version \t" . $this->version . PHP_EOL;
+            }
+
+            $header .= "-- Date: " . date('r') . PHP_EOL . PHP_EOL;
         }
-
-        $header .= "-- Date: " . date('r') . PHP_EOL . PHP_EOL;
-
         return $header;
     }
 
@@ -320,7 +324,14 @@ class Mysqldump
      */
     private function getDumpFileFooter()
     {
-        $footer = "-- Dump completed on: " . date('r') . PHP_EOL;
+        $footer = '';
+        if (!$this->dumpSettings['skip-comments']) {
+            $footer .= '-- Dump completed';
+            if (!$this->dumpSettings['skip-dump-date']) {
+                $footer .= ' on: ' . date('r');
+            }
+            $footer .= PHP_EOL;
+        }
 
         return $footer;
     }
@@ -441,9 +452,12 @@ class Mysqldump
     private function getTableStructure($tableName)
     {
         if (!$this->dumpSettings['no-create-info']) {
-            $ret = "--" . PHP_EOL .
-                "-- Table structure for table `$tableName`" . PHP_EOL .
-                "--" . PHP_EOL . PHP_EOL;
+            $ret = '';
+            if (!$this->dumpSettings['skip-comments']) {
+                $ret = "--" . PHP_EOL .
+                    "-- Table structure for table `$tableName`" . PHP_EOL .
+                    "--" . PHP_EOL . PHP_EOL;
+            }
             $stmt = $this->typeAdapter->show_create_table($tableName);
             foreach ($this->dbHandler->query($stmt) as $r) {
                 $this->compressManager->write($ret);
@@ -486,9 +500,12 @@ class Mysqldump
      */
     private function getViewStructure($viewName)
     {
-        $ret = "--" . PHP_EOL .
-            "-- Table structure for view `${viewName}`" . PHP_EOL .
-            "--" . PHP_EOL . PHP_EOL;
+        $ret = '';
+        if (!$this->dumpSettings['skip-comments']) {
+            $ret = "--" . PHP_EOL .
+                "-- Table structure for view `${viewName}`" . PHP_EOL .
+                "--" . PHP_EOL . PHP_EOL;
+        }
         $this->compressManager->write($ret);
         $stmt = $this->typeAdapter->show_create_view($viewName);
         foreach ($this->dbHandler->query($stmt) as $r) {
@@ -615,11 +632,13 @@ class Mysqldump
      */
     function prepareListValues($tableName)
     {
-        $this->compressManager->write(
-            "--" . PHP_EOL .
-            "-- Dumping data for table `$tableName`" .  PHP_EOL .
-            "--" . PHP_EOL . PHP_EOL
-        );
+        if (!$this->dumpSettings['skip-comments']) {
+            $this->compressManager->write(
+                "--" . PHP_EOL .
+                "-- Dumping data for table `$tableName`" .  PHP_EOL .
+                "--" . PHP_EOL . PHP_EOL
+            );
+        }
 
         if ($this->dumpSettings['single-transaction']) {
             $this->dbHandler->exec($this->typeAdapter->setup_transaction());

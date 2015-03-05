@@ -128,6 +128,8 @@ Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) f
         'skip-tz-utc' => false,
         'no-autocommit' => true,
         'default-character-set' => 'utf8',
+        'skip-comments' => false,
+        'skip-dump-date' => false,
     );
 
     $pdoSettingsDefaults = array(
@@ -187,6 +189,10 @@ Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) f
   - Could be specified using the declared consts: IMysqldump\Mysqldump::UTF8 or IMysqldump\Mysqldump::UTF8MB4BZIP2
   - http://dev.mysql.com/doc/refman/5.5/en/charset-unicode-utf8mb4.html
   - https://mathiasbynens.be/notes/mysql-utf8mb4
+- **skip-comments**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_comments
+- **skip-dump-date**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_dump-date
 
 The following options are now enabled by default, and there is no way to disable them since
 they should always be used.
