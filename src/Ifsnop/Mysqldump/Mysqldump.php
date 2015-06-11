@@ -186,7 +186,7 @@ class Mysqldump
         try {
             switch ($this->dbType) {
                 case 'sqlite':
-                    $this->dbHandler = new PDO("sqlite:" . $this->db, null, null, $this->pdoSettings);
+                    $this->dbHandler = @new PDO("sqlite:" . $this->db, null, null, $this->pdoSettings);
                     break;
                 case 'mysql':
                 case 'pgsql':
@@ -195,7 +195,7 @@ class Mysqldump
                         ":host=" . $this->host .
                          (isset($this->port) ? ";port=" . $this->port : "") .
                         ";dbname=" . $this->db;
-                    $this->dbHandler = new PDO(
+                    $this->dbHandler = @new PDO(
                         $dsn,
                         $this->user,
                         $this->pass,
