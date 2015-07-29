@@ -227,9 +227,18 @@ Use **SHOW GRANTS FOR user@host;** to know what privileges user has. See the fol
 
 [Which are the minimum privileges required to get a backup of a MySQL database schema?](http://dba.stackexchange.com/questions/55546/which-are-the-minimum-privileges-required-to-get-a-backup-of-a-mysql-database-sc/55572#55572)
 
+## Tests
+
+Current code for testing is an ugly hack. Probably there are much better ways
+of doing them using PHPUnit, so PR's are welcomed. The testing script creates
+and populates a database using all possible datatypes. Then it exports it
+using both mysqldump-php and mysqldump, and compares the output. Only if
+it is identical tests are OK.
+
 ## TODO
 
-- Write unit tests.
+Support connecting through a socket to database. Probably rewrite constructor
+to support an array with parameters.
 
 ## Contributing
 
