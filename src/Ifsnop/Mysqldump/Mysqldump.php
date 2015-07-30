@@ -45,12 +45,31 @@ class Mysqldump
     const UTF8 = 'utf8';
     const UTF8MB4 = 'utf8mb4';
 
-    // This can be set both on constructor or manually
-    public $host;
-    public $port;
+    // Keys to retrieve from DSN string
+    const DBNAME = 'dbname';
+    const DBTYPE = 'dbtype';
+    const DBHOST = 'host';
+    const DBSOCKET = 'unix_socket';
+
+    /**
+    * Database username
+    * @var string
+    */
     public $user;
+    /**
+    * Database password
+    * @var string
+    */
     public $pass;
-    public $db;
+    /**
+    * Connection string for PDO
+    * @var string
+    */
+    public $dsn;
+    /**
+    * Destination filename
+    * @var string
+    */
     public $fileName;
 
     // Internal stuff
@@ -65,25 +84,26 @@ class Mysqldump
     private $pdoSettings = array();
     private $version;
     private $tableColumnTypes = array();
+    /**
+    * database name, parsed from dsn
+    * @var string
+    */
+    private $dbName;
 
     /**
      * Constructor of Mysqldump. Note that in the case of an SQLite database
      * connection, the filename must be in the $db parameter.
      *
-     * @param string $db         Database name
+     * @param string $dsn        PDO DSN connection string
      * @param string $user       SQL account username
      * @param string $pass       SQL account password
-     * @param string $host       SQL server to connect to
-     * @param string $type       SQL database type
      * @param array  $dumpSettings SQL database settings
      * @param array  $pdoSettings  PDO configured attributes
      */
     public function __construct(
-        $db = '',
+        $dsn = '',
         $user = '',
         $pass = '',
-        $host = 'localhost',
-        $type = 'mysql',
         $dumpSettings = array(),
         $pdoSettings = array()
     ) {
@@ -120,20 +140,19 @@ class Mysqldump
             PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false
         );
 
-        $this->db = $db;
         $this->user = $user;
         $this->pass = $pass;
+        $this->dsn = $dsn;
+        $this->dbName = $this->getFromDsn($this->dsn, Mysqldump::DBNAME);
+        $this->dbType = $this->getFromDsn($this->dsn, Mysqldump::DBTYPE);
+        $this->host = $this->getFromDsn($this->dsn, Mysqldump::DBHOST) != "" ?
+            $this->getFromDsn($this->dsn, Mysqldump::DBHOST) :
+            $this->getFromDsn($this->dsn, Mysqldump::DBSOCKET);
 
-        $colonPos = strpos($host, ':');
-        if (false !== $colonPos) {
-            $this->port = substr($host, $colonPos + 1);
-            $this->host = substr($host, 0, $colonPos);
-        } else {
-            $this->port = null;
-            $this->host = $host;
+        if (empty($this->host)) {
+            throw new Exception("Missing host from DSN string");
         }
 
-        $this->dbType = strtolower($type);
         $this->pdoSettings = self::array_replace_recursive($pdoSettingsDefault, $pdoSettings);
         $this->dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dumpSettings);
 
@@ -176,6 +195,38 @@ class Mysqldump
     }
 
     /**
+     * Parse DSN string and extract dbname value
+     * Several examples of a DSN string
+     *   mysql:host=localhost;dbname=testdb
+     *   mysql:host=localhost;port=3307;dbname=testdb
+     *   mysql:unix_socket=/tmp/mysql.sock;dbname=testdb
+     *
+     * @param string $dsn dsn string to parse
+     *
+     * @return string
+     */
+    private function getFromDsn($dsn, $search = Mysqldump::DBNAME)
+    {
+        if (empty($dsn) || (false === ($pos = strpos($dsn, ":")))) {
+            return "";
+        }
+
+        if (Mysqldump::DBTYPE == $search) {
+            return substr($dsn, 0, $pos);
+        }
+
+        $dsn = substr($dsn, $pos + 1);
+
+        foreach(explode(";", $dsn) as $kvp) {
+            $kvpArr = explode("=", $kvp);
+            if (0 == strcmp($kvpArr[0], $search)) {
+                return $kvpArr[1];
+            }
+        }
+        return "";
+    }
+
+    /**
      * Connect with PDO
      *
      * @return null
@@ -186,17 +237,13 @@ class Mysqldump
         try {
             switch ($this->dbType) {
                 case 'sqlite':
-                    $this->dbHandler = @new PDO("sqlite:" . $this->db, null, null, $this->pdoSettings);
+                    $this->dbHandler = @new PDO("sqlite:" . $this->dbName, null, null, $this->pdoSettings);
                     break;
                 case 'mysql':
                 case 'pgsql':
                 case 'dblib':
-                    $dsn =  $this->dbType .
-                        ":host=" . $this->host .
-                         (isset($this->port) ? ";port=" . $this->port : "") .
-                        ";dbname=" . $this->db;
                     $this->dbHandler = @new PDO(
-                        $dsn,
+                        $this->dsn,
                         $this->user,
                         $this->pass,
                         $this->pdoSettings
@@ -253,11 +300,11 @@ class Mysqldump
 
         if ($this->dumpSettings['databases']) {
             $this->compressManager->write(
-                $this->typeAdapter->getDatabaseHeader($this->db)
+                $this->typeAdapter->getDatabaseHeader($this->dbName)
             );
             if ($this->dumpSettings['add-drop-database']) {
                 $this->compressManager->write(
-                    $this->typeAdapter->add_drop_database($this->db)
+                    $this->typeAdapter->add_drop_database($this->dbName)
                 );
             }
         }
@@ -267,7 +314,7 @@ class Mysqldump
 
         if ($this->dumpSettings['databases']) {
             $this->compressManager->write(
-                $this->typeAdapter->databases($this->db)
+                $this->typeAdapter->databases($this->dbName)
             );
         }
 
@@ -305,7 +352,7 @@ class Mysqldump
             // Some info about software, source and time
             $header = "-- mysqldump-php https://github.com/ifsnop/mysqldump-php" . PHP_EOL .
                     "--" . PHP_EOL .
-                    "-- Host: {$this->host}\tDatabase: {$this->db}" . PHP_EOL .
+                    "-- Host: {$this->host}\tDatabase: {$this->dbName}" . PHP_EOL .
                     "-- ------------------------------------------------------" . PHP_EOL;
 
             if (!empty($this->version)) {
@@ -347,12 +394,12 @@ class Mysqldump
         // Listing all tables from database
         if (empty($this->dumpSettings['include-tables'])) {
             // include all tables for now, blacklisting happens later
-            foreach ($this->dbHandler->query($this->typeAdapter->show_tables($this->db)) as $row) {
+            foreach ($this->dbHandler->query($this->typeAdapter->show_tables($this->dbName)) as $row) {
                 array_push($this->tables, current($row));
             }
         } else {
             // include only the tables mentioned in include-tables
-            foreach ($this->dbHandler->query($this->typeAdapter->show_tables($this->db)) as $row) {
+            foreach ($this->dbHandler->query($this->typeAdapter->show_tables($this->dbName)) as $row) {
                 if (in_array(current($row), $this->dumpSettings['include-tables'], true)) {
                     array_push($this->tables, current($row));
                     $elem = array_search(
@@ -367,12 +414,12 @@ class Mysqldump
         // Listing all views from database
         if (empty($this->dumpSettings['include-tables'])) {
             // include all views for now, blacklisting happens later
-            foreach ($this->dbHandler->query($this->typeAdapter->show_views($this->db)) as $row) {
+            foreach ($this->dbHandler->query($this->typeAdapter->show_views($this->dbName)) as $row) {
                 array_push($this->views, current($row));
             }
         } else {
             // include only the tables mentioned in include-tables
-            foreach ($this->dbHandler->query($this->typeAdapter->show_views($this->db)) as $row) {
+            foreach ($this->dbHandler->query($this->typeAdapter->show_views($this->dbName)) as $row) {
                 if (in_array(current($row), $this->dumpSettings['include-tables'], true)) {
                     array_push($this->views, current($row));
                     $elem = array_search(
@@ -386,7 +433,7 @@ class Mysqldump
 
         // Listing all triggers from database
         if (false === $this->dumpSettings['skip-triggers']) {
-            foreach ($this->dbHandler->query($this->typeAdapter->show_triggers($this->db)) as $row) {
+            foreach ($this->dbHandler->query($this->typeAdapter->show_triggers($this->dbName)) as $row) {
                 array_push($this->triggers, $row['Trigger']);
             }
         }

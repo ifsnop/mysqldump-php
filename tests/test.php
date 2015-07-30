@@ -30,26 +30,29 @@ $dumpSettings = array(
     );
 
 $dump = new IMysqldump\Mysqldump(
-    "test001",
+    "mysql:host=localhost:3306;dbname=test001",
     "travis",
     "",
-    "localhost:3306",
-    "mysql",
     $dumpSettings);
 
 $dump->start("mysqldump-php_test001.sql");
 
-
 $dumpSettings['default-character-set'] = IMysqldump\Mysqldump::UTF8MB4;
 
 $dump = new IMysqldump\Mysqldump(
-    "test002",
+    "mysql:host=localhost;dbname=test002",
     "travis",
     "",
-    "localhost",
-    "mysql",
     $dumpSettings);
 
 $dump->start("mysqldump-php_test002.sql");
+
+$dump = new IMysqldump\Mysqldump(
+    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test002",
+    "travis",
+    "",
+    $dumpSettings);
+
+$dump->start("mysqldump-php_test003.sql");
 
 exit;

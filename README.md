@@ -19,6 +19,10 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 
 Out of the box, MySQLDump-PHP supports backing up table structures, the data itself, views and triggers.
 
+## Important
+
+From version 2.0, connections to database are made using the standard DSN, documented in [PDO connection string](http://php.net/manual/en/ref.pdo-mysql.connection.php)
+
 ## Requirements
 
 - PHP 5.3.0 or newer
@@ -30,7 +34,7 @@ Out of the box, MySQLDump-PHP supports backing up table structures, the data its
 Using [Composer](http://getcomposer.org):
 
 ```
-$ composer require ifsnop/mysqldump-php:1.*
+$ composer require ifsnop/mysqldump-php:2.*
 
 ```
 
@@ -38,14 +42,14 @@ Or via json file:
 
 ````
 "require": {
-        "ifsnop/mysqldump-php":"1.*"
+        "ifsnop/mysqldump-php":"2.*"
 }
 ````
 
 Using [Curl](http://curl.haxx.se):
 
 ```
-$ curl --silent --location https://github.com/ifsnop/mysqldump-php/archive/v1.4.1.tar.gz | tar xvfz -
+$ curl --silent --location https://github.com/ifsnop/mysqldump-php/archive/v2.0.0.tar.gz | tar xvfz -
 ```
 
 ## Getting started
@@ -58,7 +62,7 @@ With [Autoloader](http://www.php-fig.org/psr/psr-4/)/[Composer](http://getcompos
 use Ifsnop\Mysqldump as IMysqldump;
 
 try {
-    $dump = new IMysqldump\Mysqldump('database', 'username', 'password');
+    $dump = new IMysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
     $dump->start('storage/work/dump.sql');
 } catch (\Exception $e) {
     echo 'mysqldump-php error: ' . $e->getMessage();
@@ -72,8 +76,8 @@ Plain old PHP:
 ```
 <?php
 
-    include_once(dirname(__FILE__) . '/mysqldump-php-1.4.1/src/Ifsnop/Mysqldump/Mysqldump.php');
-    $dump = new Ifsnop\Mysqldump\Mysqldump( 'database', 'username', 'password');
+    include_once(dirname(__FILE__) . '/mysqldump-php-2.0.0/src/Ifsnop/Mysqldump/Mysqldump.php');
+    $dump = new Ifsnop\Mysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
     $dump->start('storage/work/dump.sql');
 
 ?>
@@ -82,27 +86,20 @@ Plain old PHP:
 Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) for some examples and a comparision between mysqldump and mysqldump-php dumps.
 
 ## Constructor and default parameters
-
     /**
      * Constructor of Mysqldump. Note that in the case of an SQLite database
      * connection, the filename must be in the $db parameter.
      *
-     * @param string $db         Database name
+     * @param string $dsn        PDO DSN connection string
      * @param string $user       SQL account username
      * @param string $pass       SQL account password
-     * @param string $host       SQL server to connect to
-     * @param string $type       SQL database type ('mysql', 'sqlite', ...)
      * @param array  $dumpSettings SQL database settings
      * @param array  $pdoSettings  PDO configured attributes
-     *
-     * @return null
      */
     public function __construct(
-        $db = '',
+        $dsn = '',
         $user = '',
         $pass = '',
-        $host = 'localhost',
-        $type = 'mysql',
         $dumpSettings = array(),
         $pdoSettings = array()
     )
@@ -237,8 +234,7 @@ it is identical tests are OK.
 
 ## TODO
 
-Support connecting through a socket to database. Probably rewrite constructor
-to support an array with parameters.
+...
 
 ## Contributing
 

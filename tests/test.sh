@@ -59,6 +59,7 @@ cat mysqldump_test001.sql | grep ^INSERT > mysqldump_test001.filtered.sql
 cat mysqldump_test002.sql | grep ^INSERT > mysqldump_test002.filtered.sql
 cat mysqldump-php_test001.sql | grep ^INSERT > mysqldump-php_test001.filtered.sql
 cat mysqldump-php_test002.sql | grep ^INSERT > mysqldump-php_test002.filtered.sql
+cat mysqldump-php_test003.sql | grep ^INSERT > mysqldump-php_test003.filtered.sql
 
 diff test001.filtered.sql mysqldump_test001.filtered.sql
 ret[7]=$?
@@ -74,6 +75,9 @@ diff test001.src.checksum mysqldump-php_test001.checksum
 ret[11]=$?
 diff test002.src.checksum mysqldump-php_test002.checksum
 ret[12]=$?
+
+diff mysqldump-php_test002.filtered.sql mysqldump-php_test003.filtered.sql
+ret[13]=$?
 
 rm *.checksum 2> /dev/null
 rm *.filtered.sql 2> /dev/null
