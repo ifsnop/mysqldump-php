@@ -841,6 +841,9 @@ class CompressBzip2 extends CompressManagerFactory
         }
     }
 
+    /**
+     * @param string $filename
+     */
     public function open($filename)
     {
         $this->fileHandler = bzopen($filename, "w");
@@ -876,6 +879,9 @@ class CompressGzip extends CompressManagerFactory
         }
     }
 
+    /**
+     * @param string $filename
+     */
     public function open($filename)
     {
         $this->fileHandler = gzopen($filename, "wb");
@@ -904,6 +910,9 @@ class CompressNone extends CompressManagerFactory
 {
     private $fileHandler = null;
 
+    /**
+     * @param string $filename
+     */
     public function open($filename)
     {
         $this->fileHandler = fopen($filename, "wb");
