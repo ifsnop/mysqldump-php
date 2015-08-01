@@ -127,7 +127,7 @@ class Mysqldump
             'no-create-info' => false,
             'skip-triggers' => false,
             'add-drop-trigger' => true,
-            'hex-blob' => true,
+            'hex-blob' => true, /* faster than escaped content */
             'databases' => false,
             'add-drop-database' => false,
             'skip-tz-utz' => false,
