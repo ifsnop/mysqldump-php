@@ -67,10 +67,10 @@ class Mysqldump
     */
     public $dsn;
     /**
-    * Destination filename
+    * Destination filename, defaults to stdout
     * @var string
     */
-    public $fileName;
+    public $fileName = 'php://output';
 
     // Internal stuff
     private $tables = array();
@@ -283,10 +283,6 @@ class Mysqldump
         // Output file can be redefined here
         if (!empty($filename)) {
             $this->fileName = $filename;
-        }
-        // We must set a name to continue
-        if (empty($this->fileName)) {
-            throw new Exception("Output file name is not set");
         }
 
         // Connect to database
