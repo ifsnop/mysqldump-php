@@ -1325,7 +1325,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
     public function show_tables()
     {
         if (func_num_args() != 1) {
-            return "";
+            throw new Exception("Unexpected parameter passed to " . __METHOD__);
         }
 
         $args = func_get_args();
@@ -1338,7 +1338,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
     public function show_views()
     {
         if (func_num_args() != 1) {
-            return "";
+            throw new Exception("Unexpected parameter passed to " . __METHOD__);
         }
 
         $args = func_get_args();
@@ -1351,7 +1351,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
     public function show_triggers()
     {
         if (func_num_args() != 1) {
-            return "";
+            throw new Exception("Unexpected parameter passed to " . __METHOD__);
         }
 
         $args = func_get_args();
@@ -1363,7 +1363,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
     public function show_columns()
     {
         if (func_num_args() != 1) {
-            return "";
+            throw new Exception("Unexpected parameter passed to " . __METHOD__);
         }
 
         $args = func_get_args();
@@ -1389,7 +1389,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
     public function lock_table()
     {
         if (func_num_args() != 1) {
-            return "";
+            throw new Exception("Unexpected parameter passed to " . __METHOD__);
         }
 
         $args = func_get_args();
@@ -1407,7 +1407,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
     public function start_add_lock_table()
     {
         if (func_num_args() != 1) {
-            return "";
+            throw new Exception("Unexpected parameter passed to " . __METHOD__);
         }
 
         $args = func_get_args();
@@ -1423,7 +1423,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
     public function start_add_disable_keys()
     {
         if (func_num_args() != 1) {
-            return "";
+            throw new Exception("Unexpected parameter passed to " . __METHOD__);
         }
         $args = func_get_args();
         return "/*!40000 ALTER TABLE `${args[0]}` DISABLE KEYS */;" .
@@ -1433,7 +1433,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
     public function end_add_disable_keys()
     {
         if (func_num_args() != 1) {
-            return "";
+            throw new Exception("Unexpected parameter passed to " . __METHOD__);
         }
         $args = func_get_args();
         return "/*!40000 ALTER TABLE `${args[0]}` ENABLE KEYS */;" .
@@ -1453,7 +1453,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
     public function add_drop_database()
     {
         if (func_num_args() != 1) {
-             return "";
+            throw new Exception("Unexpected parameter passed to " . __METHOD__);
         }
 
         $args = func_get_args();
@@ -1465,7 +1465,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
     public function add_drop_trigger()
     {
         if (func_num_args() != 1) {
-            return "";
+            throw new Exception("Unexpected parameter passed to " . __METHOD__);
         }
 
         $args = func_get_args();
@@ -1476,7 +1476,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
     public function drop_table()
     {
         if (func_num_args() != 1) {
-            return "";
+            throw new Exception("Unexpected parameter passed to " . __METHOD__);
         }
 
         $args = func_get_args();
@@ -1487,7 +1487,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
     public function drop_view()
     {
         if (func_num_args() != 1) {
-            return "";
+            throw new Exception("Unexpected parameter passed to " . __METHOD__);
         }
 
         $args = func_get_args();
@@ -1499,7 +1499,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
     public function getDatabaseHeader()
     {
         if (func_num_args() != 1) {
-            return "";
+            throw new Exception("Unexpected parameter passed to " . __METHOD__);
         }
 
         $args = func_get_args();
