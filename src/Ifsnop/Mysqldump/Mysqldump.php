@@ -88,6 +88,11 @@ class Mysqldump
     * @var string
     */
     private $host;
+    /**
+    * dsn string parsed as an array
+    * @var array
+    */
+    private $dsnArray;
 
     /**
      * Constructor of Mysqldump. Note that in the case of an SQLite database
