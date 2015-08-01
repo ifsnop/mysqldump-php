@@ -45,12 +45,6 @@ class Mysqldump
     const UTF8 = 'utf8';
     const UTF8MB4 = 'utf8mb4';
 
-    // Keys to retrieve from DSN string
-    const DBNAME = 'dbname';
-    const DBTYPE = 'dbtype';
-    const DBHOST = 'host';
-    const DBSOCKET = 'unix_socket';
-
     /**
     * Database username
     * @var string
@@ -147,17 +141,7 @@ class Mysqldump
 
         $this->user = $user;
         $this->pass = $pass;
-        $this->dsn = $dsn;
-        $this->dbName = $this->getFromDsn($this->dsn, Mysqldump::DBNAME);
-        $this->dbType = $this->getFromDsn($this->dsn, Mysqldump::DBTYPE);
-        $this->host = $this->getFromDsn($this->dsn, Mysqldump::DBHOST) != "" ?
-            $this->getFromDsn($this->dsn, Mysqldump::DBHOST) :
-            $this->getFromDsn($this->dsn, Mysqldump::DBSOCKET);
-
-        if (empty($this->host)) {
-            throw new Exception("Missing host from DSN string");
-        }
-
+        $this->parseDsn($dsn);
         $this->pdoSettings = self::array_replace_recursive($pdoSettingsDefault, $pdoSettings);
         $this->dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dumpSettings);
 
@@ -207,28 +191,42 @@ class Mysqldump
      *   mysql:unix_socket=/tmp/mysql.sock;dbname=testdb
      *
      * @param string $dsn dsn string to parse
-     *
-     * @return string
      */
-    private function getFromDsn($dsn, $search = Mysqldump::DBNAME)
+    private function parseDsn($dsn)
     {
         if (empty($dsn) || (false === ($pos = strpos($dsn, ":")))) {
-            return "";
+            throw new Exception("Empty DSN string");
         }
 
-        if (Mysqldump::DBTYPE == $search) {
-            return substr($dsn, 0, $pos);
+        $this->dsn = $dsn;
+        $this->dbType = strtolower(substr($dsn, 0, $pos));
+
+        if (empty($this->dbType)) {
+            throw new Exception("Missing database type from DSN string");
         }
 
         $dsn = substr($dsn, $pos + 1);
 
         foreach(explode(";", $dsn) as $kvp) {
             $kvpArr = explode("=", $kvp);
-            if (0 == strcmp($kvpArr[0], $search)) {
-                return $kvpArr[1];
-            }
+            $this->dsnArray[$kvpArr[0]] = strtolower($kvpArr[1]);
         }
-        return "";
+
+        if (empty($this->dsnArray['host']) &&
+            empty($this->dsnArray['unix_socket'])) {
+            throw new Exception("Missing host from DSN string");
+        }
+        $this->host = (!empty($this->dsnArray['host'])) ?
+            $this->dsnArray['host'] :
+            $this->dsnArray['unix_socket'];
+
+        if (empty($this->dsnArray['dbname'])) {
+            throw new Exception("Missing database name from DSN string");
+        }
+
+        $this->dbName = $this->dsnArray['dbname'];
+
+        return true;
     }
 
     /**
