@@ -1398,8 +1398,6 @@ class TypeAdapterMysql extends TypeAdapterFactory
         }
 
         $args = func_get_args();
-        //$tableName = $args[0];
-        //return "LOCK TABLES `$tableName` READ LOCAL";
         return $this->dbHandler->exec("LOCK TABLES `${args[0]}` READ LOCAL");
 
     }
