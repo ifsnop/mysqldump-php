@@ -48,11 +48,11 @@ $dump = new IMysqldump\Mysqldump(
 $dump->start("mysqldump-php_test002.sql");
 
 $dump = new IMysqldump\Mysqldump(
-    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test002",
+    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test005",
     "travis",
     "",
     $dumpSettings);
 
-$dump->start("mysqldump-php_test003.sql");
+$dump->start("mysqldump-php_test005.sql");
 
 exit;

@@ -134,6 +134,7 @@ class Mysqldump
             'default-character-set' => Mysqldump::UTF8,
             'skip-comments' => false,
             'skip-dump-date' => false,
+            'init_commands' => array(),
             /* deprecated */
             'disable-foreign-keys-check' => true
         );
@@ -150,8 +151,10 @@ class Mysqldump
         $this->pdoSettings = self::array_replace_recursive($pdoSettingsDefault, $pdoSettings);
         $this->dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dumpSettings);
 
-        if (!isset($this->pdoSettings[PDO::MYSQL_ATTR_INIT_COMMAND])) {
-            $this->pdoSettings[PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES " . $this->dumpSettings['default-character-set'];
+        $this->dumpSettings['init_commands'][] = "SET NAMES " . $this->dumpSettings['default-character-set'];
+
+        if (false === $this->dumpSettings['skip-tz-utz']) {
+            $this->dumpSettings['init_commands'][] = "SET TIME_ZONE='+00:00'";
         }
 
         $diff = array_diff(array_keys($this->dumpSettings), array_keys($dumpSettingsDefault));
@@ -256,8 +259,10 @@ class Mysqldump
                         $this->pass,
                         $this->pdoSettings
                     );
-                    // Fix for always-unicode output
-                    $this->dbHandler->exec("SET NAMES " . $this->dumpSettings['default-character-set']);
+                    // Execute init commands once connected
+                    foreach($this->dumpSettings['init_commands'] as $stmt) {
+                        $this->dbHandler->exec($stmt);
+                    }
                     // Store server version
                     $this->version = $this->dbHandler->getAttribute(PDO::ATTR_SERVER_VERSION);
                     break;

@@ -12,27 +12,37 @@ for i in 201; do
 done
 }
 
+function checksum_test005() {
+for i in 000; do
+    mysql -B -e "CHECKSUM TABLE test${i}" test001 | grep -v -i checksum
+done
+}
+
 for i in $(seq 0 20) ; do
     ret[$i]=0
 done
 
+index=0
+
 mysql -e "CREATE USER 'travis'@'localhost' IDENTIFIED BY '';" 2> /dev/null
 mysql -e "GRANT ALL PRIVILEGES ON test001.* TO 'travis'@'localhost';" 2> /dev/null
 mysql -e "GRANT ALL PRIVILEGES ON test002.* TO 'travis'@'localhost';" 2> /dev/null
+mysql -e "GRANT ALL PRIVILEGES ON test005.* TO 'travis'@'localhost';" 2> /dev/null
 
-mysql -uroot < test001.src.sql; ret[0]=$?
-
-mysql -uroot --default-character-set=utf8mb4 < test002.src.sql; ret[1]=$?
+mysql -uroot < test001.src.sql; ret[((index++))]=$?
+mysql -uroot --default-character-set=utf8mb4 < test002.src.sql; ret[((index++))]=$?
+mysql -uroot < test005.src.sql; ret[((index++))]=$?
 
 checksum_test001 > test001.src.checksum
 checksum_test002 > test002.src.checksum
+checksum_test005 > test005.src.checksum
 
 mysqldump -uroot test001 \
     --no-autocommit \
     --extended-insert=false \
     --hex-blob=true \
     > mysqldump_test001.sql
-ret[2]=$?
+ret[((index++))]=$?
 
 mysqldump -uroot test002 \
     --no-autocommit \
@@ -40,44 +50,58 @@ mysqldump -uroot test002 \
     --hex-blob=true \
     --default-character-set=utf8mb4 \
     > mysqldump_test002.sql
-ret[3]=$?
+ret[((index++))]=$?
+
+mysqldump -uroot test005 \
+    --no-autocommit \
+    --extended-insert=false \
+    --hex-blob=true \
+    > mysqldump_test005.sql
+ret[((index++))]=$?
 
 php test.php
-ret[4]=$?
+ret[((index++))]=$?
 
 mysql -uroot test001 < mysqldump-php_test001.sql
-ret[5]=$?
+ret[((index++))]=$?
 mysql -uroot test002 < mysqldump-php_test002.sql
-ret[6]=$?
+ret[((index++))]=$?
+mysql -uroot test005 < mysqldump-php_test005.sql
+ret[((index++))]=$?
 
 checksum_test001 > mysqldump-php_test001.checksum
 checksum_test002 > mysqldump-php_test002.checksum
+checksum_test005 > mysqldump-php_test005.checksum
 
 cat test001.src.sql | grep ^INSERT > test001.filtered.sql
 cat test002.src.sql | grep ^INSERT > test002.filtered.sql
+cat test005.src.sql | grep ^INSERT > test005.filtered.sql
 cat mysqldump_test001.sql | grep ^INSERT > mysqldump_test001.filtered.sql
 cat mysqldump_test002.sql | grep ^INSERT > mysqldump_test002.filtered.sql
+cat mysqldump_test005.sql | grep ^INSERT > mysqldump_test005.filtered.sql
 cat mysqldump-php_test001.sql | grep ^INSERT > mysqldump-php_test001.filtered.sql
 cat mysqldump-php_test002.sql | grep ^INSERT > mysqldump-php_test002.filtered.sql
-cat mysqldump-php_test003.sql | grep ^INSERT > mysqldump-php_test003.filtered.sql
+cat mysqldump-php_test005.sql | grep ^INSERT > mysqldump-php_test005.filtered.sql
 
 diff test001.filtered.sql mysqldump_test001.filtered.sql
-ret[7]=$?
+ret[((index++))]=$?
 diff test002.filtered.sql mysqldump_test002.filtered.sql
-ret[8]=$?
+ret[((index++))]=$?
 
 diff test001.filtered.sql mysqldump-php_test001.filtered.sql
-ret[9]=$?
+ret[((index++))]=$?
 diff test002.filtered.sql mysqldump-php_test002.filtered.sql
-ret[10]=$?
+ret[((index++))]=$?
 
 diff test001.src.checksum mysqldump-php_test001.checksum
-ret[11]=$?
+ret[((index++))]=$?
 diff test002.src.checksum mysqldump-php_test002.checksum
-ret[12]=$?
+ret[((index++))]=$?
+diff test005.src.checksum mysqldump-php_test005.checksum
+ret[((index++))]=$?
 
-diff mysqldump-php_test002.filtered.sql mysqldump-php_test003.filtered.sql
-ret[13]=$?
+diff mysqldump_test005.filtered.sql mysqldump-php_test005.filtered.sql
+ret[((index++))]=$?
 
 rm *.checksum 2> /dev/null
 rm *.filtered.sql 2> /dev/null
