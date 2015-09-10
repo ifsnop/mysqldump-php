@@ -25,13 +25,22 @@ done
 index=0
 
 mysql -e "CREATE USER 'travis'@'localhost' IDENTIFIED BY '';" 2> /dev/null
+mysql -e "CREATE DATABASE test001;" 2> /dev/null
+mysql -e "CREATE DATABASE test002;" 2> /dev/null
+mysql -e "CREATE DATABASE test005;" 2> /dev/null
+mysql -e "CREATE DATABASE test006a;" 2> /dev/null
+mysql -e "CREATE DATABASE test006b;" 2> /dev/null
 mysql -e "GRANT ALL PRIVILEGES ON test001.* TO 'travis'@'localhost';" 2> /dev/null
 mysql -e "GRANT ALL PRIVILEGES ON test002.* TO 'travis'@'localhost';" 2> /dev/null
 mysql -e "GRANT ALL PRIVILEGES ON test005.* TO 'travis'@'localhost';" 2> /dev/null
+mysql -e "GRANT ALL PRIVILEGES ON test006a.* TO 'travis'@'localhost';" 2> /dev/null
+mysql -e "GRANT ALL PRIVILEGES ON test00ba.* TO 'travis'@'localhost';" 2> /dev/null
+mysql -e "FLUSH PRIVILEGES;" 2> /dev/null
 
 mysql -uroot < test001.src.sql; ret[((index++))]=$?
 mysql -uroot --default-character-set=utf8mb4 < test002.src.sql; ret[((index++))]=$?
 mysql -uroot < test005.src.sql; ret[((index++))]=$?
+mysql -uroot < test006.src.sql; ret[((index++))]=$?
 
 checksum_test001 > test001.src.checksum
 checksum_test002 > test002.src.checksum
@@ -67,6 +76,9 @@ ret[((index++))]=$?
 mysql -uroot test002 < mysqldump-php_test002.sql
 ret[((index++))]=$?
 mysql -uroot test005 < mysqldump-php_test005.sql
+ret[((index++))]=$?
+
+mysql -uroot test006b < mysqldump-php_test006.sql
 ret[((index++))]=$?
 
 checksum_test001 > mysqldump-php_test001.checksum
@@ -107,9 +119,13 @@ rm *.checksum 2> /dev/null
 rm *.filtered.sql 2> /dev/null
 rm mysqldump* 2> /dev/null
 
+echo "Done $index tests"
+
 total=0
 for i in $(seq 0 20) ; do
     total=$((${ret[$i]} + $total))
 done
+
+echo "Exiting with code $total"
 
 exit $total

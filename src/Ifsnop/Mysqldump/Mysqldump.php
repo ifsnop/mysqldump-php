@@ -480,7 +480,14 @@ class Mysqldump
                 if (in_array($view, $this->dumpSettings['exclude-tables'], true)) {
                     continue;
                 }
-                $this->getViewStructure($view);
+                $this->tableColumnTypes[$view] = $this->getTableColumnTypes($view);
+                $this->getViewStructureTable($view);
+            }
+            foreach ($this->views as $view) {
+                if (in_array($view, $this->dumpSettings['exclude-tables'], true)) {
+                    continue;
+                }
+                $this->getViewStructureView($view);
             }
         }
     }
@@ -528,7 +535,18 @@ class Mysqldump
                 break;
             }
         }
+        $this->tableColumnTypes[$tableName] = $this->getTableColumnTypes($tableName);
+        return;
+    }
 
+    /**
+     * Store column types to create data dumps and for Stand-In tables
+     *
+     * @param string $tableName  Name of table to export
+     * @return array type column types detailed
+     */
+
+    function getTableColumnTypes($tableName) {
         $columnTypes = array();
         $columns = $this->dbHandler->query(
             $this->typeAdapter->show_columns($tableName)
@@ -540,36 +558,92 @@ class Mysqldump
             $columnTypes[$col['Field']] = array(
                 'is_numeric'=> $types['is_numeric'],
                 'is_blob' => $types['is_blob'],
-                'type' => $types['type']
+                'type' => $types['type'],
+                'type_sql' => $col['Type']
             );
         }
-        $this->tableColumnTypes[$tableName] = $columnTypes;
-        return;
+
+        return $columnTypes;
     }
 
     /**
-     * View structure extractor
+     * View structure extractor, create table (avoids cyclic references)
      *
      * @todo move mysql specific code to typeAdapter
      * @param string $viewName  Name of view to export
      * @return null
      */
-    private function getViewStructure($viewName)
+    private function getViewStructureTable($viewName)
     {
         $ret = '';
         if (!$this->dumpSettings['skip-comments']) {
             $ret = "--" . PHP_EOL .
-                "-- Table structure for view `${viewName}`" . PHP_EOL .
+                "-- Stand-In structure for view `${viewName}`" . PHP_EOL .
                 "--" . PHP_EOL . PHP_EOL;
         }
         $this->compressManager->write($ret);
         $stmt = $this->typeAdapter->show_create_view($viewName);
+
+        // create views as tables, to resolve dependencies
         foreach ($this->dbHandler->query($stmt) as $r) {
             if ($this->dumpSettings['add-drop-table']) {
                 $this->compressManager->write(
                     $this->typeAdapter->drop_view($viewName)
                 );
             }
+
+            $this->compressManager->write(
+                $this->createStandInTable($viewName)
+            );
+            break;
+        }
+    }
+
+    /**
+     * Write a create table statement for the table Stand-In, show create
+     * table would return a create algorithm when used on a view
+     *
+     * @param string $viewName  Name of view to export
+     * @return string create statement
+     */
+    function createStandInTable($viewName) {
+        $ret = array();
+        foreach($this->tableColumnTypes[$viewName] as $k => $v) {
+            $ret[] = "`${k}` ${v['type_sql']}";
+        }
+        $ret = implode(PHP_EOL . ",", $ret);
+
+        $ret = "CREATE TABLE IF NOT EXISTS `$viewName` (" .
+            PHP_EOL . $ret . PHP_EOL . ");" . PHP_EOL;
+
+        return $ret;
+    }
+
+    /**
+     * View structure extractor, create view
+     *
+     * @todo move mysql specific code to typeAdapter
+     * @param string $viewName  Name of view to export
+     * @return null
+     */
+    private function getViewStructureView($viewName)
+    {
+        $ret = '';
+        if (!$this->dumpSettings['skip-comments']) {
+            $ret = "--" . PHP_EOL .
+                "-- View structure for view `${viewName}`" . PHP_EOL .
+                "--" . PHP_EOL . PHP_EOL;
+        }
+        $this->compressManager->write($ret);
+        $stmt = $this->typeAdapter->show_create_view($viewName);
+
+        // create views, to resolve dependencies
+        // replacing tables with views
+        foreach ($this->dbHandler->query($stmt) as $r) {
+            // because we must replace table with view, we should delete it
+            $this->compressManager->write(
+                $this->typeAdapter->drop_view($viewName)
+            );
             $this->compressManager->write(
                 $this->typeAdapter->create_view($r)
             );
@@ -1277,6 +1351,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
         }
 
         $triggerStmt = $row['Create View'];
+
         $triggerStmtReplaced1 = str_replace(
             "CREATE ALGORITHM",
             "/*!50001 CREATE ALGORITHM",

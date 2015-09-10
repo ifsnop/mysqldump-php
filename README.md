@@ -19,6 +19,10 @@ This is a php version of linux's mysqldump in terminal "$ mysqldump -u username 
 
 Out of the box, MySQLDump-PHP supports backing up table structures, the data itself, views and triggers.
 
+MySQLDump-PHP is the only library that supports:
+* output binary blobs as hex.
+* resolves view dependencies (using Stand-In tables).
+
 ## Important
 
 From version 2.0, connections to database are made using the standard DSN, documented in [PDO connection string](http://php.net/manual/en/ref.pdo-mysql.connection.php)
