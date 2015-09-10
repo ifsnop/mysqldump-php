@@ -22,6 +22,7 @@ Out of the box, MySQLDump-PHP supports backing up table structures, the data its
 MySQLDump-PHP is the only library that supports:
 * output binary blobs as hex.
 * resolves view dependencies (using Stand-In tables).
+* output compared against original mysqldump. Linked to travis-ci testing system.
 
 ## Important
 

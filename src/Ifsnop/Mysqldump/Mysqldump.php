@@ -546,7 +546,7 @@ class Mysqldump
      * @return array type column types detailed
      */
 
-    function getTableColumnTypes($tableName) {
+    private function getTableColumnTypes($tableName) {
         $columnTypes = array();
         $columns = $this->dbHandler->query(
             $this->typeAdapter->show_columns($tableName)
