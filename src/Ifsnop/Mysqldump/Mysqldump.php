@@ -221,12 +221,23 @@ class Mysqldump
     }
 
     /**
+     * Append contents to an existing file
+     *
+     * @param string $filename  Name of file to append sql dump to
+     * @return null
+     */
+    public function append($filename = '')
+    {
+        $this->start($filename, 'a');
+    }
+
+    /**
      * Main call
      *
      * @param string $filename  Name of file to write sql dump to
      * @return null
      */
-    public function start($filename = '')
+    public function start($filename = '', $mode = 'wb')
     {
         // Output file can be redefined here
         if (!empty($filename)) {
@@ -241,7 +252,7 @@ class Mysqldump
         $this->connect();
 
         // Create output file
-        $this->compressManager->open($this->fileName);
+        $this->compressManager->open($this->fileName, $mode);
 
         // Write some basic info to output file
         $this->compressManager->write($this->getDumpFileHeader());
@@ -789,9 +800,12 @@ class CompressBzip2 extends CompressManagerFactory
         }
     }
 
-    public function open($filename)
+    public function open($filename, $mode = "w")
     {
-        $this->fileHandler = bzopen($filename, "w");
+        if($mode == "wb")
+            $mode = "w";
+
+        $this->fileHandler = bzopen($filename, $mode);
         if (false === $this->fileHandler) {
             throw new Exception("Output file is not writable");
         }
@@ -824,9 +838,9 @@ class CompressGzip extends CompressManagerFactory
         }
     }
 
-    public function open($filename)
+    public function open($filename, $mode = "wb")
     {
-        $this->fileHandler = gzopen($filename, "wb");
+        $this->fileHandler = gzopen($filename, $mode);
         if (false === $this->fileHandler) {
             throw new Exception("Output file is not writable");
         }
@@ -852,9 +866,9 @@ class CompressNone extends CompressManagerFactory
 {
     private $fileHandler = null;
 
-    public function open($filename)
+    public function open($filename, $mode = "wb")
     {
-        $this->fileHandler = fopen($filename, "wb");
+        $this->fileHandler = fopen($filename, $mode);
         if (false === $this->fileHandler) {
             throw new Exception("Output file is not writable");
         }

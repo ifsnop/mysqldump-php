@@ -142,6 +142,13 @@ Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) f
     $this->_pdoSettings = self::array_replace_recursive($pdoSettingsDefault, $pdoSettings);
     $this->_dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dumpSettings);
 
+## Appending to an existing file
+You can append a dump to an existing dump file, this may be useful if you're dumping diferent tables (or group of tables) with diferent settings and you want to keep everything under the same file.
+By default, everytime `->start($file)` gets called, if `$file` already exists, will be overwritten with the new dump.
+If you want to append instead of overwriting use the append method instead:
+
+`->append($filename)`
+
 ## Dump Settings
 
 - **include-tables**
