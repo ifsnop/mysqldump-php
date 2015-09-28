@@ -181,7 +181,7 @@ Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) f
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_databases
 - **add-drop-database**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-database
-- **skip-tz-utz**
+- **skip-tz-utc**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_tz-utc
 - **no-autocommit**
   - Option to disable autocommit (faster inserts, no problems with index keys)

@@ -129,7 +129,7 @@ class Mysqldump
             'hex-blob' => true, /* faster than escaped content */
             'databases' => false,
             'add-drop-database' => false,
-            'skip-tz-utz' => false,
+            'skip-tz-utc' => false,
             'no-autocommit' => true,
             'default-character-set' => Mysqldump::UTF8,
             'skip-comments' => false,
@@ -153,7 +153,7 @@ class Mysqldump
 
         $this->dumpSettings['init_commands'][] = "SET NAMES " . $this->dumpSettings['default-character-set'];
 
-        if (false === $this->dumpSettings['skip-tz-utz']) {
+        if (false === $this->dumpSettings['skip-tz-utc']) {
             $this->dumpSettings['init_commands'][] = "SET TIME_ZONE='+00:00'";
         }
 
@@ -1633,7 +1633,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
             "/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;" . PHP_EOL .
             "/*!40101 SET NAMES " . $dumpSettings['default-character-set'] . " */;" . PHP_EOL;
 
-        if (false === $dumpSettings['skip-tz-utz']) {
+        if (false === $dumpSettings['skip-tz-utc']) {
             $ret .= "/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;" . PHP_EOL .
                 "/*!40103 SET TIME_ZONE='+00:00' */;" . PHP_EOL;
         }
@@ -1656,7 +1656,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $dumpSettings = $args[0];
         $ret = "";
 
-        if (false === $dumpSettings['skip-tz-utz']) {
+        if (false === $dumpSettings['skip-tz-utc']) {
             $ret .= "/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;" . PHP_EOL;
         }
 
