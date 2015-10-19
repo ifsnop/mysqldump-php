@@ -217,7 +217,7 @@ class Mysqldump
 
         foreach(explode(";", $dsn) as $kvp) {
             $kvpArr = explode("=", $kvp);
-            $this->dsnArray[$kvpArr[0]] = strtolower($kvpArr[1]);
+            $this->dsnArray[strtolower($kvpArr[0])] = $kvpArr[1];
         }
 
         if (empty($this->dsnArray['host']) &&
