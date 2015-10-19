@@ -31,6 +31,7 @@ mysql -e "CREATE DATABASE test005;" 2> /dev/null
 mysql -e "CREATE DATABASE test006a;" 2> /dev/null
 mysql -e "CREATE DATABASE test006b;" 2> /dev/null
 mysql -e "GRANT ALL PRIVILEGES ON test001.* TO 'travis'@'localhost';" 2> /dev/null
+mysql -e "GRANT SELECT ON mysql.proc to 'travis'@'localhost';" 2> /dev/null
 mysql -e "GRANT ALL PRIVILEGES ON test002.* TO 'travis'@'localhost';" 2> /dev/null
 mysql -e "GRANT ALL PRIVILEGES ON test005.* TO 'travis'@'localhost';" 2> /dev/null
 mysql -e "GRANT ALL PRIVILEGES ON test006a.* TO 'travis'@'localhost';" 2> /dev/null
@@ -50,6 +51,7 @@ mysqldump -uroot test001 \
     --no-autocommit \
     --extended-insert=false \
     --hex-blob=true \
+    --routines=true \
     > mysqldump_test001.sql
 ret[((index++))]=$?
 
@@ -114,7 +116,6 @@ ret[((index++))]=$?
 
 diff mysqldump_test005.filtered.sql mysqldump-php_test005.filtered.sql
 ret[((index++))]=$?
-
 rm *.checksum 2> /dev/null
 rm *.filtered.sql 2> /dev/null
 rm mysqldump* 2> /dev/null

@@ -23,10 +23,11 @@ MySQLDump-PHP is the only library that supports:
 * output binary blobs as hex.
 * resolves view dependencies (using Stand-In tables).
 * output compared against original mysqldump. Linked to travis-ci testing system.
+* dumps stored procedures.
 
 ## Important
 
-From version 2.0, connections to database are made using the standard DSN, documented in [PDO connection string](http://php.net/manual/en/ref.pdo-mysql.connection.php)
+From version 2.0, connections to database are made using the standard DSN, documented in [PDO connection string](http://php.net/manual/en/ref.pdo-mysql.connection.php).
 
 ## Requirements
 
@@ -124,6 +125,7 @@ Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) f
         'no-create-info' => false,
         'skip-triggers' => false,
         'add-drop-trigger' => true,
+        'routines' => false,
         'hex-blob' => true,
         'databases' => false,
         'add-drop-database' => false,
@@ -175,6 +177,8 @@ Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) f
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_triggers
 - **add-drop-triggers**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-trigger
+- **routines**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_routines
 - **hex-blob**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_hex-blob
 - **databases**

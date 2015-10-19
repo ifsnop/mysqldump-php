@@ -22,6 +22,7 @@ $dumpSettings = array(
     'disable-keys' => true,
     'skip-triggers' => false,
     'add-drop-trigger' => true,
+    'routines' => true,
     'databases' => false,
     'add-drop-database' => false,
     'hex-blob' => true,
@@ -30,7 +31,7 @@ $dumpSettings = array(
     );
 
 $dump = new IMysqldump\Mysqldump(
-    "mysql:host=localhost:3306;dbname=test001",
+    "mysql:host=localhost;dbname=test001",
     "travis",
     "",
     $dumpSettings);

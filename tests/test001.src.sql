@@ -126,3 +126,11 @@ CREATE TRIGGER before_test200_insert
   FOR EACH ROW set NEW.col = NEW.col + 1;
 
 -- INSERT INTO `test200` VALUES (1,1); -- trigger tests
+
+/*!50003 DROP PROCEDURE IF EXISTS `GetAllFromTest000` */;
+DELIMITER //
+CREATE PROCEDURE GetAllFromTest000()
+BEGIN
+SELECT * FROM test000;
+END //
+DELIMITER ;

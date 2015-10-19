@@ -70,6 +70,7 @@ class Mysqldump
     private $tables = array();
     private $views = array();
     private $triggers = array();
+    private $procedures = array();
     private $dbHandler;
     private $dbType;
     private $compressManager;
@@ -126,6 +127,7 @@ class Mysqldump
             'no-create-info' => false,
             'skip-triggers' => false,
             'add-drop-trigger' => true,
+            'routines' => false,
             'hex-blob' => true, /* faster than escaped content */
             'databases' => false,
             'add-drop-database' => false,
@@ -338,6 +340,7 @@ class Mysqldump
         $this->exportTables();
         $this->exportViews();
         $this->exportTriggers();
+        $this->exportProcedures();
 
         // Restore saved parameters
         $this->compressManager->write(
@@ -446,6 +449,13 @@ class Mysqldump
                 array_push($this->triggers, $row['Trigger']);
             }
         }
+
+        // Listing all procedures from database
+        if ($this->dumpSettings['routines']) {
+            foreach ($this->dbHandler->query($this->typeAdapter->show_procedures($this->dbName)) as $row) {
+                array_push($this->procedures, $row['procedure_name']);
+            }
+        }
     }
 
     /**
@@ -502,6 +512,19 @@ class Mysqldump
         // Exporting triggers one by one
         foreach ($this->triggers as $trigger) {
             $this->getTriggerStructure($trigger);
+        }
+    }
+
+    /**
+     * Exports all the procedures found in database
+     *
+     * @return null
+     */
+    private function exportProcedures()
+    {
+        // Exporting triggers one by one
+        foreach ($this->procedures as $procedure) {
+            $this->getProcedureStructure($procedure);
         }
     }
 
@@ -575,13 +598,12 @@ class Mysqldump
      */
     private function getViewStructureTable($viewName)
     {
-        $ret = '';
         if (!$this->dumpSettings['skip-comments']) {
             $ret = "--" . PHP_EOL .
                 "-- Stand-In structure for view `${viewName}`" . PHP_EOL .
                 "--" . PHP_EOL . PHP_EOL;
+            $this->compressManager->write($ret);
         }
-        $this->compressManager->write($ret);
         $stmt = $this->typeAdapter->show_create_view($viewName);
 
         // create views as tables, to resolve dependencies
@@ -628,13 +650,12 @@ class Mysqldump
      */
     private function getViewStructureView($viewName)
     {
-        $ret = '';
         if (!$this->dumpSettings['skip-comments']) {
             $ret = "--" . PHP_EOL .
                 "-- View structure for view `${viewName}`" . PHP_EOL .
                 "--" . PHP_EOL . PHP_EOL;
+            $this->compressManager->write($ret);
         }
-        $this->compressManager->write($ret);
         $stmt = $this->typeAdapter->show_create_view($viewName);
 
         // create views, to resolve dependencies
@@ -671,9 +692,30 @@ class Mysqldump
             );
             return;
         }
-
     }
 
+    /**
+     * Procedure structure extractor
+     *
+     * @param string $procedureName  Name of procedure to export
+     * @return null
+     */
+    private function getProcedureStructure($procedureName)
+    {
+        if (!$this->dumpSettings['skip-comments']) {
+            $ret = "--" . PHP_EOL .
+                "-- Dumping routines for database '" . $this->dbName . "'" . PHP_EOL .
+                "--" . PHP_EOL . PHP_EOL;
+            $this->compressManager->write($ret);
+        }
+        $stmt = $this->typeAdapter->show_create_procedure($procedureName);
+        foreach ($this->dbHandler->query($stmt) as $r) {
+            $this->compressManager->write(
+                $this->typeAdapter->create_procedure($r, $this->dumpSettings)
+            );
+            return;
+        }
+    }
 
     /**
      * Escape values with quotes when needed
@@ -1115,6 +1157,15 @@ abstract class TypeAdapterFactory
         return "";
     }
 
+    /**
+     * function create_procedure Modify procedure code, add delimiters, etc
+     * @todo make it do something with sqlite
+     */
+    public function create_procedure($procedureName, $dumpSettings)
+    {
+        return "";
+    }
+
     public function show_tables()
     {
         return "SELECT tbl_name FROM sqlite_master WHERE type='table'";
@@ -1139,6 +1190,11 @@ abstract class TypeAdapterFactory
         $args = func_get_args();
 
         return "pragma table_info(${args[0]})";
+    }
+
+    public function show_procedures()
+    {
+        return "";
     }
 
     public function setup_transaction()
@@ -1329,6 +1385,11 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return "SHOW CREATE TRIGGER `$triggerName`";
     }
 
+    public function show_create_procedure($procedureName)
+    {
+        return "SHOW CREATE PROCEDURE `$procedureName`";
+    }
+
     public function create_table($row, $dumpSettings)
     {
         if (!isset($row['Create Table'])) {
@@ -1407,6 +1468,27 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return $ret;
     }
 
+    public function create_procedure($row, $dumpSettings)
+    {
+        $ret = "";
+        if (!isset($row['Create Procedure'])) {
+            throw new Exception("Error getting procedure code, unknown output. " .
+                "Please check 'https://bugs.mysql.com/bug.php?id=14564'");
+        }
+        $procedureStmt = $row['Create Procedure'];
+
+        $ret .= "/*!50003 DROP PROCEDURE IF EXISTS `" .
+            $row['Procedure'] . "` */;" . PHP_EOL .
+            "/*!40101 SET @saved_cs_client     = @@character_set_client */;" . PHP_EOL .
+            "/*!40101 SET character_set_client = " . $dumpSettings['default-character-set'] . " */;" . PHP_EOL .
+            "DELIMITER ;;" . PHP_EOL .
+            $procedureStmt . " ;;" . PHP_EOL .
+            "DELIMITER ;" . PHP_EOL .
+            "/*!40101 SET character_set_client = @saved_cs_client */;" . PHP_EOL . PHP_EOL;
+
+        return $ret;
+    }
+
     public function show_tables()
     {
         if (func_num_args() != 1) {
@@ -1444,7 +1526,6 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return "SHOW TRIGGERS FROM `${args[0]}`;";
     }
 
-
     public function show_columns()
     {
         if (func_num_args() != 1) {
@@ -1455,6 +1536,20 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
         return "SHOW COLUMNS FROM `${args[0]}`;";
     }
+
+    public function show_procedures()
+    {
+        if (func_num_args() != 1) {
+            throw new Exception("Unexpected parameter passed to " . __METHOD__);
+        }
+
+        $args = func_get_args();
+
+        return "SELECT SPECIFIC_NAME AS procedure_name " .
+            "FROM INFORMATION_SCHEMA.ROUTINES " .
+            "WHERE ROUTINE_TYPE='PROCEDURE' AND ROUTINE_SCHEMA='${args[0]}'";
+    }
+
 
     public function setup_transaction()
     {
