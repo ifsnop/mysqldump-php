@@ -1346,10 +1346,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function databases()
     {
-        if (func_num_args() != 1) {
-            throw new Exception("Unexpected parameter passed to " . __METHOD__);
-        }
-
+        $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
         $databaseName = $args[0];
 
@@ -1491,12 +1488,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function show_tables()
     {
-        if (func_num_args() != 1) {
-            throw new Exception("Unexpected parameter passed to " . __METHOD__);
-        }
-
+        $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-
         return "SELECT TABLE_NAME AS tbl_name " .
             "FROM INFORMATION_SCHEMA.TABLES " .
             "WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='${args[0]}'";
@@ -1504,12 +1497,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function show_views()
     {
-        if (func_num_args() != 1) {
-            throw new Exception("Unexpected parameter passed to " . __METHOD__);
-        }
-
+        $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-
         return "SELECT TABLE_NAME AS tbl_name " .
             "FROM INFORMATION_SCHEMA.TABLES " .
             "WHERE TABLE_TYPE='VIEW' AND TABLE_SCHEMA='${args[0]}'";
@@ -1517,39 +1506,26 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function show_triggers()
     {
-        if (func_num_args() != 1) {
-            throw new Exception("Unexpected parameter passed to " . __METHOD__);
-        }
-
+        $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-
         return "SHOW TRIGGERS FROM `${args[0]}`;";
     }
 
     public function show_columns()
     {
-        if (func_num_args() != 1) {
-            throw new Exception("Unexpected parameter passed to " . __METHOD__);
-        }
-
+        $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-
         return "SHOW COLUMNS FROM `${args[0]}`;";
     }
 
     public function show_procedures()
     {
-        if (func_num_args() != 1) {
-            throw new Exception("Unexpected parameter passed to " . __METHOD__);
-        }
-
+        $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-
         return "SELECT SPECIFIC_NAME AS procedure_name " .
             "FROM INFORMATION_SCHEMA.ROUTINES " .
             "WHERE ROUTINE_TYPE='PROCEDURE' AND ROUTINE_SCHEMA='${args[0]}'";
     }
-
 
     public function setup_transaction()
     {
@@ -1568,10 +1544,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function lock_table()
     {
-        if (func_num_args() != 1) {
-            throw new Exception("Unexpected parameter passed to " . __METHOD__);
-        }
-
+        $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
         return $this->dbHandler->exec("LOCK TABLES `${args[0]}` READ LOCAL");
 
@@ -1584,10 +1557,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function start_add_lock_table()
     {
-        if (func_num_args() != 1) {
-            throw new Exception("Unexpected parameter passed to " . __METHOD__);
-        }
-
+        $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
 
         return "LOCK TABLES `${args[0]}` WRITE;" . PHP_EOL;
@@ -1600,9 +1570,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function start_add_disable_keys()
     {
-        if (func_num_args() != 1) {
-            throw new Exception("Unexpected parameter passed to " . __METHOD__);
-        }
+        $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
         return "/*!40000 ALTER TABLE `${args[0]}` DISABLE KEYS */;" .
             PHP_EOL;
@@ -1610,9 +1578,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function end_add_disable_keys()
     {
-        if (func_num_args() != 1) {
-            throw new Exception("Unexpected parameter passed to " . __METHOD__);
-        }
+        $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
         return "/*!40000 ALTER TABLE `${args[0]}` ENABLE KEYS */;" .
             PHP_EOL;
@@ -1630,10 +1596,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function add_drop_database()
     {
-        if (func_num_args() != 1) {
-            throw new Exception("Unexpected parameter passed to " . __METHOD__);
-        }
-
+        $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
 
         return "/*!40000 DROP DATABASE IF EXISTS `${args[0]}`*/;" .
@@ -1642,46 +1605,30 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function add_drop_trigger()
     {
-        if (func_num_args() != 1) {
-            throw new Exception("Unexpected parameter passed to " . __METHOD__);
-        }
-
+        $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-
         return "DROP TRIGGER IF EXISTS `${args[0]}`;" . PHP_EOL;
     }
 
     public function drop_table()
     {
-        if (func_num_args() != 1) {
-            throw new Exception("Unexpected parameter passed to " . __METHOD__);
-        }
-
+        $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-
         return "DROP TABLE IF EXISTS `${args[0]}`;" . PHP_EOL;
     }
 
     public function drop_view()
     {
-        if (func_num_args() != 1) {
-            throw new Exception("Unexpected parameter passed to " . __METHOD__);
-        }
-
+        $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-
         return "DROP TABLE IF EXISTS `${args[0]}`;" . PHP_EOL .
                 "/*!50001 DROP VIEW IF EXISTS `${args[0]}`*/;" . PHP_EOL;
     }
 
     public function getDatabaseHeader()
     {
-        if (func_num_args() != 1) {
-            throw new Exception("Unexpected parameter passed to " . __METHOD__);
-        }
-
+        $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-
         return "--" . PHP_EOL .
             "-- Current Database: `${args[0]}`" . PHP_EOL .
             "--" . PHP_EOL . PHP_EOL;
@@ -1717,10 +1664,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function backup_parameters()
     {
-        if (func_num_args() != 1) {
-            throw new Exception("Unexpected parameter passed to " . __METHOD__);
-        }
-
+        $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
         $dumpSettings = $args[0];
         $ret = "/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;" . PHP_EOL .
@@ -1743,10 +1687,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function restore_parameters()
     {
-        if (func_num_args() != 1) {
-            throw new Exception("Unexpected parameter passed to " . __METHOD__);
-        }
-
+        $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
         $dumpSettings = $args[0];
         $ret = "";
@@ -1764,5 +1705,13 @@ class TypeAdapterMysql extends TypeAdapterFactory
             "/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;" . PHP_EOL . PHP_EOL;
 
         return $ret;
+    }
+
+    private function check_parameters($num_args, $expected_num_args, $method_name)
+    {
+        if ( $num_args != $expected_num_args ) {
+            throw new Exception("Unexpected parameter passed to $method_name");
+        }
+        return;
     }
 }
