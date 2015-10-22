@@ -164,6 +164,11 @@ class Mysqldump
             throw new Exception("Unexpected value in dumpSettings: (" . implode(",", $diff) . ")");
         }
 
+        if ( !is_array($this->dumpSettings['include-tables']) ||
+            !is_array($this->dumpSettings['exclude-tables']) ) {
+            throw new Exception("Include-tables and exclude-tables should be arrays");
+        }
+
         // Create a new compressManager to manage compressed output
         $this->compressManager = CompressManagerFactory::create($this->dumpSettings['compress']);
     }
@@ -459,6 +464,27 @@ class Mysqldump
     }
 
     /**
+     * Compare if $table name matches with a definition inside $arr
+     * @param $table string
+     * @param $arr array with strings or patterns
+     * @return bool
+     */
+    private function matches($table, $arr) {
+        $match = false;
+
+        foreach ($arr as $pattern) {
+            if ( '/' != $pattern[0] ) {
+                continue;
+            }
+            if ( 1 == preg_match($pattern, $table) ) {
+                $match = true;
+            }
+        }
+
+        return in_array($table, $arr) || $match;
+    }
+
+    /**
      * Exports all the tables selected from database
      *
      * @return null
@@ -467,11 +493,11 @@ class Mysqldump
     {
         // Exporting tables one by one
         foreach ($this->tables as $table) {
-            if (in_array($table, $this->dumpSettings['exclude-tables'], true)) {
+            if ( $this->matches($table, $this->dumpSettings['exclude-tables']) ) {
                 continue;
             }
             $this->getTableStructure($table);
-            if (false === $this->dumpSettings['no-data']) {
+            if ( false === $this->dumpSettings['no-data'] ) {
                 $this->listValues($table);
             }
         }
@@ -487,14 +513,14 @@ class Mysqldump
         if (false === $this->dumpSettings['no-create-info']) {
             // Exporting views one by one
             foreach ($this->views as $view) {
-                if (in_array($view, $this->dumpSettings['exclude-tables'], true)) {
+                if ( $this->matches($view, $this->dumpSettings['exclude-tables']) ) {
                     continue;
                 }
                 $this->tableColumnTypes[$view] = $this->getTableColumnTypes($view);
                 $this->getViewStructureTable($view);
             }
             foreach ($this->views as $view) {
-                if (in_array($view, $this->dumpSettings['exclude-tables'], true)) {
+                if ( $this->matches($view, $this->dumpSettings['exclude-tables']) ) {
                     continue;
                 }
                 $this->getViewStructureView($view);

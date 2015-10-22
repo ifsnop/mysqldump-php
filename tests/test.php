@@ -12,6 +12,7 @@ include_once(dirname(__FILE__) . "/../src/Ifsnop/Mysqldump/Mysqldump.php");
 use Ifsnop\Mysqldump as IMysqldump;
 
 $dumpSettings = array(
+    'exclude-tables' => array('/^travis*/'),
     'compress' => IMysqldump\Mysqldump::NONE,
     'no-data' => false,
     'add-drop-table' => true,
