@@ -24,6 +24,7 @@ MySQLDump-PHP is the only library that supports:
 * resolves view dependencies (using Stand-In tables).
 * output compared against original mysqldump. Linked to travis-ci testing system.
 * dumps stored procedures.
+* does extended-insert and/or complete-insert.
 
 ## Important
 
@@ -120,6 +121,7 @@ Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) f
         'lock-tables' => false,
         'add-locks' => true,
         'extended-insert' => true,
+        'complete-insert' => false,
         'disable-keys' => true,
         'where' => '',
         'no-create-info' => false,
@@ -167,6 +169,8 @@ Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) f
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks
 - **extended-insert**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert
+- **complete-insert**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_complete-insert
 - **disable-keys**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_disable-keys
 - **where**

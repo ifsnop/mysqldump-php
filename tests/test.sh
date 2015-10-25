@@ -58,6 +58,7 @@ ret[((index++))]=$?
 mysqldump -uroot test002 \
     --no-autocommit \
     --extended-insert=false \
+    --complete-insert=true \
     --hex-blob=true \
     --default-character-set=utf8mb4 \
     > mysqldump_test002.sql

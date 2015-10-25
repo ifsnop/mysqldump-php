@@ -122,6 +122,7 @@ class Mysqldump
             'lock-tables' => true,
             'add-locks' => true,
             'extended-insert' => true,
+            'complete-insert' => false,
             'disable-keys' => true,
             'where' => '',
             'no-create-info' => false,
@@ -799,9 +800,18 @@ class Mysqldump
         foreach ($resultSet as $row) {
             $vals = $this->escape($tableName, $row);
             if ($onlyOnce || !$this->dumpSettings['extended-insert']) {
-                $lineSize += $this->compressManager->write(
-                    "INSERT INTO `$tableName` VALUES (" . implode(",", $vals) . ")"
-                );
+
+                if ($this->dumpSettings['complete-insert']) {
+                    $lineSize += $this->compressManager->write(
+                        "INSERT INTO `$tableName` (`" .
+                        implode("`, `", array_keys($this->tableColumnTypes[$tableName])) .
+                        "`) VALUES (" . implode(",", $vals) . ")"
+                    );
+                } else {
+                    $lineSize += $this->compressManager->write(
+                        "INSERT INTO `$tableName` VALUES (" . implode(",", $vals) . ")"
+                    );
+                }
                 $onlyOnce = false;
             } else {
                 $lineSize += $this->compressManager->write(",(" . implode(",", $vals) . ")");

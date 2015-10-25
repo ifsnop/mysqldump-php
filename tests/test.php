@@ -40,6 +40,7 @@ $dump = new IMysqldump\Mysqldump(
 $dump->start("mysqldump-php_test001.sql");
 
 $dumpSettings['default-character-set'] = IMysqldump\Mysqldump::UTF8MB4;
+$dumpSettings['complete-insert'] = true;
 
 $dump = new IMysqldump\Mysqldump(
     "mysql:host=localhost;dbname=test002",
@@ -48,6 +49,8 @@ $dump = new IMysqldump\Mysqldump(
     $dumpSettings);
 
 $dump->start("mysqldump-php_test002.sql");
+
+$dumpSettings['complete-insert'] = false;
 
 $dump = new IMysqldump\Mysqldump(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test005",
