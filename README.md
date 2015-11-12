@@ -113,7 +113,6 @@ Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) f
 
     $dumpSettingsDefault = array(
         'include-tables' => array(),
-        'include-views' => array(),
         'exclude-tables' => array(),
         'compress' => 'None',
         'no-data' => false,
@@ -153,8 +152,6 @@ Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) f
 
 - **include-tables**
   - Only include these tables (array of table names), include all if empty
-- **include-views**
-  - Only include these views (array of table names), include all if empty
 - **exclude-tables**
   - Exclude these tables (array of table names), include all if empty, supports regexps
 - **compress**
