@@ -370,18 +370,20 @@ class Mysqldump
     private function getDumpFileHeader()
     {
         $header = '';
-        if (!$this->dumpSettings['skip-comments']) {
+        if ( !$this->dumpSettings['skip-comments'] ) {
             // Some info about software, source and time
             $header = "-- mysqldump-php https://github.com/ifsnop/mysqldump-php" . PHP_EOL .
                     "--" . PHP_EOL .
                     "-- Host: {$this->host}\tDatabase: {$this->dbName}" . PHP_EOL .
                     "-- ------------------------------------------------------" . PHP_EOL;
 
-            if (!empty($this->version)) {
+            if ( !empty($this->version) ) {
                 $header .= "-- Server version \t" . $this->version . PHP_EOL;
             }
 
-            $header .= "-- Date: " . date('r') . PHP_EOL . PHP_EOL;
+            if ( !$this->dumpSettings['skip-dump-date'] ) {
+                $header .= "-- Date: " . date('r') . PHP_EOL . PHP_EOL;
+            }
         }
         return $header;
     }
