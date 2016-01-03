@@ -151,9 +151,9 @@ Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) f
 ## Dump Settings
 
 - **include-tables**
-  - Only include these tables (array of table names)
+  - Only include these tables (array of table names), include all if empty
 - **exclude-tables**
-  - Exclude these tables (array of table names)
+  - Exclude these tables (array of table names), include all if empty, supports regexps
 - **compress**
   - Gzip, Bzip2, None.
   - Could be specified using the declared consts: IMysqldump\Mysqldump::GZIP, IMysqldump\Mysqldump::BZIP2 or IMysqldump\Mysqldump::NONE

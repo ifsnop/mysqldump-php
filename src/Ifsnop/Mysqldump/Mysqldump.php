@@ -170,6 +170,9 @@ class Mysqldump
             throw new Exception("Include-tables and exclude-tables should be arrays");
         }
 
+        // Dump the same views as tables, mimic mysqldump behaviour
+        $this->dumpSettings['include-views'] = $this->dumpSettings['include-tables'];
+
         // Create a new compressManager to manage compressed output
         $this->compressManager = CompressManagerFactory::create($this->dumpSettings['compress']);
     }
@@ -338,9 +341,10 @@ class Mysqldump
         // If there still are some tables/views in include-tables array,
         // that means that some tables or views weren't found.
         // Give proper error and exit.
+        // This check will be removed once include-tables supports regexps
         if (0 < count($this->dumpSettings['include-tables'])) {
             $name = implode(",", $this->dumpSettings['include-tables']);
-            throw new Exception("Table or View (" . $name . ") not found in database");
+            throw new Exception("Table (" . $name . ") not found in database");
         }
 
         $this->exportTables();
@@ -430,7 +434,7 @@ class Mysqldump
         }
 
         // Listing all views from database
-        if (empty($this->dumpSettings['include-tables'])) {
+        if (empty($this->dumpSettings['include-views'])) {
             // include all views for now, blacklisting happens later
             foreach ($this->dbHandler->query($this->typeAdapter->show_views($this->dbName)) as $row) {
                 array_push($this->views, current($row));
@@ -438,13 +442,13 @@ class Mysqldump
         } else {
             // include only the tables mentioned in include-tables
             foreach ($this->dbHandler->query($this->typeAdapter->show_views($this->dbName)) as $row) {
-                if (in_array(current($row), $this->dumpSettings['include-tables'], true)) {
+                if (in_array(current($row), $this->dumpSettings['include-views'], true)) {
                     array_push($this->views, current($row));
                     $elem = array_search(
                         current($row),
-                        $this->dumpSettings['include-tables']
+                        $this->dumpSettings['include-views']
                     );
-                    unset($this->dumpSettings['include-tables'][$elem]);
+                    unset($this->dumpSettings['include-views'][$elem]);
                 }
             }
         }
