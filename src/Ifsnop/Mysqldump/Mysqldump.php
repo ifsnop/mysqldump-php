@@ -46,25 +46,36 @@ class Mysqldump
     const UTF8MB4 = 'utf8mb4';
 
     /**
-    * Database username
-    * @var string
-    */
+     * Database username
+     * @var string
+     */
     public $user;
     /**
-    * Database password
-    * @var string
-    */
+     * Database password
+     * @var string
+     */
     public $pass;
     /**
-    * Connection string for PDO
-    * @var string
-    */
+     * Connection string for PDO
+     * @var string
+     */
     public $dsn;
     /**
-    * Destination filename, defaults to stdout
-    * @var string
-    */
+     * Destination filename, defaults to stdout
+     * @var string
+     */
     public $fileName = 'php://output';
+
+    /**
+     * Causes certain fields of specified tables to be replaced with
+     * the values in this array in the dump file, rather that the values
+     * from the actual table.
+     *
+     * @example $this->replacedValues['table_name']['id:1'] = array('id' => 1, 'timestamp' => 'UNIX_TIMESTAMP()');
+     *
+     * @var array
+     */
+    public $replacedValues = array();
 
     // Internal stuff
     private $tables = array();
@@ -80,19 +91,19 @@ class Mysqldump
     private $version;
     private $tableColumnTypes = array();
     /**
-    * database name, parsed from dsn
-    * @var string
-    */
+     * database name, parsed from dsn
+     * @var string
+     */
     private $dbName;
     /**
-    * host name, parsed from dsn
-    * @var string
-    */
+     * host name, parsed from dsn
+     * @var string
+     */
     private $host;
     /**
-    * dsn string parsed as an array
-    * @var array
-    */
+     * dsn string parsed as an array
+     * @var array
+     */
     private $dsnArray = array();
 
     /**
@@ -373,9 +384,9 @@ class Mysqldump
         if ( !$this->dumpSettings['skip-comments'] ) {
             // Some info about software, source and time
             $header = "-- mysqldump-php https://github.com/ifsnop/mysqldump-php" . PHP_EOL .
-                    "--" . PHP_EOL .
-                    "-- Host: {$this->host}\tDatabase: {$this->dbName}" . PHP_EOL .
-                    "-- ------------------------------------------------------" . PHP_EOL;
+                "--" . PHP_EOL .
+                "-- Host: {$this->host}\tDatabase: {$this->dbName}" . PHP_EOL .
+                "-- ------------------------------------------------------" . PHP_EOL;
 
             if ( !empty($this->version) ) {
                 $header .= "-- Server version \t" . $this->version . PHP_EOL;
@@ -804,7 +815,30 @@ class Mysqldump
         $resultSet->setFetchMode(PDO::FETCH_ASSOC);
 
         foreach ($resultSet as $row) {
-            $vals = $this->escape($tableName, $row);
+            $replaced = false;
+
+            if (isset($this->replacedValues[$tableName]) && is_array($this->replacedValues[$tableName])) {
+
+                foreach ($row as $key => $value) {
+                    $replaceKey = $key . ':' . $value;
+
+                    if (isset($this->replacedValues[$tableName][$replaceKey])
+                        && is_array($this->replacedValues[$tableName][$replaceKey])
+                        && (count($this->replacedValues[$tableName][$replaceKey]) === count($row))) {
+                        $row = $this->replacedValues[$tableName][$replaceKey];
+
+                        $replaced = true;
+                        continue;
+                    }
+                }
+            }
+
+            if ($replaced) {
+                $vals = $row;
+            } else {
+                $vals = $this->escape($tableName, $row);
+            }
+
             if ($onlyOnce || !$this->dumpSettings['extended-insert']) {
 
                 if ($this->dumpSettings['complete-insert']) {
@@ -823,7 +857,7 @@ class Mysqldump
                 $lineSize += $this->compressManager->write(",(" . implode(",", $vals) . ")");
             }
             if (($lineSize > self::MAXLINESIZE) ||
-                    !$this->dumpSettings['extended-insert']) {
+                !$this->dumpSettings['extended-insert']) {
                 $onlyOnce = true;
                 $lineSize = $this->compressManager->write(";" . PHP_EOL);
             }
@@ -1152,8 +1186,8 @@ abstract class TypeAdapterFactory
     public function show_create_table($tableName)
     {
         return "SELECT tbl_name as 'Table', sql as 'Create Table' " .
-            "FROM sqlite_master " .
-            "WHERE type='table' AND tbl_name='$tableName'";
+        "FROM sqlite_master " .
+        "WHERE type='table' AND tbl_name='$tableName'";
     }
 
     /**
@@ -1168,8 +1202,8 @@ abstract class TypeAdapterFactory
     public function show_create_view($viewName)
     {
         return "SELECT tbl_name as 'View', sql as 'Create View' " .
-            "FROM sqlite_master " .
-            "WHERE type='view' AND tbl_name='$viewName'";
+        "FROM sqlite_master " .
+        "WHERE type='view' AND tbl_name='$viewName'";
     }
 
     /**
@@ -1447,7 +1481,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
     {
         $ret = "";
         if (!isset($row['Create View'])) {
-                throw new Exception("Error getting view structure, unknown output");
+            throw new Exception("Error getting view structure, unknown output");
         }
 
         $triggerStmt = $row['Create View'];
@@ -1533,8 +1567,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
         return "SELECT TABLE_NAME AS tbl_name " .
-            "FROM INFORMATION_SCHEMA.TABLES " .
-            "WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='${args[0]}'";
+        "FROM INFORMATION_SCHEMA.TABLES " .
+        "WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='${args[0]}'";
     }
 
     public function show_views()
@@ -1542,8 +1576,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
         return "SELECT TABLE_NAME AS tbl_name " .
-            "FROM INFORMATION_SCHEMA.TABLES " .
-            "WHERE TABLE_TYPE='VIEW' AND TABLE_SCHEMA='${args[0]}'";
+        "FROM INFORMATION_SCHEMA.TABLES " .
+        "WHERE TABLE_TYPE='VIEW' AND TABLE_SCHEMA='${args[0]}'";
     }
 
     public function show_triggers()
@@ -1565,8 +1599,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
         return "SELECT SPECIFIC_NAME AS procedure_name " .
-            "FROM INFORMATION_SCHEMA.ROUTINES " .
-            "WHERE ROUTINE_TYPE='PROCEDURE' AND ROUTINE_SCHEMA='${args[0]}'";
+        "FROM INFORMATION_SCHEMA.ROUTINES " .
+        "WHERE ROUTINE_TYPE='PROCEDURE' AND ROUTINE_SCHEMA='${args[0]}'";
     }
 
     public function setup_transaction()
@@ -1615,7 +1649,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
         return "/*!40000 ALTER TABLE `${args[0]}` DISABLE KEYS */;" .
-            PHP_EOL;
+        PHP_EOL;
     }
 
     public function end_add_disable_keys()
@@ -1623,7 +1657,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
         return "/*!40000 ALTER TABLE `${args[0]}` ENABLE KEYS */;" .
-            PHP_EOL;
+        PHP_EOL;
     }
 
     public function start_disable_autocommit()
@@ -1642,7 +1676,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $args = func_get_args();
 
         return "/*!40000 DROP DATABASE IF EXISTS `${args[0]}`*/;" .
-            PHP_EOL . PHP_EOL;
+        PHP_EOL . PHP_EOL;
     }
 
     public function add_drop_trigger()
@@ -1664,7 +1698,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
         return "DROP TABLE IF EXISTS `${args[0]}`;" . PHP_EOL .
-                "/*!50001 DROP VIEW IF EXISTS `${args[0]}`*/;" . PHP_EOL;
+        "/*!50001 DROP VIEW IF EXISTS `${args[0]}`*/;" . PHP_EOL;
     }
 
     public function getDatabaseHeader()
@@ -1672,8 +1706,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
         return "--" . PHP_EOL .
-            "-- Current Database: `${args[0]}`" . PHP_EOL .
-            "--" . PHP_EOL . PHP_EOL;
+        "-- Current Database: `${args[0]}`" . PHP_EOL .
+        "--" . PHP_EOL . PHP_EOL;
     }
 
     /**
