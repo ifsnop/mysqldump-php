@@ -1386,7 +1386,15 @@ class TypeAdapterMysql extends TypeAdapterFactory
             'longblob',
             'binary',
             'varbinary',
-            'bit'
+            'bit',
+            'geometry', /* http://bugs.mysql.com/bug.php?id=43544 */
+            'point',
+            'linestring',
+            'polygon',
+            'multipoint',
+            'multilinestring',
+            'multipolygon',
+            'geomtrycollection',
         )
     );
 
