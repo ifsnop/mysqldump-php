@@ -1394,7 +1394,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
             'multipoint',
             'multilinestring',
             'multipolygon',
-            'geomtrycollection',
+            'geometrycollection',
         )
     );
 
