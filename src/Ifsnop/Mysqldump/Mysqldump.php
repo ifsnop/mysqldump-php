@@ -178,6 +178,15 @@ class Mysqldump
     }
 
     /**
+     * Destructor of Mysqldump. Unsets dbHandlers and database objects.
+     *
+     */
+    public function __destruct()
+    {
+        $this->dbHandler = null;
+    }
+
+    /**
      * Custom array_replace_recursive to be used if PHP < 5.3
      * Replaces elements from passed arrays into the first array recursively
      *
