@@ -15,7 +15,7 @@ MySQLDump - PHP
 [![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/ifsnop/mysqldump-php/badges/quality-score.png?s=d02891e196a3ca1298619032a538ce8ae8cafd2b)](https://scrutinizer-ci.com/g/ifsnop/mysqldump-php/)
 [![Latest Stable Version](https://poser.pugx.org/ifsnop/mysqldump-php/v/stable.png)](https://packagist.org/packages/ifsnop/mysqldump-php)
 
-This is a php version of linux's mysqldump in terminal "$ mysqldump -u username -p...", without dependencies, output compression and sane defaults.
+This is a php version of mysqldump cli that comes with MySQL, without dependencies, output compression and sane defaults.
 
 Out of the box, MySQLDump-PHP supports backing up table structures, the data itself, views and triggers.
 
