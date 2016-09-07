@@ -17,6 +17,7 @@ services:
 before_script:
   - curl -s http://getcomposer.org/installer | php
   - php composer.phar install --dev
+  - mysql -V
 
 script:
   - php src/Ifsnop/Mysqldump/Mysqldump.php
