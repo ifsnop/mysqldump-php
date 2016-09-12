@@ -71,7 +71,7 @@ class Mysqldump
     private $views = array();
     private $triggers = array();
     private $procedures = array();
-    private $dbHandler;
+    private $dbHandler = null;
     private $dbType;
     private $compressManager;
     private $typeAdapter;
@@ -294,6 +294,10 @@ class Mysqldump
                 "Connection to " . $this->dbType . " failed with message: " .
                 $e->getMessage()
             );
+        }
+
+        if ( is_null($this->dbHandler) ) {
+            throw new Exception("Connection to ". $this->dbType . "failed");
         }
 
         $this->dbHandler->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
@@ -1618,7 +1622,6 @@ class TypeAdapterMysql extends TypeAdapterFactory
     {
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-
         return "LOCK TABLES `${args[0]}` WRITE;" . PHP_EOL;
     }
 
@@ -1657,7 +1660,6 @@ class TypeAdapterMysql extends TypeAdapterFactory
     {
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-
         return "/*!40000 DROP DATABASE IF EXISTS `${args[0]}`*/;" .
             PHP_EOL . PHP_EOL;
     }
@@ -1766,6 +1768,14 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return $ret;
     }
 
+    /**
+     * Check number of parameters passed to function, useful when inheriting.
+     * Raise exception if unexpected.
+     *
+     * @param integer $num_args
+     * @param integer $expected_num_args
+     * @param string $method_name
+     */
     private function check_parameters($num_args, $expected_num_args, $method_name)
     {
         if ( $num_args != $expected_num_args ) {
