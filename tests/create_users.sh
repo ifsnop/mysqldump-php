@@ -1,0 +1,16 @@
+#!/bin/bash
+
+mysql -e "CREATE USER 'travis'@'%';"
+mysql -e "CREATE DATABASE test001;"
+mysql -e "CREATE DATABASE test002;"
+mysql -e "CREATE DATABASE test005;"
+mysql -e "CREATE DATABASE test006a;"
+mysql -e "CREATE DATABASE test006b;"
+mysql -e "GRANT ALL PRIVILEGES ON test001.* TO 'travis'@'%' WITH GRANT OPTION;"
+mysql -e "GRANT ALL PRIVILEGES ON test002.* TO 'travis'@'%' WITH GRANT OPTION;"
+mysql -e "GRANT ALL PRIVILEGES ON test005.* TO 'travis'@'%' WITH GRANT OPTION;"
+mysql -e "GRANT ALL PRIVILEGES ON test006a.* TO 'travis'@'%' WITH GRANT OPTION;"
+mysql -e "GRANT ALL PRIVILEGES ON test006b.* TO 'travis'@'%' WITH GRANT OPTION;"
+mysql -e "GRANT SUPER,LOCK TABLES ON *.* TO 'travis'@'%';"
+mysql -e "GRANT SELECT ON mysql.proc to 'travis'@'%';"
+mysql -e "FLUSH PRIVILEGES;"

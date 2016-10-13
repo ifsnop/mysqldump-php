@@ -2,19 +2,19 @@
 
 function checksum_test001() {
 for i in 000 001 002 003 010 011 015 027 029 033 200; do
-    mysql -B -e "CHECKSUM TABLE test${i}" test001 | grep -v -i checksum
+    mysql -utravis -B -e "CHECKSUM TABLE test${i}" test001 | grep -v -i checksum
 done
 }
 
 function checksum_test002() {
 for i in 201; do
-    mysql --default-character-set=utf8mb4 -B -e "CHECKSUM TABLE test${i}" test002 | grep -v -i checksum
+    mysql -utravis --default-character-set=utf8mb4 -B -e "CHECKSUM TABLE test${i}" test002 | grep -v -i checksum
 done
 }
 
 function checksum_test005() {
 for i in 000; do
-    mysql -B -e "CHECKSUM TABLE test${i}" test001 | grep -v -i checksum
+    mysql -utravis -B -e "CHECKSUM TABLE test${i}" test001 | grep -v -i checksum
 done
 }
 
@@ -24,30 +24,14 @@ done
 
 index=0
 
-mysql -e "CREATE USER 'travis'@'localhost' IDENTIFIED BY '';" 2> /dev/null
-mysql -e "CREATE DATABASE test001;" 2> /dev/null
-mysql -e "CREATE DATABASE test002;" 2> /dev/null
-mysql -e "CREATE DATABASE test005;" 2> /dev/null
-mysql -e "CREATE DATABASE test006a;" 2> /dev/null
-mysql -e "CREATE DATABASE test006b;" 2> /dev/null
-mysql -e "GRANT ALL PRIVILEGES ON test001.* TO 'travis'@'localhost';" 2> /dev/null
-mysql -e "GRANT SELECT ON mysql.proc to 'travis'@'localhost';" 2> /dev/null
-mysql -e "GRANT ALL PRIVILEGES ON test002.* TO 'travis'@'localhost';" 2> /dev/null
-mysql -e "GRANT ALL PRIVILEGES ON test005.* TO 'travis'@'localhost';" 2> /dev/null
-mysql -e "GRANT ALL PRIVILEGES ON test006a.* TO 'travis'@'localhost';" 2> /dev/null
-mysql -e "GRANT ALL PRIVILEGES ON test00ba.* TO 'travis'@'localhost';" 2> /dev/null
-mysql -e "FLUSH PRIVILEGES;" 2> /dev/null
-
-mysql -uroot < test001.src.sql; ret[((index++))]=$?
-mysql -uroot --default-character-set=utf8mb4 < test002.src.sql; ret[((index++))]=$?
-mysql -uroot < test005.src.sql; ret[((index++))]=$?
-mysql -uroot < test006.src.sql; ret[((index++))]=$?
-
+mysql -utravis < test001.src.sql; ret[((index++))]=$?
+mysql -utravis --default-character-set=utf8mb4 < test002.src.sql; ret[((index++))]=$?
+mysql -utravis < test005.src.sql; ret[((index++))]=$?
+mysql -utravis < test006.src.sql; ret[((index++))]=$?
 checksum_test001 > test001.src.checksum
 checksum_test002 > test002.src.checksum
 checksum_test005 > test005.src.checksum
-
-mysqldump -uroot test001 \
+mysqldump -utravis test001 \
     --no-autocommit \
     --extended-insert=false \
     --hex-blob=true \
@@ -55,7 +39,7 @@ mysqldump -uroot test001 \
     > mysqldump_test001.sql
 ret[((index++))]=$?
 
-mysqldump -uroot test002 \
+mysqldump -utravis test002 \
     --no-autocommit \
     --extended-insert=false \
     --complete-insert=true \
@@ -64,7 +48,7 @@ mysqldump -uroot test002 \
     > mysqldump_test002.sql
 ret[((index++))]=$?
 
-mysqldump -uroot test005 \
+mysqldump -utravis test005 \
     --no-autocommit \
     --extended-insert=false \
     --hex-blob=true \
@@ -74,14 +58,14 @@ ret[((index++))]=$?
 php test.php
 ret[((index++))]=$?
 
-mysql -uroot test001 < mysqldump-php_test001.sql
+mysql -utravis test001 < mysqldump-php_test001.sql
 ret[((index++))]=$?
-mysql -uroot test002 < mysqldump-php_test002.sql
+mysql -utravis test002 < mysqldump-php_test002.sql
 ret[((index++))]=$?
-mysql -uroot test005 < mysqldump-php_test005.sql
+mysql -utravis test005 < mysqldump-php_test005.sql
 ret[((index++))]=$?
 
-mysql -uroot test006b < mysqldump-php_test006.sql
+mysql -utravis test006b < mysqldump-php_test006.sql
 ret[((index++))]=$?
 
 checksum_test001 > mysqldump-php_test001.checksum
@@ -125,6 +109,9 @@ echo "Done $index tests"
 
 total=0
 for i in $(seq 0 20) ; do
+    if [[ ${ret[$i]} -ne 0 ]]; then
+        echo "test $i returned ${ret[$i]}"
+    fi
     total=$((${ret[$i]} + $total))
 done
 

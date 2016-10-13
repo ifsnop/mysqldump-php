@@ -517,11 +517,14 @@ class Mysqldump
                 continue;
             }
             $this->getTableStructure($table);
-            if ( true === $this->dumpSettings['no-data']
+            if ( false === $this->dumpSettings['no-data'] ) { // don't break compatibility with old trigger
+                $this->listValues($table);
+            } else if ( true === $this->dumpSettings['no-data']
                  || $this->matches($table, $this->dumpSettings['no-data']) ) {
                 continue;
+            } else {
+                $this->listValues($table);
             }
-            $this->listValues($table);
         }
     }
 

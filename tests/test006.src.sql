@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS `view_of_my_table` (
 --
 DROP TABLE IF EXISTS `my_view`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `my_view` AS select `view_of_my_table`.`id` AS `id`,`view_of_my_table`.`name` AS `name`,`view_of_my_table`.`lastname` AS `lastname`,`view_of_my_table`.`username` AS `username` from `view_of_my_table`;
+CREATE ALGORITHM=UNDEFINED DEFINER=`travis`@`localhost` SQL SECURITY DEFINER VIEW `my_view` AS select `view_of_my_table`.`id` AS `id`,`view_of_my_table`.`name` AS `name`,`view_of_my_table`.`lastname` AS `lastname`,`view_of_my_table`.`username` AS `username` from `view_of_my_table`;
 
 -- --------------------------------------------------------
 
@@ -81,7 +81,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `view_of_my_table`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `view_of_my_table` AS select `my_table`.`id` AS `id`,`my_table`.`name` AS `name`,`my_table`.`lastname` AS `lastname`,`my_table`.`username` AS `username` from `my_table`;
+CREATE ALGORITHM=UNDEFINED DEFINER=`travis`@`localhost` SQL SECURITY DEFINER VIEW `view_of_my_table` AS select `my_table`.`id` AS `id`,`my_table`.`name` AS `name`,`my_table`.`lastname` AS `lastname`,`my_table`.`username` AS `username` from `my_table`;
 
 --
 -- Índices para tablas volcadas
