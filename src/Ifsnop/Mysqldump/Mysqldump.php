@@ -116,7 +116,7 @@ class Mysqldump
             'include-tables' => array(),
             'exclude-tables' => array(),
             'compress' => Mysqldump::NONE,
-            'no-data' => false,
+            'no-data' => array(),
             'add-drop-table' => false,
             'single-transaction' => true,
             'lock-tables' => true,
@@ -517,9 +517,11 @@ class Mysqldump
                 continue;
             }
             $this->getTableStructure($table);
-            if ( false === $this->dumpSettings['no-data'] ) {
-                $this->listValues($table);
+            if ( true === $this->dumpSettings['no-data']
+                 || $this->matches($table, $this->dumpSettings['no-data']) ) {
+                continue;
             }
+            $this->listValues($table);
         }
     }
 
