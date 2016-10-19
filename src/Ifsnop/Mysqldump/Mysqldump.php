@@ -138,6 +138,7 @@ class Mysqldump
             'skip-comments' => false,
             'skip-dump-date' => false,
             'init_commands' => array(),
+            'net_buffer_length' => self::MAXLINESIZE,
             /* deprecated */
             'disable-foreign-keys-check' => true
         );
@@ -840,7 +841,7 @@ class Mysqldump
             } else {
                 $lineSize += $this->compressManager->write(",(" . implode(",", $vals) . ")");
             }
-            if (($lineSize > self::MAXLINESIZE) ||
+            if (($lineSize > $this->dumpSettings['net_buffer_length']) ||
                     !$this->dumpSettings['extended-insert']) {
                 $onlyOnce = true;
                 $lineSize = $this->compressManager->write(";" . PHP_EOL);

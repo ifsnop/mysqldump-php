@@ -204,6 +204,8 @@ Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) f
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_comments
 - **skip-dump-date**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_dump-date
+- **net_buffer_length**
+  - http://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_net_buffer_length
 
 The following options are now enabled by default, and there is no way to disable them since
 they should always be used.
