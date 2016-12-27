@@ -68,4 +68,12 @@ $dump = new IMysqldump\Mysqldump(
 
 $dump->start("mysqldump-php_test006.sql");
 
+$dump = new IMysqldump\Mysqldump(
+    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test008",
+    "travis",
+    "",
+    array("no-data" => true, "add-drop-table" => true));
+
+$dump->start("mysqldump-php_test008.sql");
+
 exit;
