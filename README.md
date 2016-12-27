@@ -56,7 +56,7 @@ Or via json file:
 Using [Curl](http://curl.haxx.se):
 
 ```
-$ curl --silent --location https://github.com/ifsnop/mysqldump-php/archive/v2.0.0.tar.gz | tar xvfz -
+$ curl --silent --location https://github.com/ifsnop/mysqldump-php/archive/v2.2.tar.gz | tar xvfz -
 ```
 
 ## Getting started
