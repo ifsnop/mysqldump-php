@@ -29,6 +29,7 @@ mysql -utravis --default-character-set=utf8mb4 < test002.src.sql; ret[((index++)
 mysql -utravis < test005.src.sql; ret[((index++))]=$?
 mysql -utravis < test006.src.sql; ret[((index++))]=$?
 mysql -utravis < test008.src.sql; ret[((index++))]=$?
+mysql -utravis < test009.src.sql; ret[((index++))]=$?
 
 checksum_test001 > test001.src.checksum
 checksum_test002 > test002.src.checksum
@@ -109,6 +110,12 @@ ret[((index++))]=$?
 diff test008.filtered.sql mysqldump-php_test008.filtered.sql
 ret[((index++))]=$?
 
+mysql -utravis test009 < mysqldump-php_test009.sql
+ret[((index++))]=$?
+
+i=`mysql -utravis -B -e "SELECT Auto_increment FROM INFORMATION_SCHEMA.TABLES WHERE table_name = 'increments';" | grep -v -i increment`
+if [ $i = '1' ]; then ret[((index++))]=0; else ret[((index++))]=255; fi
+
 rm *.checksum 2> /dev/null
 rm *.filtered.sql 2> /dev/null
 rm mysqldump* 2> /dev/null
@@ -116,7 +123,7 @@ rm mysqldump* 2> /dev/null
 echo "Done $index tests"
 
 total=0
-for i in $(seq 0 20) ; do
+for i in $(seq 0 25) ; do
     if [[ ${ret[$i]} -ne 0 ]]; then
         echo "test $i returned ${ret[$i]}"
     fi
