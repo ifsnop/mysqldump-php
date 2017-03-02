@@ -117,6 +117,7 @@ class Mysqldump
             'exclude-tables' => array(),
             'compress' => Mysqldump::NONE,
             'no-data' => array(),
+            'reset-auto-increment' => false,
             'add-drop-table' => false,
             'single-transaction' => true,
             'lock-tables' => true,
@@ -1462,9 +1463,16 @@ class TypeAdapterMysql extends TypeAdapterFactory
             throw new Exception("Error getting table code, unknown output");
         }
 
+        $create_table = $row['Create Table'];
+        if ($dumpSettings['no-data'] && $dumpSettings['reset-auto-increment']) {
+            $match = "/AUTO_INCREMENT=[0-9]+/s";
+            $replace = "AUTO_INCREMENT=1";
+            $create_table = preg_replace($match, $replace, $create_table);
+        }
+
         $ret = "/*!40101 SET @saved_cs_client     = @@character_set_client */;" . PHP_EOL .
             "/*!40101 SET character_set_client = " . $dumpSettings['default-character-set'] . " */;" . PHP_EOL .
-            $row['Create Table'] . ";" . PHP_EOL .
+            $create_table . ";" . PHP_EOL .
             "/*!40101 SET character_set_client = @saved_cs_client */;" . PHP_EOL .
             PHP_EOL;
         return $ret;
