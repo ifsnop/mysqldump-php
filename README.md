@@ -116,6 +116,7 @@ Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) f
         'exclude-tables' => array(),
         'compress' => 'None',
         'no-data' => false,
+        'reset-auto-increment' => false,
         'add-drop-table' => false,
         'single-transaction' => true,
         'lock-tables' => false,
@@ -160,6 +161,9 @@ Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) f
 - **no-data**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data
   - Do not dump data for these tables (array of table names), support regexps, `true` to ignore all tables
+- **reset-auto-increment**
+  - Removes the AUTO_INCREMENT option from the database definition
+  - Useful when used with no-data, so when db is recreated, it will start from 1 instead of using an old value
 - **add-drop-table**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table
 - **single-transaction**

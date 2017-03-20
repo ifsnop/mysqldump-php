@@ -18,7 +18,7 @@ for i in 000; do
 done
 }
 
-for i in $(seq 0 20) ; do
+for i in $(seq 0 25) ; do
     ret[$i]=0
 done
 
@@ -29,6 +29,7 @@ mysql -utravis --default-character-set=utf8mb4 < test002.src.sql; ret[((index++)
 mysql -utravis < test005.src.sql; ret[((index++))]=$?
 mysql -utravis < test006.src.sql; ret[((index++))]=$?
 mysql -utravis < test008.src.sql; ret[((index++))]=$?
+mysql -utravis < test009.src.sql; ret[((index++))]=$?
 
 checksum_test001 > test001.src.checksum
 checksum_test002 > test002.src.checksum
@@ -66,8 +67,9 @@ mysql -utravis test002 < mysqldump-php_test002.sql
 ret[((index++))]=$?
 mysql -utravis test005 < mysqldump-php_test005.sql
 ret[((index++))]=$?
-
 mysql -utravis test006b < mysqldump-php_test006.sql
+ret[((index++))]=$?
+mysql -utravis test009 < mysqldump-php_test009.sql
 ret[((index++))]=$?
 
 checksum_test001 > mysqldump-php_test001.checksum
@@ -109,6 +111,10 @@ ret[((index++))]=$?
 diff test008.filtered.sql mysqldump-php_test008.filtered.sql
 ret[((index++))]=$?
 
+#test 24 - reset-auto-increment
+test009=`cat mysqldump-php_test009.sql | grep -i ENGINE | grep AUTO_INCREMENT`
+if [[ -z $test009 ]]; then ret[((index++))]=0; else ret[((index++))]=1; fi
+
 rm *.checksum 2> /dev/null
 rm *.filtered.sql 2> /dev/null
 rm mysqldump* 2> /dev/null
@@ -116,7 +122,7 @@ rm mysqldump* 2> /dev/null
 echo "Done $index tests"
 
 total=0
-for i in $(seq 0 20) ; do
+for i in $(seq 0 25) ; do
     if [[ ${ret[$i]} -ne 0 ]]; then
         echo "test $i returned ${ret[$i]}"
     fi
