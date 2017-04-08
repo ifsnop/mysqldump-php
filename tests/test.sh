@@ -80,6 +80,7 @@ cat test001.src.sql | grep ^INSERT > test001.filtered.sql
 cat test002.src.sql | grep ^INSERT > test002.filtered.sql
 cat test005.src.sql | grep ^INSERT > test005.filtered.sql
 cat test008.src.sql | grep FOREIGN > test008.filtered.sql
+cat test010.src.sql | grep CREATE | grep EVENT > test010.filtered.sql
 cat mysqldump_test001.sql | grep ^INSERT > mysqldump_test001.filtered.sql
 cat mysqldump_test002.sql | grep ^INSERT > mysqldump_test002.filtered.sql
 cat mysqldump_test005.sql | grep ^INSERT > mysqldump_test005.filtered.sql
@@ -87,6 +88,7 @@ cat mysqldump-php_test001.sql | grep ^INSERT > mysqldump-php_test001.filtered.sq
 cat mysqldump-php_test002.sql | grep ^INSERT > mysqldump-php_test002.filtered.sql
 cat mysqldump-php_test005.sql | grep ^INSERT > mysqldump-php_test005.filtered.sql
 cat mysqldump-php_test008.sql | grep FOREIGN > mysqldump-php_test008.filtered.sql
+cat mysqldump-php_test010.sql | grep CREATE | grep EVENT > mysqldump-php_test010.filtered.sql
 
 diff test001.filtered.sql mysqldump_test001.filtered.sql
 ret[((index++))]=$?
@@ -114,6 +116,10 @@ ret[((index++))]=$?
 #test 24 - reset-auto-increment
 test009=`cat mysqldump-php_test009.sql | grep -i ENGINE | grep AUTO_INCREMENT`
 if [[ -z $test009 ]]; then ret[((index++))]=0; else ret[((index++))]=1; fi
+
+# test backup events
+diff test010.filtered.sql mysqldump-php_test010.filtered.sql
+ret[((index++))]=$?
 
 rm *.checksum 2> /dev/null
 rm *.filtered.sql 2> /dev/null

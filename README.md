@@ -158,58 +158,60 @@ Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) f
 - **compress**
   - Gzip, Bzip2, None.
   - Could be specified using the declared consts: IMysqldump\Mysqldump::GZIP, IMysqldump\Mysqldump::BZIP2 or IMysqldump\Mysqldump::NONE
-- **no-data**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data
-  - Do not dump data for these tables (array of table names), support regexps, `true` to ignore all tables
 - **reset-auto-increment**
   - Removes the AUTO_INCREMENT option from the database definition
   - Useful when used with no-data, so when db is recreated, it will start from 1 instead of using an old value
-- **add-drop-table**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table
-- **single-transaction**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_single-transaction
-- **lock-tables**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_lock-tables
-- **add-locks**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks
-- **extended-insert**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert
-- **complete-insert**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_complete-insert
-- **disable-keys**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_disable-keys
-- **where**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_where
-- **no-create-info**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-create-info
-- **skip-triggers**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_triggers
-- **add-drop-triggers**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-trigger
-- **routines**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_routines
-- **hex-blob**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_hex-blob
-- **databases**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_databases
 - **add-drop-database**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-database
-- **skip-tz-utc**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_tz-utc
-- **no-autocommit**
-  - Option to disable autocommit (faster inserts, no problems with index keys)
-  - http://dev.mysql.com/doc/refman/4.1/en/commit.html
+- **add-drop-table**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table
+- **add-drop-triggers**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-trigger
+- **add-locks**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks
+- **complete-insert**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_complete-insert
+- **databases**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_databases
 - **default-character-set**
   - utf8 (default, compatible option), utf8mb4 (for full utf8 compliance)
   - Could be specified using the declared consts: IMysqldump\Mysqldump::UTF8 or IMysqldump\Mysqldump::UTF8MB4BZIP2
   - http://dev.mysql.com/doc/refman/5.5/en/charset-unicode-utf8mb4.html
   - https://mathiasbynens.be/notes/mysql-utf8mb4
+- **disable-keys**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_disable-keys
+- **events**
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_events
+- **extended-insert**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert
+- **hex-blob**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_hex-blob
+- **lock-tables**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_lock-tables
+- **net_buffer_length**
+  - http://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_net_buffer_length
+- **no-autocommit**
+  - Option to disable autocommit (faster inserts, no problems with index keys)
+  - http://dev.mysql.com/doc/refman/4.1/en/commit.html
+- **no-create-info**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-create-info
+- **no-data**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data
+  - Do not dump data for these tables (array of table names), support regexps, `true` to ignore all tables
+- **routines**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_routines
+- **single-transaction**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_single-transaction
 - **skip-comments**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_comments
 - **skip-dump-date**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_dump-date
-- **net_buffer_length**
-  - http://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_net_buffer_length
+- **skip-triggers**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_triggers
+- **skip-tz-utc**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_tz-utc
+- **where**
+  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_where
 
 The following options are now enabled by default, and there is no way to disable them since
 they should always be used.

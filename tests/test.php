@@ -36,28 +36,23 @@ $dump = new IMysqldump\Mysqldump(
     "travis",
     "",
     $dumpSettings);
-
 $dump->start("mysqldump-php_test001.sql");
 
 $dumpSettings['default-character-set'] = IMysqldump\Mysqldump::UTF8MB4;
 $dumpSettings['complete-insert'] = true;
-
 $dump = new IMysqldump\Mysqldump(
     "mysql:host=localhost;dbname=test002",
     "travis",
     "",
     $dumpSettings);
-
 $dump->start("mysqldump-php_test002.sql");
 
 $dumpSettings['complete-insert'] = false;
-
 $dump = new IMysqldump\Mysqldump(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test005",
     "travis",
     "",
     $dumpSettings);
-
 $dump->start("mysqldump-php_test005.sql");
 
 $dump = new IMysqldump\Mysqldump(
@@ -65,7 +60,6 @@ $dump = new IMysqldump\Mysqldump(
     "travis",
     "",
     array("no-data" => true, "add-drop-table" => true));
-
 $dump->start("mysqldump-php_test006.sql");
 
 $dump = new IMysqldump\Mysqldump(
@@ -73,7 +67,6 @@ $dump = new IMysqldump\Mysqldump(
     "travis",
     "",
     array("no-data" => true, "add-drop-table" => true));
-
 $dump->start("mysqldump-php_test008.sql");
 
 $dump = new IMysqldump\Mysqldump(
@@ -81,7 +74,13 @@ $dump = new IMysqldump\Mysqldump(
     "travis",
     "",
     array("no-data" => true, "add-drop-table" => true, "reset-auto-increment" => true, "add-drop-database" => true));
-
 $dump->start("mysqldump-php_test009.sql");
+
+$dump = new IMysqldump\Mysqldump(
+    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test010",
+    "travis",
+    "",
+    array("events" => true));
+$dump->start("mysqldump-php_test010.sql");
 
 exit;
