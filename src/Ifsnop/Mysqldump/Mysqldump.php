@@ -1619,7 +1619,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return $ret;
     }
 
-    public function create_event($row, $dumpSettings)
+    public function create_event($row)
     {
         $ret = "";
         if ( !isset($row['Create Event']) ) {
