@@ -18,7 +18,7 @@ for i in 000; do
 done
 }
 
-for i in $(seq 0 25) ; do
+for i in $(seq 0 30) ; do
     ret[$i]=0
 done
 
@@ -30,6 +30,7 @@ mysql -utravis < test005.src.sql; ret[((index++))]=$?
 mysql -utravis < test006.src.sql; ret[((index++))]=$?
 mysql -utravis < test008.src.sql; ret[((index++))]=$?
 mysql -utravis < test009.src.sql; ret[((index++))]=$?
+mysql -utravis < test010.src.sql; ret[((index++))]=$?
 
 checksum_test001 > test001.src.checksum
 checksum_test002 > test002.src.checksum
@@ -127,14 +128,15 @@ rm mysqldump* 2> /dev/null
 
 echo "Done $index tests"
 
-total=0
-for i in $(seq 0 25) ; do
+retvalue=0
+for i in $(seq 0 30) ; do
     if [[ ${ret[$i]} -ne 0 ]]; then
         echo "test $i returned ${ret[$i]}"
+        retvalue=${ret[$i]}
     fi
-    total=$((${ret[$i]} + $total))
+    # total=$((${ret[$i]} + $total))
 done
 
-echo "Exiting with code $total"
+echo "Exiting with code $retvalue"
 
-exit $total
+exit $retvalue
