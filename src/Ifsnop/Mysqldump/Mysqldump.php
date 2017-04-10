@@ -880,6 +880,8 @@ class Mysqldump
                         implode("`, `", array_keys($this->tableColumnTypes[$tableName])) .
                         "`) VALUES (" . implode(",", $vals) . ")"
                     );
+                    // ojo, no debería ser array_keys, puesto que hemos eliminado algunos nombres de columnas en getcolumnsttmt!!
+                    // getcolumnstmt debería devolver un array, y así hacer implodes dos veces.
                 } else {
                     $lineSize += $this->compressManager->write(
                         "INSERT INTO `$tableName` VALUES (" . implode(",", $vals) . ")"
