@@ -83,4 +83,11 @@ $dump = new IMysqldump\Mysqldump(
     array("events" => true));
 $dump->start("mysqldump-php_test010.sql");
 
+$dump = new IMysqldump\Mysqldump(
+    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test011",
+    "travis",
+    "",
+    array());
+$dump->start("mysqldump-php_test011.sql");
+
 exit;

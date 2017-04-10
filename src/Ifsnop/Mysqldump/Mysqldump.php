@@ -658,7 +658,8 @@ class Mysqldump
                 'is_numeric'=> $types['is_numeric'],
                 'is_blob' => $types['is_blob'],
                 'type' => $types['type'],
-                'type_sql' => $col['Type']
+                'type_sql' => $col['Type'],
+                'is_virtual' => $types['is_virtual']
             );
         }
 
@@ -1007,6 +1008,8 @@ class Mysqldump
                 $colStmt[] = "LPAD(HEX(`${colName}`),2,'0') AS `${colName}`";
             } else if ($colType['is_blob'] && $this->dumpSettings['hex-blob']) {
                 $colStmt[] = "HEX(`${colName}`) AS `${colName}`";
+            } else if ($colType['is_virtual']) {
+                continue;
             } else {
                 $colStmt[] = "`${colName}`";
             }
@@ -1857,6 +1860,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
         }
         $colInfo['is_numeric'] = in_array($colInfo['type'], $this->mysqlTypes['numerical']);
         $colInfo['is_blob'] = in_array($colInfo['type'], $this->mysqlTypes['blob']);
+        // for virtual 'Extra' -> "STORED GENERATED"
+        $colInfo['is_virtual'] = strpos($colType['Extra'], "STORED GENERATED") === false ? false : true;
 
         return $colInfo;
     }

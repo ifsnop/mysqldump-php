@@ -31,6 +31,7 @@ mysql -utravis < test006.src.sql; ret[((index++))]=$?
 mysql -utravis < test008.src.sql; ret[((index++))]=$?
 mysql -utravis < test009.src.sql; ret[((index++))]=$?
 mysql -utravis < test010.src.sql; ret[((index++))]=$?
+mysql -utravis < test011.src.sql; ret[((index++))]=$?
 
 checksum_test001 > test001.src.checksum
 checksum_test002 > test002.src.checksum
