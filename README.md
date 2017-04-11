@@ -113,32 +113,37 @@ Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) f
         $pdoSettings = array()
     )
 
-    $dumpSettingsDefault = array(
+   $dumpSettingsDefault = array(
         'include-tables' => array(),
         'exclude-tables' => array(),
-        'compress' => 'None',
-        'no-data' => false,
+        'compress' => Mysqldump::NONE,
+        'init_commands' => array(),
+        'no-data' => array(),
         'reset-auto-increment' => false,
-        'add-drop-table' => false,
-        'single-transaction' => true,
-        'lock-tables' => false,
-        'add-locks' => true,
-        'extended-insert' => true,
-        'complete-insert' => false,
-        'disable-keys' => true,
-        'where' => '',
-        'no-create-info' => false,
-        'skip-triggers' => false,
-        'add-drop-trigger' => true,
-        'routines' => false,
-        'hex-blob' => true,
-        'databases' => false,
         'add-drop-database' => false,
-        'skip-tz-utc' => false,
+        'add-drop-table' => false,
+        'add-drop-trigger' => true,
+        'add-locks' => true,
+        'complete-insert' => false,
+        'databases' => false,
+        'default-character-set' => Mysqldump::UTF8,
+        'disable-keys' => true,
+        'extended-insert' => true,
+        'events' => false,
+        'hex-blob' => true, /* faster than escaped content */
+        'net_buffer_length' => self::MAXLINESIZE,
         'no-autocommit' => true,
-        'default-character-set' => 'utf8',
+        'no-create-info' => false,
+        'lock-tables' => true,
+        'routines' => false,
+        'single-transaction' => true,
+        'skip-triggers' => false,
+        'skip-tz-utc' => false,
         'skip-comments' => false,
         'skip-dump-date' => false,
+        'where' => '',
+        /* deprecated */
+        'disable-foreign-keys-check' => true
     );
 
     $pdoSettingsDefaults = array(
@@ -258,7 +263,7 @@ it is identical tests are OK.
 
 ## TODO
 
-...
+Write more tests.
 
 ## Contributing
 
@@ -279,5 +284,5 @@ http://code.google.com/p/db-mysqldump/
 Adapted and extended by Michael J. Calkins.
 https://github.com/clouddueling
 
-Currently maintained and improved by Diego Torres.
+Currently maintained, developed and improved by Diego Torres.
 https://github.com/ifsnop

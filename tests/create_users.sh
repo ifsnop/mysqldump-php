@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mysql -u root -e "CREATE USER 'travis';"
+mysql -u root -e "CREATE USER 'travis'@'%';"
 mysql -u root -e "CREATE DATABASE test001;"
 mysql -u root -e "CREATE DATABASE test002;"
 mysql -u root -e "CREATE DATABASE test005;"

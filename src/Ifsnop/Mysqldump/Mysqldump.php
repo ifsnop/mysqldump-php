@@ -862,7 +862,7 @@ class Mysqldump
         $lineSize = 0;
 
         $colStmt = $this->getColumnStmt($tableName);
-        $stmt = "SELECT $colStmt FROM `$tableName`";
+        $stmt = "SELECT " . implode(",", $colStmt) . " FROM `$tableName`";
 
         if ($this->dumpSettings['where']) {
             $stmt .= " WHERE {$this->dumpSettings['where']}";
@@ -876,12 +876,10 @@ class Mysqldump
 
                 if ($this->dumpSettings['complete-insert']) {
                     $lineSize += $this->compressManager->write(
-                        "INSERT INTO `$tableName` (`" .
-                        implode("`, `", array_keys($this->tableColumnTypes[$tableName])) .
-                        "`) VALUES (" . implode(",", $vals) . ")"
+                        "INSERT INTO `$tableName` (" .
+                        implode(", ", $colStmt) .
+                        ") VALUES (" . implode(",", $vals) . ")"
                     );
-                    // ojo, no debería ser array_keys, puesto que hemos eliminado algunos nombres de columnas en getcolumnsttmt!!
-                    // getcolumnstmt debería devolver un array, y así hacer implodes dos veces.
                 } else {
                     $lineSize += $this->compressManager->write(
                         "INSERT INTO `$tableName` VALUES (" . implode(",", $vals) . ")"
@@ -1011,12 +1009,12 @@ class Mysqldump
             } else if ($colType['is_blob'] && $this->dumpSettings['hex-blob']) {
                 $colStmt[] = "HEX(`${colName}`) AS `${colName}`";
             } else if ($colType['is_virtual']) {
+                $this->dumpSettings['complete-insert'] = true;
                 continue;
             } else {
                 $colStmt[] = "`${colName}`";
             }
         }
-        $colStmt = implode($colStmt, ",");
 
         return $colStmt;
     }
