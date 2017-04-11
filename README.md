@@ -17,14 +17,16 @@ MySQLDump - PHP
 
 This is a php version of mysqldump cli that comes with MySQL, without dependencies, output compression and sane defaults.
 
-Out of the box, MySQLDump-PHP supports backing up table structures, the data itself, views and triggers.
+Out of the box, MySQLDump-PHP supports backing up table structures, the data itself, views, triggers and events.
 
 MySQLDump-PHP is the only library that supports:
 * output binary blobs as hex.
 * resolves view dependencies (using Stand-In tables).
-* output compared against original mysqldump. Linked to travis-ci testing system.
+* output compared against original mysqldump. Linked to travis-ci testing system (testing from php 5.3 to 7.1 & hhvm)
 * dumps stored procedures.
+* dumps events.
 * does extended-insert and/or complete-insert.
+* supports virtual columns from MySQL 5.7.
 
 ## Important
 
@@ -269,11 +271,13 @@ This project is open-sourced software licensed under the [GPL license](http://ww
 
 ## Credits
 
+After more than 8 years, there is barely anything left from the original source code, but:
+
 Originally based on James Elliott's script from 2009.
 http://code.google.com/p/db-mysqldump/
 
 Adapted and extended by Michael J. Calkins.
 https://github.com/clouddueling
 
-Currently maintained and developed by Diego Torres.
+Currently maintained and improved by Diego Torres.
 https://github.com/ifsnop
