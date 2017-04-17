@@ -658,7 +658,8 @@ class Mysqldump
                 'is_numeric'=> $types['is_numeric'],
                 'is_blob' => $types['is_blob'],
                 'type' => $types['type'],
-                'type_sql' => $col['Type']
+                'type_sql' => $col['Type'],
+                'is_virtual' => $types['is_virtual']
             );
         }
 
@@ -861,7 +862,7 @@ class Mysqldump
         $lineSize = 0;
 
         $colStmt = $this->getColumnStmt($tableName);
-        $stmt = "SELECT $colStmt FROM `$tableName`";
+        $stmt = "SELECT " . implode(",", $colStmt) . " FROM `$tableName`";
 
         if ($this->dumpSettings['where']) {
             $stmt .= " WHERE {$this->dumpSettings['where']}";
@@ -875,9 +876,9 @@ class Mysqldump
 
                 if ($this->dumpSettings['complete-insert']) {
                     $lineSize += $this->compressManager->write(
-                        "INSERT INTO `$tableName` (`" .
-                        implode("`, `", array_keys($this->tableColumnTypes[$tableName])) .
-                        "`) VALUES (" . implode(",", $vals) . ")"
+                        "INSERT INTO `$tableName` (" .
+                        implode(", ", $colStmt) .
+                        ") VALUES (" . implode(",", $vals) . ")"
                     );
                 } else {
                     $lineSize += $this->compressManager->write(
@@ -1007,11 +1008,13 @@ class Mysqldump
                 $colStmt[] = "LPAD(HEX(`${colName}`),2,'0') AS `${colName}`";
             } else if ($colType['is_blob'] && $this->dumpSettings['hex-blob']) {
                 $colStmt[] = "HEX(`${colName}`) AS `${colName}`";
+            } else if ($colType['is_virtual']) {
+                $this->dumpSettings['complete-insert'] = true;
+                continue;
             } else {
                 $colStmt[] = "`${colName}`";
             }
         }
-        $colStmt = implode($colStmt, ",");
 
         return $colStmt;
     }
@@ -1857,6 +1860,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
         }
         $colInfo['is_numeric'] = in_array($colInfo['type'], $this->mysqlTypes['numerical']);
         $colInfo['is_blob'] = in_array($colInfo['type'], $this->mysqlTypes['blob']);
+        // for virtual 'Extra' -> "STORED GENERATED"
+        $colInfo['is_virtual'] = strpos($colType['Extra'], "STORED GENERATED") === false ? false : true;
 
         return $colInfo;
     }
