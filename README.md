@@ -55,10 +55,10 @@ Or via json file:
 }
 ````
 
-Using [Curl](http://curl.haxx.se):
+Using [Curl](http://curl.haxx.se) to always download and decompress the latest release:
 
 ```
-$ curl --silent --location https://github.com/ifsnop/mysqldump-php/archive/v2.2.tar.gz | tar xvfz -
+$ curl --silent --location https://api.github.com/repos/ifsnop/mysqldump-php/releases | grep -i tarball_url | head -n 1 | cut -d '"' -f 4 | xargs curl --location --silent | tar xvz
 ```
 
 ## Getting started
