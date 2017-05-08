@@ -271,6 +271,15 @@ class Mysqldump
         // Connecting with PDO
         try {
             switch ($this->dbType) {
+                case 'mysql_existing':
+                    if($this->user instanceof PDO) {
+                        $this->dbHandler = $this->user;
+                        $str = preg_split('/_/',$this->dbType);
+                        $this->dbType = $str[0];
+                    } else {
+                        throw new Exception("Received object is not PDO object!");
+                    }
+                    break;
                 case 'sqlite':
                     $this->dbHandler = @new PDO("sqlite:" . $this->dbName, null, null, $this->pdoSettings);
                     break;
