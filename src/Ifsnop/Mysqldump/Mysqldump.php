@@ -91,6 +91,11 @@ class Mysqldump
     */
     private $host;
     /**
+    * port numbrt, parsed from dsn
+    * @var string
+    */
+    private $port;
+    /**
     * dsn string parsed as an array
     * @var array
     */
@@ -251,6 +256,10 @@ class Mysqldump
         $this->host = (!empty($this->dsnArray['host'])) ?
             $this->dsnArray['host'] :
             $this->dsnArray['unix_socket'];
+
+        if (!empty($this->dsnArray['port'])) {
+            $this->port = $this->dsnArray['port'];
+        }
 
         if (empty($this->dsnArray['dbname'])) {
             throw new Exception("Missing database name from DSN string");
