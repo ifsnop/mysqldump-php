@@ -263,7 +263,14 @@ class Mysqldump
         return true;
     }
 
-    public function setDbHandler($dbHandler){
+    /**
+     * Register existing connection.
+     *
+     * @param $dbType - Connection type.
+     * @param $dbHandler - PDO connection Resource.
+     */
+    public function setConnection($dbType, $dbHandler){
+        $this->dbType = $dbType;
         $this->dbHandler = $dbHandler;
     }
 
