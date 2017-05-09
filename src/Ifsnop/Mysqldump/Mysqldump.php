@@ -266,10 +266,12 @@ class Mysqldump
     /**
      * Register existing connection.
      *
+     * @param $dbName - Database name.
      * @param $dbType - Connection type.
      * @param $dbHandler - PDO connection Resource.
      */
-    public function setConnection($dbType, $dbHandler){
+    public function setConnection($dbName, $dbType, $dbHandler){
+        $this->dbName = $dbName;
         $this->dbType = $dbType;
         $this->dbHandler = $dbHandler;
     }
