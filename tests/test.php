@@ -90,6 +90,6 @@ $externalDbHandler = @new PDO(
     ""
 );
 $dump->setConnection('test011', 'mysql', $externalDbHandler);
-$dump->start("mysqldump-php_test011b.sql");
+$dump->start("mysqldump-php_test011.sql");
 
 exit;
