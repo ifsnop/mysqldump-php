@@ -94,8 +94,7 @@ $dump = new IMysqldump\Mysqldump();
 $externalDbHandler = @new PDO(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test011",
     "travis",
-    "travis",
-    ""
+    "travis"
 );
 $dump->setDbHandler($externalDbHandler);
 $dump->start("mysqldump-php_test011b.sql");
