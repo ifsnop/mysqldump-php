@@ -154,7 +154,9 @@ class Mysqldump
 
         $this->user = $user;
         $this->pass = $pass;
-        $this->parseDsn($dsn);
+        if ($dsn !== '') {
+            $this->parseDsn($dsn);
+        }
         $this->pdoSettings = self::array_replace_recursive($pdoSettingsDefault, $pdoSettings);
         $this->dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dumpSettings);
 
@@ -261,6 +263,10 @@ class Mysqldump
         return true;
     }
 
+    public function setDbHandler($dbHandler){
+        $this->dbHandler = $dbHandler;
+    }
+
     /**
      * Connect with PDO
      *
@@ -270,28 +276,30 @@ class Mysqldump
     {
         // Connecting with PDO
         try {
-            switch ($this->dbType) {
-                case 'sqlite':
-                    $this->dbHandler = @new PDO("sqlite:" . $this->dbName, null, null, $this->pdoSettings);
-                    break;
-                case 'mysql':
-                case 'pgsql':
-                case 'dblib':
-                    $this->dbHandler = @new PDO(
-                        $this->dsn,
-                        $this->user,
-                        $this->pass,
-                        $this->pdoSettings
-                    );
-                    // Execute init commands once connected
-                    foreach($this->dumpSettings['init_commands'] as $stmt) {
-                        $this->dbHandler->exec($stmt);
-                    }
-                    // Store server version
-                    $this->version = $this->dbHandler->getAttribute(PDO::ATTR_SERVER_VERSION);
-                    break;
-                default:
-                    throw new Exception("Unsupported database type (" . $this->dbType . ")");
+            if(!isset($this->dbHandler)) {
+                switch ($this->dbType) {
+                    case 'sqlite':
+                        $this->dbHandler = @new PDO("sqlite:" . $this->dbName, null, null, $this->pdoSettings);
+                        break;
+                    case 'mysql':
+                    case 'pgsql':
+                    case 'dblib':
+                        $this->dbHandler = @new PDO(
+                            $this->dsn,
+                            $this->user,
+                            $this->pass,
+                            $this->pdoSettings
+                        );
+                        // Execute init commands once connected
+                        foreach($this->dumpSettings['init_commands'] as $stmt) {
+                            $this->dbHandler->exec($stmt);
+                        }
+                        // Store server version
+                        $this->version = $this->dbHandler->getAttribute(PDO::ATTR_SERVER_VERSION);
+                        break;
+                    default:
+                        throw new Exception("Unsupported database type (" . $this->dbType . ")");
+                }
             }
         } catch (PDOException $e) {
             throw new Exception(

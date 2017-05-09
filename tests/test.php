@@ -90,11 +90,14 @@ $dump = new IMysqldump\Mysqldump(
     array('complete-insert' =>  false));
 $dump->start("mysqldump-php_test011a.sql");
 
-$dump = new IMysqldump\Mysqldump(
+$dump = new IMysqldump\Mysqldump();
+$externalDbHandler = @new PDO(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test011",
     "travis",
-    "",
-    array('complete-insert' =>  true));
+    "travis",
+    ""
+);
+$dump->setDbHandler($externalDbHandler);
 $dump->start("mysqldump-php_test011b.sql");
 
 exit;
