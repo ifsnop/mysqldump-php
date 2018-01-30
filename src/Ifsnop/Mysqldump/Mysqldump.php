@@ -141,6 +141,7 @@ class Mysqldump
             'skip-tz-utc' => false,
             'skip-comments' => false,
             'skip-dump-date' => false,
+            'skip-definer' => false,
             'where' => '',
             /* deprecated */
             'disable-foreign-keys-check' => true
@@ -1550,10 +1551,12 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
         $viewStmt = $row['Create View'];
 
+        $definerStr = $this->dumpSettings['skip-definer'] ? '' : '/*!50013 \2 */'.PHP_EOL;
+
         if ($viewStmtReplaced = preg_replace(
             '/^(CREATE(?:\s+ALGORITHM=(?:UNDEFINED|MERGE|TEMPTABLE))?)\s+('
             .self::DEFINER_RE.'(?:\s+SQL SECURITY DEFINER|INVOKER)?)?\s+(VIEW .+)$/',
-            '/*!50001 \1 */'.PHP_EOL.'/*!50013 \2 */'.PHP_EOL.'/*!50001 \3 */',
+            '/*!50001 \1 */'.PHP_EOL.$definerStr.'/*!50001 \3 */',
             $viewStmt,
             1
         )) {
@@ -1572,9 +1575,10 @@ class TypeAdapterMysql extends TypeAdapterFactory
         }
 
         $triggerStmt = $row['SQL Original Statement'];
+        $definerStr = $this->dumpSettings['skip-definer'] ? '' : '/*!50017 \2*/ ';
         if ($triggerStmtReplaced = preg_replace(
             '/^(CREATE)\s+('.self::DEFINER_RE.')?\s+(TRIGGER\s.*)$/s',
-            '/*!50003 \1*/ /*!50017 \2*/ /*!50003 \3 */',
+            '/*!50003 \1*/ '.$definerStr.'/*!50003 \3 */',
             $triggerStmt,
             1
         )) {
@@ -1618,10 +1622,11 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $eventName = $row['Event'];
         $eventStmt = $row['Create Event'];
         $sqlMode = $row['sql_mode'];
+        $definerStr = $this->dumpSettings['skip-definer'] ? '' : '/*!50117 \2*/ ';
 
         if ($eventStmtReplaced = preg_replace(
             '/^(CREATE)\s+('.self::DEFINER_RE.')?\s+(EVENT .*)$/',
-            '/*!50106 \1*/ /*!50117 \2*/ /*!50106 \3 */',
+            '/*!50106 \1*/ '.$definerStr.'/*!50106 \3 */',
             $eventStmt,
             1
         )) {

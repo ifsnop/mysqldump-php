@@ -147,6 +147,9 @@ ret[((index++))]=$?
 diff mysqldump_test012.filtered.sql mysqldump-php_test012.filtered.sql
 ret[((index++))]=$?
 
+# Make sure we do not fine a DEFINER
+! grep 'DEFINER' mysqldump-php_test012_no-definer.sql
+ret[((index++))]=$?
 
 rm *.checksum 2> /dev/null
 rm *.filtered.sql 2> /dev/null

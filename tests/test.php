@@ -104,4 +104,14 @@ $dump = new IMysqldump\Mysqldump(
     array("events" => true));
 $dump->start("mysqldump-php_test012.sql");
 
+$dump = new IMysqldump\Mysqldump(
+    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test012",
+    "travis",
+    "",
+    array(
+        "events" => true,
+        'skip-definer' => true,
+    ));
+$dump->start("mysqldump-php_test012_no-definer.sql");
+
 exit;
