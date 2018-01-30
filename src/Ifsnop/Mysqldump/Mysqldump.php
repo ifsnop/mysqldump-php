@@ -365,8 +365,8 @@ class Mysqldump
         }
 
         $this->exportTables();
-        $this->exportViews();
         $this->exportTriggers();
+        $this->exportViews();
         $this->exportProcedures();
         $this->exportEvents();
 
@@ -1425,6 +1425,7 @@ class TypeAdapterSqlite extends TypeAdapterFactory
 
 class TypeAdapterMysql extends TypeAdapterFactory
 {
+    const DEFINER_RE = 'DEFINER=`(?:[^`]|``)*`@`(?:[^`]|``)*`';
 
     private $dbHandler = null;
 
@@ -1544,32 +1545,19 @@ class TypeAdapterMysql extends TypeAdapterFactory
                 throw new Exception("Error getting view structure, unknown output");
         }
 
-        $triggerStmt = $row['Create View'];
+        $viewStmt = $row['Create View'];
 
-        $triggerStmtReplaced1 = str_replace(
-            "CREATE ALGORITHM",
-            "/*!50001 CREATE ALGORITHM",
-            $triggerStmt
-        );
-        $triggerStmtReplaced2 = str_replace(
-            " DEFINER=",
-            " */" . PHP_EOL . "/*!50013 DEFINER=",
-            $triggerStmtReplaced1
-        );
-        $triggerStmtReplaced3 = str_replace(
-            " VIEW ",
-            " */" . PHP_EOL . "/*!50001 VIEW ",
-            $triggerStmtReplaced2
-        );
-        if (false === $triggerStmtReplaced1 ||
-            false === $triggerStmtReplaced2 ||
-            false === $triggerStmtReplaced3) {
-            $triggerStmtReplaced = $triggerStmt;
-        } else {
-            $triggerStmtReplaced = $triggerStmtReplaced3 . " */;";
-        }
+        if ($viewStmtReplaced = preg_replace(
+            '/^(CREATE(?:\s+ALGORITHM=(?:UNDEFINED|MERGE|TEMPTABLE))?)\s+('
+            .self::DEFINER_RE.'(?:\s+SQL SECURITY DEFINER|INVOKER)?)?\s+(VIEW .+)$/',
+            '/*!50001 \1 */'.PHP_EOL.'/*!50013 \2 */'.PHP_EOL.'/*!50001 \3 */',
+            $viewStmt,
+            1
+        )) {
+            $viewStmt = $viewStmtReplaced;
+        };
 
-        $ret .= $triggerStmtReplaced . PHP_EOL . PHP_EOL;
+        $ret .= $viewStmt . ';' . PHP_EOL . PHP_EOL;
         return $ret;
     }
 
@@ -1581,22 +1569,17 @@ class TypeAdapterMysql extends TypeAdapterFactory
         }
 
         $triggerStmt = $row['SQL Original Statement'];
-        $triggerStmtReplaced = str_replace(
-            "CREATE DEFINER",
-            "/*!50003 CREATE*/ /*!50017 DEFINER",
-            $triggerStmt
-        );
-        $triggerStmtReplaced = str_replace(
-            " TRIGGER",
-            "*/ /*!50003 TRIGGER",
-            $triggerStmtReplaced
-        );
-        if ( false === $triggerStmtReplaced ) {
-            $triggerStmtReplaced = $triggerStmt . " /* ";
+        if ($triggerStmtReplaced = preg_replace(
+            '/^(CREATE)\s+('.self::DEFINER_RE.')?\s+(TRIGGER\s.*)$/s',
+            '/*!50003 \1*/ /*!50017 \2*/ /*!50003 \3 */',
+            $triggerStmt,
+            1
+        )) {
+            $triggerStmt = $triggerStmtReplaced;
         }
 
         $ret .= "DELIMITER ;;" . PHP_EOL .
-            $triggerStmtReplaced . " */ ;;" . PHP_EOL .
+            $triggerStmt . ";;" . PHP_EOL .
             "DELIMITER ;" . PHP_EOL . PHP_EOL;
         return $ret;
     }
@@ -1633,19 +1616,13 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $eventStmt = $row['Create Event'];
         $sqlMode = $row['sql_mode'];
 
-        $eventStmtReplaced = str_replace(
-            "CREATE DEFINER",
-            "/*!50106 CREATE*/ /*!50117 DEFINER",
-            $eventStmt
-        );
-        $eventStmtReplaced = str_replace(
-            " EVENT ",
-            "*/ /*!50106 EVENT ",
-            $eventStmtReplaced
-        );
-
-        if ( false === $eventStmtReplaced ) {
-            $eventStmtReplaced = $eventStmt . " /* ";
+        if ($eventStmtReplaced = preg_replace(
+            '/^(CREATE)\s+('.self::DEFINER_RE.')?\s+(EVENT .*)$/',
+            '/*!50106 \1*/ /*!50117 \2*/ /*!50106 \3 */',
+            $eventStmt,
+            1
+        )) {
+            $eventStmt = $eventStmtReplaced;
         }
 
         $ret .= "/*!50106 SET @save_time_zone= @@TIME_ZONE */ ;" . PHP_EOL .
@@ -1661,7 +1638,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
             "/*!50003 SET sql_mode              = '" . $sqlMode . "' */ ;;" . PHP_EOL .
             "/*!50003 SET @saved_time_zone      = @@time_zone */ ;;" . PHP_EOL .
             "/*!50003 SET time_zone             = 'SYSTEM' */ ;;" . PHP_EOL .
-            $eventStmtReplaced . " */ ;;" . PHP_EOL .
+            $eventStmt . " ;;" . PHP_EOL .
             "/*!50003 SET time_zone             = @saved_time_zone */ ;;" . PHP_EOL .
             "/*!50003 SET sql_mode              = @saved_sql_mode */ ;;" . PHP_EOL .
             "/*!50003 SET character_set_client  = @saved_cs_client */ ;;" . PHP_EOL .
