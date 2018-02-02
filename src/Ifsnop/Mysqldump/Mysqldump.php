@@ -142,6 +142,7 @@ class Mysqldump
             'skip-comments' => false,
             'skip-dump-date' => false,
             'where' => '',
+			'insert-ignore'=>false,
             /* deprecated */
             'disable-foreign-keys-check' => true
         );
@@ -870,19 +871,20 @@ class Mysqldump
         $resultSet = $this->dbHandler->query($stmt);
         $resultSet->setFetchMode(PDO::FETCH_ASSOC);
 
+		$ignore = $this->dumpSettings['insert-ignore'] ? 'IGNORE ' : '';
         foreach ($resultSet as $row) {
             $vals = $this->escape($tableName, $row);
             if ($onlyOnce || !$this->dumpSettings['extended-insert']) {
 
                 if ($this->dumpSettings['complete-insert']) {
                     $lineSize += $this->compressManager->write(
-                        "INSERT INTO `$tableName` (" .
+                        "INSERT $ignore INTO `$tableName` (" .
                         implode(", ", $colStmt) .
                         ") VALUES (" . implode(",", $vals) . ")"
                     );
                 } else {
                     $lineSize += $this->compressManager->write(
-                        "INSERT INTO `$tableName` VALUES (" . implode(",", $vals) . ")"
+                        "INSERT $ignore INTO `$tableName` VALUES (" . implode(",", $vals) . ")"
                     );
                 }
                 $onlyOnce = false;
