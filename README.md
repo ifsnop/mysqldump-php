@@ -139,6 +139,7 @@ $dumpSettingsDefault = array(
     'skip-comments' => false,
     'skip-dump-date' => false,
     'where' => '',
+    'insert-ignore' => false,
     /* deprecated */
     'disable-foreign-keys-check' => true
 );

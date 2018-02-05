@@ -2,19 +2,19 @@
 
 function checksum_test001() {
 for i in 000 001 002 003 010 011 015 027 029 033 200; do
-    mysql -utravis -B -e "CHECKSUM TABLE test${i}" test001 | grep -v -i checksum
+    mysql --defaults-file=/tmp/travismy.cnf --batch -e "CHECKSUM TABLE test${i}" test001 | grep -v -i checksum
 done
 }
 
 function checksum_test002() {
 for i in 201; do
-    mysql -utravis --default-character-set=utf8mb4 -B -e "CHECKSUM TABLE test${i}" test002 | grep -v -i checksum
+    mysql --defaults-file=/tmp/travismy.cnf --default-character-set=utf8mb4 --batch -e "CHECKSUM TABLE test${i}" test002 | grep -v -i checksum
 done
 }
 
 function checksum_test005() {
 for i in 000; do
-    mysql -utravis -B -e "CHECKSUM TABLE test${i}" test001 | grep -v -i checksum
+    mysql --defaults-file=/tmp/travismy.cnf --batch -e "CHECKSUM TABLE test${i}" test001 | grep -v -i checksum
 done
 }
 
@@ -24,19 +24,20 @@ done
 
 index=0
 
-mysql -utravis < test001.src.sql; ret[((index++))]=$?
-mysql -utravis --default-character-set=utf8mb4 < test002.src.sql; ret[((index++))]=$?
-mysql -utravis < test005.src.sql; ret[((index++))]=$?
-mysql -utravis < test006.src.sql; ret[((index++))]=$?
-mysql -utravis < test008.src.sql; ret[((index++))]=$?
-mysql -utravis < test009.src.sql; ret[((index++))]=$?
-mysql -utravis < test010.src.sql; ret[((index++))]=$?
-mysql -utravis < test011.src.sql; ret[((index++))]=$?
+mysql --defaults-file=/tmp/travismy.cnf < test001.src.sql; ret[((index++))]=$?
+mysql --defaults-file=/tmp/travismy.cnf --default-character-set=utf8mb4 < test002.src.sql; ret[((index++))]=$?
+mysql --defaults-file=/tmp/travismy.cnf < test005.src.sql; ret[((index++))]=$?
+mysql --defaults-file=/tmp/travismy.cnf < test006.src.sql; ret[((index++))]=$?
+mysql --defaults-file=/tmp/travismy.cnf < test008.src.sql; ret[((index++))]=$?
+mysql --defaults-file=/tmp/travismy.cnf < test009.src.sql; ret[((index++))]=$?
+mysql --defaults-file=/tmp/travismy.cnf < test010.src.sql; ret[((index++))]=$?
+mysql --defaults-file=/tmp/travismy.cnf < test011.src.sql; ret[((index++))]=$?
+mysql --defaults-file=/tmp/travismy.cnf < test012.src.sql; ret[((index++))]=$?
 
 checksum_test001 > test001.src.checksum
 checksum_test002 > test002.src.checksum
 checksum_test005 > test005.src.checksum
-mysqldump -utravis test001 \
+mysqldump --defaults-file=/tmp/travismy.cnf test001 \
     --no-autocommit \
     --extended-insert=false \
     --hex-blob=true \
@@ -44,7 +45,7 @@ mysqldump -utravis test001 \
     > mysqldump_test001.sql
 ret[((index++))]=$?
 
-mysqldump -utravis test002 \
+mysqldump --defaults-file=/tmp/travismy.cnf test002 \
     --no-autocommit \
     --extended-insert=false \
     --complete-insert=true \
@@ -53,7 +54,7 @@ mysqldump -utravis test002 \
     > mysqldump_test002.sql
 ret[((index++))]=$?
 
-mysqldump -utravis test005 \
+mysqldump --defaults-file=/tmp/travismy.cnf test005 \
     --no-autocommit \
     --extended-insert=false \
     --hex-blob=true \
@@ -63,15 +64,15 @@ ret[((index++))]=$?
 php test.php
 ret[((index++))]=$?
 
-mysql -utravis test001 < mysqldump-php_test001.sql
+mysql --defaults-file=/tmp/travismy.cnf test001 < mysqldump-php_test001.sql
 ret[((index++))]=$?
-mysql -utravis test002 < mysqldump-php_test002.sql
+mysql --defaults-file=/tmp/travismy.cnf test002 < mysqldump-php_test002.sql
 ret[((index++))]=$?
-mysql -utravis test005 < mysqldump-php_test005.sql
+mysql --defaults-file=/tmp/travismy.cnf test005 < mysqldump-php_test005.sql
 ret[((index++))]=$?
-mysql -utravis test006b < mysqldump-php_test006.sql
+mysql --defaults-file=/tmp/travismy.cnf test006b < mysqldump-php_test006.sql
 ret[((index++))]=$?
-mysql -utravis test009 < mysqldump-php_test009.sql
+mysql --defaults-file=/tmp/travismy.cnf test009 < mysqldump-php_test009.sql
 ret[((index++))]=$?
 
 checksum_test001 > mysqldump-php_test001.checksum
@@ -84,6 +85,7 @@ cat test005.src.sql | grep ^INSERT > test005.filtered.sql
 cat test008.src.sql | grep FOREIGN > test008.filtered.sql
 cat test010.src.sql | grep CREATE | grep EVENT > test010.filtered.sql
 cat test011.src.sql | grep INSERT > test011.filtered.sql
+cat test012.src.sql | grep INSERT > test012.filtered.sql
 cat mysqldump_test001.sql | grep ^INSERT > mysqldump_test001.filtered.sql
 cat mysqldump_test002.sql | grep ^INSERT > mysqldump_test002.filtered.sql
 cat mysqldump_test005.sql | grep ^INSERT > mysqldump_test005.filtered.sql
@@ -94,6 +96,7 @@ cat mysqldump-php_test008.sql | grep FOREIGN > mysqldump-php_test008.filtered.sq
 cat mysqldump-php_test010.sql | grep CREATE | grep EVENT > mysqldump-php_test010.filtered.sql
 cat mysqldump-php_test011a.sql | grep INSERT > mysqldump-php_test011a.filtered.sql
 cat mysqldump-php_test011b.sql | grep INSERT > mysqldump-php_test011b.filtered.sql
+cat mysqldump-php_test012.sql | grep INSERT > mysqldump-php_test012.filtered.sql
 
 diff test001.filtered.sql mysqldump_test001.filtered.sql
 ret[((index++))]=$?
@@ -131,6 +134,11 @@ diff test011.filtered.sql mysqldump-php_test011a.filtered.sql
 ret[((index++))]=$?
 diff test011.filtered.sql mysqldump-php_test011b.filtered.sql
 ret[((index++))]=$?
+
+# test insert ignore
+diff test012.filtered.sql mysqldump-php_test012.filtered.sql
+ret[((index++))]=$?
+
 
 rm *.checksum 2> /dev/null
 rm *.filtered.sql 2> /dev/null
