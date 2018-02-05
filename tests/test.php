@@ -11,6 +11,9 @@ include_once(dirname(__FILE__) . "/../src/Ifsnop/Mysqldump/Mysqldump.php");
 
 use Ifsnop\Mysqldump as IMysqldump;
 
+$username = 'travis';
+$password = 'M6s677xygWjR2Lw9';
+
 $dumpSettings = array(
     'exclude-tables' => array('/^travis*/'),
     'compress' => IMysqldump\Mysqldump::NONE,
@@ -33,8 +36,8 @@ $dumpSettings = array(
 
 $dump = new IMysqldump\Mysqldump(
     "mysql:host=localhost;dbname=test001",
-    "travis",
-    "",
+    $username,
+    $password,
     $dumpSettings);
 $dump->start("mysqldump-php_test001.sql");
 
@@ -42,59 +45,69 @@ $dumpSettings['default-character-set'] = IMysqldump\Mysqldump::UTF8MB4;
 $dumpSettings['complete-insert'] = true;
 $dump = new IMysqldump\Mysqldump(
     "mysql:host=localhost;dbname=test002",
-    "travis",
-    "",
+    $username,
+    $password,
     $dumpSettings);
 $dump->start("mysqldump-php_test002.sql");
 
 $dumpSettings['complete-insert'] = false;
 $dump = new IMysqldump\Mysqldump(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test005",
-    "travis",
-    "",
+    $username,
+    $password,
     $dumpSettings);
 $dump->start("mysqldump-php_test005.sql");
 
 $dump = new IMysqldump\Mysqldump(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test006a",
-    "travis",
-    "",
+    $username,
+    $password,
     array("no-data" => true, "add-drop-table" => true));
 $dump->start("mysqldump-php_test006.sql");
 
 $dump = new IMysqldump\Mysqldump(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test008",
-    "travis",
-    "",
+    $username,
+    $password,
     array("no-data" => true, "add-drop-table" => true));
 $dump->start("mysqldump-php_test008.sql");
 
 $dump = new IMysqldump\Mysqldump(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test009",
-    "travis",
-    "",
+    $username,
+    $password,
     array("no-data" => true, "add-drop-table" => true, "reset-auto-increment" => true, "add-drop-database" => true));
 $dump->start("mysqldump-php_test009.sql");
 
 $dump = new IMysqldump\Mysqldump(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test010",
-    "travis",
-    "",
+    $username,
+    $password,
     array("events" => true));
 $dump->start("mysqldump-php_test010.sql");
 
 $dump = new IMysqldump\Mysqldump(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test011",
-    "travis",
-    "",
+    $username,
+    $password,
     array('complete-insert' =>  false));
 $dump->start("mysqldump-php_test011a.sql");
 
 $dump = new IMysqldump\Mysqldump(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test011",
-    "travis",
-    "",
+    $username,
+    $password,
     array('complete-insert' =>  true));
 $dump->start("mysqldump-php_test011b.sql");
+
+
+
+$dump = new IMysqldump\Mysqldump(
+    "mysql:host=localhost;dbname=test012",
+    $username,
+    $password,
+    array('complete-insert' =>  true, 'insert-ignore'=>true));
+$dump->start("mysqldump-php_test012.sql");
+
 
 exit;
