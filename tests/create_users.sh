@@ -3,7 +3,7 @@ echo "[client]" > /tmp/travismy.cnf
 echo "user=travis" >> /tmp/travismy.cnf
 echo "password=M6s677xygWjR2Lw9" >> /tmp/travismy.cnf
 
-mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO 'travis'@'%' IDENTIFIED BY 'M6s677xygWjR2Lw9';"
+mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO 'travis'@'localhost' IDENTIFIED BY 'M6s677xygWjR2Lw9';"
 mysql -u root -e "CREATE DATABASE test001;"
 mysql -u root -e "CREATE DATABASE test002;"
 mysql -u root -e "CREATE DATABASE test005;"
