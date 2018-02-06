@@ -31,6 +31,14 @@ $dumpSettings = array(
     'where' => ''
     );
 
+// do nothing test
+print "starting mysql-php_test000.sql" . PHP_EOL;
+$dump = new IMysqldump\Mysqldump(
+    "mysql:host=localhost;dbname=test001",
+    "travis",
+    ""
+    );
+
 print "starting mysql-php_test001.sql" . PHP_EOL;
 $dump = new IMysqldump\Mysqldump(
     "mysql:host=localhost;dbname=test001",
