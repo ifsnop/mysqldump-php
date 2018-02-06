@@ -49,11 +49,11 @@ $ composer require ifsnop/mysqldump-php:2.*
 
 Or via json file:
 
-````
+```
 "require": {
         "ifsnop/mysqldump-php":"2.*"
 }
-````
+```
 
 Using [Curl](http://curl.haxx.se) to always download and decompress the latest release:
 
@@ -65,7 +65,7 @@ $ curl --silent --location https://api.github.com/repos/ifsnop/mysqldump-php/rel
 
 With [Autoloader](http://www.php-fig.org/psr/psr-4/)/[Composer](http://getcomposer.org):
 
-```
+```php
 <?php
 
 use Ifsnop\Mysqldump as IMysqldump;
@@ -76,85 +76,83 @@ try {
 } catch (\Exception $e) {
     echo 'mysqldump-php error: ' . $e->getMessage();
 }
-
-?>
 ```
 
 Plain old PHP:
 
-```
+```php
 <?php
 
     include_once(dirname(__FILE__) . '/mysqldump-php-2.0.0/src/Ifsnop/Mysqldump/Mysqldump.php');
     $dump = new Ifsnop\Mysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
     $dump->start('storage/work/dump.sql');
-
-?>
 ```
 
 Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) for some examples and a comparision between mysqldump and mysqldump-php dumps.
 
 ## Constructor and default parameters
-    /**
-     * Constructor of Mysqldump. Note that in the case of an SQLite database
-     * connection, the filename must be in the $db parameter.
-     *
-     * @param string $dsn        PDO DSN connection string
-     * @param string $user       SQL account username
-     * @param string $pass       SQL account password
-     * @param array  $dumpSettings SQL database settings
-     * @param array  $pdoSettings  PDO configured attributes
-     */
-    public function __construct(
-        $dsn = '',
-        $user = '',
-        $pass = '',
-        $dumpSettings = array(),
-        $pdoSettings = array()
-    )
+```php
+/**
+ * Constructor of Mysqldump. Note that in the case of an SQLite database
+ * connection, the filename must be in the $db parameter.
+ *
+ * @param string $dsn        PDO DSN connection string
+ * @param string $user       SQL account username
+ * @param string $pass       SQL account password
+ * @param array  $dumpSettings SQL database settings
+ * @param array  $pdoSettings  PDO configured attributes
+ */
+public function __construct(
+    $dsn = '',
+    $user = '',
+    $pass = '',
+    $dumpSettings = array(),
+    $pdoSettings = array()
+)
 
-   $dumpSettingsDefault = array(
-        'include-tables' => array(),
-        'exclude-tables' => array(),
-        'compress' => Mysqldump::NONE,
-        'init_commands' => array(),
-        'no-data' => array(),
-        'reset-auto-increment' => false,
-        'add-drop-database' => false,
-        'add-drop-table' => false,
-        'add-drop-trigger' => true,
-        'add-locks' => true,
-        'complete-insert' => false,
-        'databases' => false,
-        'default-character-set' => Mysqldump::UTF8,
-        'disable-keys' => true,
-        'extended-insert' => true,
-        'events' => false,
-        'hex-blob' => true, /* faster than escaped content */
-        'net_buffer_length' => self::MAXLINESIZE,
-        'no-autocommit' => true,
-        'no-create-info' => false,
-        'lock-tables' => true,
-        'routines' => false,
-        'single-transaction' => true,
-        'skip-triggers' => false,
-        'skip-tz-utc' => false,
-        'skip-comments' => false,
-        'skip-dump-date' => false,
-        'where' => '',
-        /* deprecated */
-        'disable-foreign-keys-check' => true
-    );
+$dumpSettingsDefault = array(
+    'include-tables' => array(),
+    'exclude-tables' => array(),
+    'compress' => Mysqldump::NONE,
+    'init_commands' => array(),
+    'no-data' => array(),
+    'reset-auto-increment' => false,
+    'add-drop-database' => false,
+    'add-drop-table' => false,
+    'add-drop-trigger' => true,
+    'add-locks' => true,
+    'complete-insert' => false,
+    'databases' => false,
+    'default-character-set' => Mysqldump::UTF8,
+    'disable-keys' => true,
+    'extended-insert' => true,
+    'events' => false,
+    'hex-blob' => true, /* faster than escaped content */
+    'net_buffer_length' => self::MAXLINESIZE,
+    'no-autocommit' => true,
+    'no-create-info' => false,
+    'lock-tables' => true,
+    'routines' => false,
+    'single-transaction' => true,
+    'skip-triggers' => false,
+    'skip-tz-utc' => false,
+    'skip-comments' => false,
+    'skip-dump-date' => false,
+    'where' => '',
+    /* deprecated */
+    'disable-foreign-keys-check' => true
+);
 
-    $pdoSettingsDefaults = array(
-        PDO::ATTR_PERSISTENT => true,
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false
-    );
+$pdoSettingsDefaults = array(
+    PDO::ATTR_PERSISTENT => true,
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false
+);
 
-    // missing settings in constructor will be replaced by default options
-    $this->_pdoSettings = self::array_replace_recursive($pdoSettingsDefault, $pdoSettings);
-    $this->_dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dumpSettings);
+// missing settings in constructor will be replaced by default options
+$this->_pdoSettings = self::array_replace_recursive($pdoSettingsDefault, $pdoSettings);
+$this->_dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dumpSettings);
+```
 
 ## Dump Settings
 
