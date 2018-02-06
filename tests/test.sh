@@ -32,6 +32,7 @@ mysql -utravis < test008.src.sql; ret[((index++))]=$?
 mysql -utravis < test009.src.sql; ret[((index++))]=$?
 mysql -utravis < test010.src.sql; ret[((index++))]=$?
 mysql -utravis < test011.src.sql; ret[((index++))]=$?
+mysql -utravis < test012.src.sql; ret[((index++))]=$?
 
 checksum_test001 > test001.src.checksum
 checksum_test002 > test002.src.checksum
@@ -58,6 +59,14 @@ mysqldump -utravis test005 \
     --extended-insert=false \
     --hex-blob=true \
     > mysqldump_test005.sql
+ret[((index++))]=$?
+
+mysqldump -utravis test012 \
+    --no-autocommit \
+    --extended-insert=false \
+    --hex-blob=true \
+    --events \
+    > mysqldump_test012.sql
 ret[((index++))]=$?
 
 php test.php || { echo "ERROR running test.php" && exit -1; }
@@ -87,6 +96,7 @@ cat test011.src.sql | grep INSERT > test011.filtered.sql
 cat mysqldump_test001.sql | grep ^INSERT > mysqldump_test001.filtered.sql
 cat mysqldump_test002.sql | grep ^INSERT > mysqldump_test002.filtered.sql
 cat mysqldump_test005.sql | grep ^INSERT > mysqldump_test005.filtered.sql
+cat mysqldump_test012.sql | grep -E -e '50001 (CREATE|VIEW)' -e '50013 DEFINER' -e 'TRIGGER' | grep -v -e 'TABLE' -e 'CREATE VIEW' > mysqldump_test012.filtered.sql
 cat mysqldump-php_test001.sql | grep ^INSERT > mysqldump-php_test001.filtered.sql
 cat mysqldump-php_test002.sql | grep ^INSERT > mysqldump-php_test002.filtered.sql
 cat mysqldump-php_test005.sql | grep ^INSERT > mysqldump-php_test005.filtered.sql
@@ -94,6 +104,7 @@ cat mysqldump-php_test008.sql | grep FOREIGN > mysqldump-php_test008.filtered.sq
 cat mysqldump-php_test010.sql | grep CREATE | grep EVENT > mysqldump-php_test010.filtered.sql
 cat mysqldump-php_test011a.sql | grep INSERT > mysqldump-php_test011a.filtered.sql
 cat mysqldump-php_test011b.sql | grep INSERT > mysqldump-php_test011b.filtered.sql
+cat mysqldump-php_test012.sql | grep -E -e '50001 (CREATE|VIEW)' -e '50013 DEFINER' -e 'CREATE.*TRIGGER' > mysqldump-php_test012.filtered.sql
 
 diff test001.filtered.sql mysqldump_test001.filtered.sql
 ret[((index++))]=$?
@@ -130,6 +141,14 @@ ret[((index++))]=$?
 diff test011.filtered.sql mysqldump-php_test011a.filtered.sql
 ret[((index++))]=$?
 diff test011.filtered.sql mysqldump-php_test011b.filtered.sql
+ret[((index++))]=$?
+
+# Test create views, events, trigger
+diff mysqldump_test012.filtered.sql mysqldump-php_test012.filtered.sql
+ret[((index++))]=$?
+
+# Make sure we do not find a DEFINER
+! grep 'DEFINER' mysqldump-php_test012_no-definer.sql
 ret[((index++))]=$?
 
 rm *.checksum 2> /dev/null

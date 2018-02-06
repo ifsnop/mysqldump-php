@@ -138,6 +138,7 @@ $dumpSettingsDefault = array(
     'skip-tz-utc' => false,
     'skip-comments' => false,
     'skip-dump-date' => false,
+    'skip-definer' => false,
     'where' => '',
     /* deprecated */
     'disable-foreign-keys-check' => true
@@ -215,6 +216,8 @@ $this->_dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dump
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_triggers
 - **skip-tz-utc**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_tz-utc
+- **skip-definer**
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqlpump.html#option_mysqlpump_skip-definer
 - **where**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_where
 

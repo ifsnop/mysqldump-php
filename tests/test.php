@@ -114,4 +114,23 @@ $dump = new IMysqldump\Mysqldump(
     array('complete-insert' =>  true));
 $dump->start("mysqldump-php_test011b.sql");
 
+print "starting mysql-php_test012.sql" . PHP_EOL;
+$dump = new IMysqldump\Mysqldump(
+    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test012",
+    "travis",
+    "",
+    array("events" => true));
+$dump->start("mysqldump-php_test012.sql");
+
+print "starting mysql-php_test012b_no-definer.sql" . PHP_EOL;
+$dump = new IMysqldump\Mysqldump(
+    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test012",
+    "travis",
+    "",
+    array(
+        "events" => true,
+        'skip-definer' => true,
+    ));
+$dump->start("mysqldump-php_test012_no-definer.sql");
+
 exit(0);
