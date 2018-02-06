@@ -1,5 +1,6 @@
 dist: trusty
 sudo: required
+group: deprecated-2017Q4
 
 language: php
 
@@ -37,5 +38,6 @@ before_script:
   - tests/create_users.sh
 
 script:
+  - php -l src/Ifsnop/Mysqldump/Mysqldump.php
   - php src/Ifsnop/Mysqldump/Mysqldump.php
   - cd tests && ./test.sh

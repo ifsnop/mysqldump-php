@@ -97,4 +97,4 @@ $dump = new IMysqldump\Mysqldump(
     array('complete-insert' =>  true));
 $dump->start("mysqldump-php_test011b.sql");
 
-exit;
+exit(0);

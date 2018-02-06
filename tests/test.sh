@@ -60,7 +60,7 @@ mysqldump -utravis test005 \
     > mysqldump_test005.sql
 ret[((index++))]=$?
 
-php test.php
+php test.php || { echo "ERROR running test.php" && exit; }
 ret[((index++))]=$?
 
 mysql -utravis test001 < mysqldump-php_test001.sql
