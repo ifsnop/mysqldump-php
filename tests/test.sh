@@ -69,7 +69,7 @@ mysqldump -utravis test012 \
     > mysqldump_test012.sql
 ret[((index++))]=$?
 
-php test.php
+php test.php || { echo "ERROR running test.php" && exit -1; }
 ret[((index++))]=$?
 
 mysql -utravis test001 < mysqldump-php_test001.sql
@@ -147,7 +147,7 @@ ret[((index++))]=$?
 diff mysqldump_test012.filtered.sql mysqldump-php_test012.filtered.sql
 ret[((index++))]=$?
 
-# Make sure we do not fine a DEFINER
+# Make sure we do not find a DEFINER
 ! grep 'DEFINER' mysqldump-php_test012_no-definer.sql
 ret[((index++))]=$?
 

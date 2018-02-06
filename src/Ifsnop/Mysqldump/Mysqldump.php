@@ -1845,9 +1845,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
         }
         $colInfo['is_numeric'] = in_array($colInfo['type'], $this->mysqlTypes['numerical']);
         $colInfo['is_blob'] = in_array($colInfo['type'], $this->mysqlTypes['blob']);
-        // for virtual 'Extra' -> "STORED GENERATED"
         $colInfo['is_virtual'] = strpos($colType['Extra'], "STORED GENERATED") === false ? false : true;
-
         return $colInfo;
     }
 
