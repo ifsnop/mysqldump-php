@@ -31,6 +31,15 @@ $dumpSettings = array(
     'where' => ''
     );
 
+// do nothing test
+print "starting mysql-php_test000.sql" . PHP_EOL;
+$dump = new IMysqldump\Mysqldump(
+    "mysql:host=localhost;dbname=test001",
+    "travis",
+    ""
+    );
+
+print "starting mysql-php_test001.sql" . PHP_EOL;
 $dump = new IMysqldump\Mysqldump(
     "mysql:host=localhost;dbname=test001",
     "travis",
@@ -38,6 +47,7 @@ $dump = new IMysqldump\Mysqldump(
     $dumpSettings);
 $dump->start("mysqldump-php_test001.sql");
 
+print "starting mysql-php_test002.sql" . PHP_EOL;
 $dumpSettings['default-character-set'] = IMysqldump\Mysqldump::UTF8MB4;
 $dumpSettings['complete-insert'] = true;
 $dump = new IMysqldump\Mysqldump(
@@ -47,6 +57,7 @@ $dump = new IMysqldump\Mysqldump(
     $dumpSettings);
 $dump->start("mysqldump-php_test002.sql");
 
+print "starting mysql-php_test005.sql" . PHP_EOL;
 $dumpSettings['complete-insert'] = false;
 $dump = new IMysqldump\Mysqldump(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test005",
@@ -55,6 +66,7 @@ $dump = new IMysqldump\Mysqldump(
     $dumpSettings);
 $dump->start("mysqldump-php_test005.sql");
 
+print "starting mysql-php_test006.sql" . PHP_EOL;
 $dump = new IMysqldump\Mysqldump(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test006a",
     "travis",
@@ -62,6 +74,7 @@ $dump = new IMysqldump\Mysqldump(
     array("no-data" => true, "add-drop-table" => true));
 $dump->start("mysqldump-php_test006.sql");
 
+print "starting mysql-php_test008.sql" . PHP_EOL;
 $dump = new IMysqldump\Mysqldump(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test008",
     "travis",
@@ -69,6 +82,7 @@ $dump = new IMysqldump\Mysqldump(
     array("no-data" => true, "add-drop-table" => true));
 $dump->start("mysqldump-php_test008.sql");
 
+print "starting mysql-php_test009.sql" . PHP_EOL;
 $dump = new IMysqldump\Mysqldump(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test009",
     "travis",
@@ -76,6 +90,7 @@ $dump = new IMysqldump\Mysqldump(
     array("no-data" => true, "add-drop-table" => true, "reset-auto-increment" => true, "add-drop-database" => true));
 $dump->start("mysqldump-php_test009.sql");
 
+print "starting mysql-php_test010.sql" . PHP_EOL;
 $dump = new IMysqldump\Mysqldump(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test010",
     "travis",
@@ -83,6 +98,7 @@ $dump = new IMysqldump\Mysqldump(
     array("events" => true));
 $dump->start("mysqldump-php_test010.sql");
 
+print "starting mysql-php_test011a.sql" . PHP_EOL;
 $dump = new IMysqldump\Mysqldump(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test011",
     "travis",
@@ -90,6 +106,7 @@ $dump = new IMysqldump\Mysqldump(
     array('complete-insert' =>  false));
 $dump->start("mysqldump-php_test011a.sql");
 
+print "starting mysql-php_test011b.sql" . PHP_EOL;
 $dump = new IMysqldump\Mysqldump(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test011",
     "travis",
@@ -97,4 +114,23 @@ $dump = new IMysqldump\Mysqldump(
     array('complete-insert' =>  true));
 $dump->start("mysqldump-php_test011b.sql");
 
-exit;
+print "starting mysql-php_test012.sql" . PHP_EOL;
+$dump = new IMysqldump\Mysqldump(
+    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test012",
+    "travis",
+    "",
+    array("events" => true));
+$dump->start("mysqldump-php_test012.sql");
+
+print "starting mysql-php_test012b_no-definer.sql" . PHP_EOL;
+$dump = new IMysqldump\Mysqldump(
+    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test012",
+    "travis",
+    "",
+    array(
+        "events" => true,
+        'skip-definer' => true,
+    ));
+$dump->start("mysqldump-php_test012_no-definer.sql");
+
+exit(0);
