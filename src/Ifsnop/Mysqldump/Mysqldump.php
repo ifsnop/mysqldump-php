@@ -1,12 +1,12 @@
 <?php
+
 /**
- * Mysqldump File Doc Comment
+ * PHP version of mysqldump cli that comes with MySQL
  *
- * PHP version 5
+ * mysql mysqldump pdo php7 php5 database php sql
  *
  * @category Library
  * @package  Ifsnop\Mysqldump
- * @author   Michael J. Calkins <clouddueling@github.com>
  * @author   Diego Torres <ifsnop@github.com>
  * @license  http://www.gnu.org/copyleft/gpl.html GNU General Public License
  * @link     https://github.com/ifsnop/mysqldump-php
@@ -20,11 +20,12 @@ use PDO;
 use PDOException;
 
 /**
- * Mysqldump Class Doc Comment
+ * PHP version of mysqldump cli that comes with MySQL
+ *
+ * mysql mysqldump pdo php7 php5 database php sql
  *
  * @category Library
  * @package  Ifsnop\Mysqldump
- * @author   Michael J. Calkins <clouddueling@github.com>
  * @author   Diego Torres <ifsnop@github.com>
  * @license  http://www.gnu.org/copyleft/gpl.html GNU General Public License
  * @link     https://github.com/ifsnop/mysqldump-php
