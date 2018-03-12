@@ -28,7 +28,8 @@ DROP TABLE IF EXISTS `test011`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `test011` (
   `id` int(11) NOT NULL,
-  `hash` char(32) CHARACTER SET ascii COLLATE ascii_bin GENERATED ALWAYS AS (md5(`id`)) STORED NOT NULL
+  `hash_stored` char(32) CHARACTER SET ascii COLLATE ascii_bin GENERATED ALWAYS AS (md5(`id`)) STORED NOT NULL,
+  `hash_virtual` char(32) CHARACTER SET ascii COLLATE ascii_bin GENERATED ALWAYS AS (md5(`id`)) VIRTUAL NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

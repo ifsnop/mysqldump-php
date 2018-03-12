@@ -92,7 +92,7 @@ cat test002.src.sql | grep ^INSERT > test002.filtered.sql
 cat test005.src.sql | grep ^INSERT > test005.filtered.sql
 cat test008.src.sql | grep FOREIGN > test008.filtered.sql
 cat test010.src.sql | grep CREATE | grep EVENT > test010.filtered.sql
-cat test011.src.sql | grep INSERT > test011.filtered.sql
+cat test011.src.sql | egrep "INSERT|GENERATED" > test011.filtered.sql
 cat mysqldump_test001.sql | grep ^INSERT > mysqldump_test001.filtered.sql
 cat mysqldump_test002.sql | grep ^INSERT > mysqldump_test002.filtered.sql
 cat mysqldump_test005.sql | grep ^INSERT > mysqldump_test005.filtered.sql
@@ -102,8 +102,8 @@ cat mysqldump-php_test002.sql | grep ^INSERT > mysqldump-php_test002.filtered.sq
 cat mysqldump-php_test005.sql | grep ^INSERT > mysqldump-php_test005.filtered.sql
 cat mysqldump-php_test008.sql | grep FOREIGN > mysqldump-php_test008.filtered.sql
 cat mysqldump-php_test010.sql | grep CREATE | grep EVENT > mysqldump-php_test010.filtered.sql
-cat mysqldump-php_test011a.sql | grep INSERT > mysqldump-php_test011a.filtered.sql
-cat mysqldump-php_test011b.sql | grep INSERT > mysqldump-php_test011b.filtered.sql
+cat mysqldump-php_test011a.sql | egrep "INSERT|GENERATED" > mysqldump-php_test011a.filtered.sql
+cat mysqldump-php_test011b.sql | egrep "INSERT|GENERATED" > mysqldump-php_test011b.filtered.sql
 cat mysqldump-php_test012.sql | grep -E -e '50001 (CREATE|VIEW)' -e '50013 DEFINER' -e 'CREATE.*TRIGGER' > mysqldump-php_test012.filtered.sql
 
 diff test001.filtered.sql mysqldump_test001.filtered.sql

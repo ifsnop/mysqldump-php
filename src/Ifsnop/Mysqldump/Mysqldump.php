@@ -1849,7 +1849,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
         // for virtual 'Extra' -> "STORED GENERATED" OR "VIRTUAL GENERATED"
         // MySQL reference: https://dev.mysql.com/doc/refman/5.7/en/create-table-generated-columns.html
         $colInfo['is_virtual'] = strpos($colType['Extra'], "VIRTUAL GENERATED") !== false || strpos($colType['Extra'], "STORED GENERATED") !== false;
-      
+
         return $colInfo;
     }
 
