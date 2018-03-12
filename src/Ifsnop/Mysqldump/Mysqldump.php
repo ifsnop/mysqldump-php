@@ -864,6 +864,7 @@ class Mysqldump
         $lineSize = 0;
 
         $colStmt = $this->getColumnStmt($tableName);
+        $colNames = $this->getColumnNames($tableName);
         $stmt = "SELECT " . implode(",", $colStmt) . " FROM `$tableName`";
 
         if ($this->dumpSettings['where']) {
@@ -879,7 +880,7 @@ class Mysqldump
                 if ($this->dumpSettings['complete-insert']) {
                     $lineSize += $this->compressManager->write(
                         "INSERT INTO `$tableName` (" .
-                        implode(", ", $colStmt) .
+                        implode(", ", $colNames) .
                         ") VALUES (" . implode(",", $vals) . ")"
                     );
                 } else {
@@ -996,7 +997,7 @@ class Mysqldump
     }
 
     /**
-     * Build SQL List of all columns on current table
+     * Build SQL List of all columns on current table which will be used for selecting
      *
      * @param string $tableName  Name of table to get columns
      *
@@ -1019,6 +1020,23 @@ class Mysqldump
         }
 
         return $colStmt;
+    }
+
+    /**
+     * Build SQL List of all columns on current table which will be used for inserting
+     *
+     * @param string $tableName  Name of table to get columns
+     *
+     * @return string SQL sentence with columns
+     */
+    function getColumnNames($tableName)
+    {
+        $colNames = array();
+        foreach($this->tableColumnTypes[$tableName] as $colName => $colType) {
+            $colNames[] = "`${colName}`";
+        }
+
+        return $colNames;
     }
 }
 
