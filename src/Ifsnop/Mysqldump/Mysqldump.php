@@ -193,6 +193,16 @@ class Mysqldump
     }
 
     /**
+     * Get table column types.
+     *
+     * @return array
+     */
+    protected function tableColumnTypes()
+    {
+      return $this->tableColumnTypes;
+    }
+
+    /**
      * Custom array_replace_recursive to be used if PHP < 5.3
      * Replaces elements from passed arrays into the first array recursively
      *
