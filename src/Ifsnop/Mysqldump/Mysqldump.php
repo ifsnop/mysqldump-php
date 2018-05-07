@@ -832,6 +832,7 @@ class Mysqldump
         $ret = array();
         $columnTypes = $this->tableColumnTypes[$tableName];
         foreach ($row as $colName => $colValue) {
+            $colValue = $this->transformValuesBeforeEscaping($tableName, $colName, $colValue);
             if (is_null($colValue)) {
                 $ret[] = "NULL";
             } elseif ($this->dumpSettings['hex-blob'] && $columnTypes[$colName]['is_blob']) {
@@ -847,6 +848,21 @@ class Mysqldump
             }
         }
         return $ret;
+    }
+
+    /**
+     * Give extending classes an opportunity to transform the output before dumping to file
+     * 
+     * @param string $tableName Name of table which contains rows
+     * @param string $colName Name of the column in question
+     * @param string $colValue Value of the column in question
+     * 
+     * @return string
+     *
+     */
+    protected function transformValuesBeforeEscaping($tablename, $colName, $colValue)
+    {
+      return $colValue;
     }
 
     /**
