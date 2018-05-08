@@ -832,14 +832,15 @@ class Mysqldump
      *
      * @return array
      */
-   private function prepareFieldValues($tableName, $row)
+   private function prepareColumnValues($tableName, $row)
    {
-       $ret = array();
+       $ret = [];
        $columnTypes = $this->tableColumnTypes[$tableName];
        foreach ($row as $colName => $colValue) {
            $colValue = $this->hookTransformColumnValue($tableName, $colName, $colValue);
            $ret[] = $this->escape($colValue, $columnTypes[$colName]);
        }
+
        return $ret;
    }
 
@@ -863,13 +864,13 @@ class Mysqldump
             }
         } elseif ($colType['is_numeric']) {
             return $colValue;
-        } else {
-            return $this->dbHandler->quote($colValue);
         }
+
+        return $this->dbHandler->quote($colValue);
     }
 
     /**
-     * Give extending classes an opportunity to transform field values
+     * Give extending classes an opportunity to transform column values
      * 
      * @param string $tableName Name of table which contains rows
      * @param string $colName Name of the column in question
@@ -907,7 +908,7 @@ class Mysqldump
         $resultSet->setFetchMode(PDO::FETCH_ASSOC);
 
         foreach ($resultSet as $row) {
-            $vals = $this->prepareFieldValues($tableName, $row);
+            $vals = $this->prepareColumnValues($tableName, $row);
             if ($onlyOnce || !$this->dumpSettings['extended-insert']) {
 
                 if ($this->dumpSettings['complete-insert']) {
