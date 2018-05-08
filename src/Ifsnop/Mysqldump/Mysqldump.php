@@ -825,6 +825,25 @@ class Mysqldump
     }
 
     /**
+     * Prepare values for output
+     *
+     * @param string $tableName Name of table which contains rows
+     * @param array $row Associative array of column names and values to be quoted
+     *
+     * @return array
+     */
+   private function prepareFieldValues($tableName, $row)
+   {
+       $ret = array();
+       $columnTypes = $this->tableColumnTypes[$tableName];
+       foreach ($row as $colName => $colValue) {
+           $colValue = $this->hookTransformColumnValue($tableName, $colName, $colValue);
+           $ret[] = $this->escape($colValue, $columnTypes[$colName]);
+       }
+       return $ret;
+   }
+
+    /**
      * Escape values with quotes when needed
      *
      * @param string $tableName Name of table which contains rows
@@ -832,31 +851,25 @@ class Mysqldump
      *
      * @return string
      */
-    private function escape($tableName, $row)
+    private function escape($colValue, $colType)
     {
-        $ret = array();
-        $columnTypes = $this->tableColumnTypes[$tableName];
-        foreach ($row as $colName => $colValue) {
-            $colValue = $this->transformValuesBeforeEscaping($tableName, $colName, $colValue);
-            if (is_null($colValue)) {
-                $ret[] = "NULL";
-            } elseif ($this->dumpSettings['hex-blob'] && $columnTypes[$colName]['is_blob']) {
-                if ($columnTypes[$colName]['type'] == 'bit' || !empty($colValue)) {
-                    $ret[] = "0x${colValue}";
-                } else {
-                    $ret[] = "''";
-                }
-            } elseif ($columnTypes[$colName]['is_numeric']) {
-                $ret[] = $colValue;
+        if (is_null($colValue)) {
+            return "NULL";
+        } elseif ($this->dumpSettings['hex-blob'] && $colType['is_blob']) {
+            if ($colType['type'] == 'bit' || !empty($colValue)) {
+                return "0x${colValue}";
             } else {
-                $ret[] = $this->dbHandler->quote($colValue);
+                return "''";
             }
+        } elseif ($colType['is_numeric']) {
+            return $colValue;
+        } else {
+            return $this->dbHandler->quote($colValue);
         }
-        return $ret;
     }
 
     /**
-     * Give extending classes an opportunity to transform the output before dumping to file
+     * Give extending classes an opportunity to transform field values
      * 
      * @param string $tableName Name of table which contains rows
      * @param string $colName Name of the column in question
@@ -865,7 +878,7 @@ class Mysqldump
      * @return string
      *
      */
-    protected function transformValuesBeforeEscaping($tablename, $colName, $colValue)
+    protected function hookTransformColumnValue($tablename, $colName, $colValue)
     {
       return $colValue;
     }
@@ -894,7 +907,7 @@ class Mysqldump
         $resultSet->setFetchMode(PDO::FETCH_ASSOC);
 
         foreach ($resultSet as $row) {
-            $vals = $this->escape($tableName, $row);
+            $vals = $this->prepareFieldValues($tableName, $row);
             if ($onlyOnce || !$this->dumpSettings['extended-insert']) {
 
                 if ($this->dumpSettings['complete-insert']) {
