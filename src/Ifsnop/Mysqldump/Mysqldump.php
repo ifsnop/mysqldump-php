@@ -828,21 +828,22 @@ class Mysqldump
      * Prepare values for output
      *
      * @param string $tableName Name of table which contains rows
-     * @param array $row Associative array of column names and values to be quoted
+     * @param array $row Associative array of column names and values to be
+     *   quoted
      *
      * @return array
      */
-   private function prepareColumnValues($tableName, $row)
-   {
-       $ret = [];
-       $columnTypes = $this->tableColumnTypes[$tableName];
-       foreach ($row as $colName => $colValue) {
-           $colValue = $this->hookTransformColumnValue($tableName, $colName, $colValue);
-           $ret[] = $this->escape($colValue, $columnTypes[$colName]);
-       }
+    private function prepareColumnValues($tableName, $row)
+    {
+        $ret = [];
+        $columnTypes = $this->tableColumnTypes[$tableName];
+        foreach ($row as $colName => $colValue) {
+            $colValue = $this->hookTransformColumnValue($tableName, $colName, $colValue);
+            $ret[] = $this->escape($colValue, $columnTypes[$colName]);
+        }
 
-       return $ret;
-   }
+        return $ret;
+    }
 
     /**
      * Escape values with quotes when needed
