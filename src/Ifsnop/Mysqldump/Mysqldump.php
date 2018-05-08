@@ -875,7 +875,7 @@ class Mysqldump
      * @return string
      *
      */
-    protected function hookTransformColumnValue($tablename, $colName, $colValue)
+    protected function hookTransformColumnValue($tableName, $colName, $colValue)
     {
       return $colValue;
     }
