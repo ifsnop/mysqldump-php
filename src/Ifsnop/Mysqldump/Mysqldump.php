@@ -151,12 +151,17 @@ class Mysqldump
         $pdoSettingsDefault = array(
             PDO::ATTR_PERSISTENT => true,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false
         );
 
         $this->user = $user;
         $this->pass = $pass;
         $this->parseDsn($dsn);
+
+        // this drops MYSQL dependency, only use the constant if it's defined
+        if ( "mysql" == $this->dbType ) {
+            $pdoSettingsDefault[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = false;
+        }
+
         $this->pdoSettings = self::array_replace_recursive($pdoSettingsDefault, $pdoSettings);
         $this->dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dumpSettings);
 
