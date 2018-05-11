@@ -47,24 +47,24 @@ class Mysqldump
     const UTF8MB4 = 'utf8mb4';
 
     /**
-    * Database username
-    * @var string
-    */
+     * Database username
+     * @var string
+     */
     public $user;
     /**
-    * Database password
-    * @var string
-    */
+     * Database password
+     * @var string
+     */
     public $pass;
     /**
-    * Connection string for PDO
-    * @var string
-    */
+     * Connection string for PDO
+     * @var string
+     */
     public $dsn;
     /**
-    * Destination filename, defaults to stdout
-    * @var string
-    */
+     * Destination filename, defaults to stdout
+     * @var string
+     */
     public $fileName = 'php://output';
 
     // Internal stuff
@@ -74,7 +74,7 @@ class Mysqldump
     private $procedures = array();
     private $events = array();
     private $dbHandler = null;
-    private $dbType;
+    private $dbType = "";
     private $compressManager;
     private $typeAdapter;
     private $dumpSettings = array();
@@ -82,19 +82,19 @@ class Mysqldump
     private $version;
     private $tableColumnTypes = array();
     /**
-    * database name, parsed from dsn
-    * @var string
-    */
+     * database name, parsed from dsn
+     * @var string
+     */
     private $dbName;
     /**
-    * host name, parsed from dsn
-    * @var string
-    */
+     * host name, parsed from dsn
+     * @var string
+     */
     private $host;
     /**
-    * dsn string parsed as an array
-    * @var array
-    */
+     * dsn string parsed as an array
+     * @var array
+     */
     private $dsnArray = array();
 
     /**
@@ -158,13 +158,12 @@ class Mysqldump
         $this->parseDsn($dsn);
 
         // this drops MYSQL dependency, only use the constant if it's defined
-        if ( "mysql" == $this->dbType ) {
+        if ( "mysql" === $this->dbType ) {
             $pdoSettingsDefault[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = false;
         }
 
         $this->pdoSettings = self::array_replace_recursive($pdoSettingsDefault, $pdoSettings);
         $this->dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dumpSettings);
-
         $this->dumpSettings['init_commands'][] = "SET NAMES " . $this->dumpSettings['default-character-set'];
 
         if (false === $this->dumpSettings['skip-tz-utc']) {
@@ -264,6 +263,11 @@ class Mysqldump
         }
 
         $this->dbName = $this->dsnArray['dbname'];
+
+        // safety check
+        if ( !is_string($this->dbType) ) {
+            throw new Exception("Invalid database type definition in DSN string");
+        }
 
         return true;
     }
@@ -872,17 +876,19 @@ class Mysqldump
 
     /**
      * Give extending classes an opportunity to transform column values
-     * 
+     *
      * @param string $tableName Name of table which contains rows
      * @param string $colName Name of the column in question
      * @param string $colValue Value of the column in question
-     * 
-     * @return string
      *
+     * @return string
      */
-    protected function hookTransformColumnValue($tableName, $colName, $colValue)
+    protected function hookTransformColumnValue(
+        /** @scrutinizer ignore-unused */ $tableName,
+        /** @scrutinizer ignore-unused */ $colName,
+        $colValue)
     {
-      return $colValue;
+        return $colValue;
     }
 
     /**
@@ -1036,7 +1042,7 @@ class Mysqldump
      *
      * @param string $tableName  Name of table to get columns
      *
-     * @return string SQL sentence with columns
+     * @return array SQL sentence with columns
      */
     function getColumnStmt($tableName)
     {
@@ -1870,19 +1876,17 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $colInfo = array();
         $colParts = explode(" ", $colType['Type']);
 
-        if($fparen = strpos($colParts[0], "("))
-        {
+        if($fparen = strpos($colParts[0], "(")) {
             $colInfo['type'] = substr($colParts[0], 0, $fparen);
             $colInfo['length']  = str_replace(")", "", substr($colParts[0], $fparen+1));
             $colInfo['attributes'] = isset($colParts[1]) ? $colParts[1] : NULL;
-        }
-        else
-        {
+        } else {
             $colInfo['type'] = $colParts[0];
         }
         $colInfo['is_numeric'] = in_array($colInfo['type'], $this->mysqlTypes['numerical']);
         $colInfo['is_blob'] = in_array($colInfo['type'], $this->mysqlTypes['blob']);
-        // for virtual 'Extra' -> "STORED GENERATED" OR "VIRTUAL GENERATED"
+        // for virtual columns that are of type 'Extra', column type
+        // could by "STORED GENERATED" or "VIRTUAL GENERATED"
         // MySQL reference: https://dev.mysql.com/doc/refman/5.7/en/create-table-generated-columns.html
         $colInfo['is_virtual'] = strpos($colType['Extra'], "VIRTUAL GENERATED") !== false || strpos($colType['Extra'], "STORED GENERATED") !== false;
 
