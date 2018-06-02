@@ -1074,7 +1074,7 @@ class Mysqldump
      * @return string
      */
     function hookTransformColumnStmt(
-        /** @scrutinizer ignore-unused */ $tableName,
+      /** @scrutinizer ignore-unused */ $tableName,
       /** @scrutinizer ignore-unused */ $colName,
       /** @scrutinizer ignore-unused */ $colType) {
         return;
