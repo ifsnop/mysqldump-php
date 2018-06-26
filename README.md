@@ -128,6 +128,7 @@ $dumpSettingsDefault = array(
     'extended-insert' => true,
     'events' => false,
     'hex-blob' => true, /* faster than escaped content */
+    'insert-ignore' => false,
     'net_buffer_length' => self::MAXLINESIZE,
     'no-autocommit' => true,
     'no-create-info' => false,
@@ -192,6 +193,8 @@ $this->_dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dump
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert
 - **hex-blob**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_hex-blob
+- **insert-ignore**
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_insert-ignore
 - **lock-tables**
   - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_lock-tables
 - **net_buffer_length**
