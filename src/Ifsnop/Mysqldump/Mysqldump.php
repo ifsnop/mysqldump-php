@@ -237,7 +237,7 @@ class Mysqldump
         }
 
         $this->dsn = $dsn;
-        $this->dbType = strtolower(substr($dsn, 0, $pos));
+        $this->dbType = strtolower(substr($dsn, 0, $pos)); // always returns a string
 
         if (empty($this->dbType)) {
             throw new Exception("Missing database type from DSN string");
@@ -263,11 +263,6 @@ class Mysqldump
         }
 
         $this->dbName = $this->dsnArray['dbname'];
-
-        // safety check
-        if ( !is_string($this->dbType) ) {
-            throw new Exception("Invalid database type definition in DSN string");
-        }
 
         return true;
     }
