@@ -158,25 +158,25 @@ class Mysqldump
         $this->parseDsn($dsn);
 
         // this drops MYSQL dependency, only use the constant if it's defined
-        if ( "mysql" === $this->dbType ) {
+        if ("mysql" === $this->dbType) {
             $pdoSettingsDefault[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = false;
         }
 
         $this->pdoSettings = self::array_replace_recursive($pdoSettingsDefault, $pdoSettings);
         $this->dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dumpSettings);
-        $this->dumpSettings['init_commands'][] = "SET NAMES " . $this->dumpSettings['default-character-set'];
+        $this->dumpSettings['init_commands'][] = "SET NAMES ".$this->dumpSettings['default-character-set'];
 
         if (false === $this->dumpSettings['skip-tz-utc']) {
             $this->dumpSettings['init_commands'][] = "SET TIME_ZONE='+00:00'";
         }
 
         $diff = array_diff(array_keys($this->dumpSettings), array_keys($dumpSettingsDefault));
-        if (count($diff)>0) {
-            throw new Exception("Unexpected value in dumpSettings: (" . implode(",", $diff) . ")");
+        if (count($diff) > 0) {
+            throw new Exception("Unexpected value in dumpSettings: (".implode(",", $diff).")");
         }
 
-        if ( !is_array($this->dumpSettings['include-tables']) ||
-            !is_array($this->dumpSettings['exclude-tables']) ) {
+        if (!is_array($this->dumpSettings['include-tables']) ||
+            !is_array($this->dumpSettings['exclude-tables'])) {
             throw new Exception("Include-tables and exclude-tables should be arrays");
         }
 
@@ -245,7 +245,7 @@ class Mysqldump
 
         $dsn = substr($dsn, $pos + 1);
 
-        foreach(explode(";", $dsn) as $kvp) {
+        foreach (explode(";", $dsn) as $kvp) {
             $kvpArr = explode("=", $kvp);
             $this->dsnArray[strtolower($kvpArr[0])] = $kvpArr[1];
         }
@@ -255,8 +255,7 @@ class Mysqldump
             throw new Exception("Missing host from DSN string");
         }
         $this->host = (!empty($this->dsnArray['host'])) ?
-            $this->dsnArray['host'] :
-            $this->dsnArray['unix_socket'];
+            $this->dsnArray['host'] : $this->dsnArray['unix_socket'];
 
         if (empty($this->dsnArray['dbname'])) {
             throw new Exception("Missing database name from DSN string");
@@ -278,7 +277,7 @@ class Mysqldump
         try {
             switch ($this->dbType) {
                 case 'sqlite':
-                    $this->dbHandler = @new PDO("sqlite:" . $this->dbName, null, null, $this->pdoSettings);
+                    $this->dbHandler = @new PDO("sqlite:".$this->dbName, null, null, $this->pdoSettings);
                     break;
                 case 'mysql':
                 case 'pgsql':
@@ -290,24 +289,24 @@ class Mysqldump
                         $this->pdoSettings
                     );
                     // Execute init commands once connected
-                    foreach($this->dumpSettings['init_commands'] as $stmt) {
+                    foreach ($this->dumpSettings['init_commands'] as $stmt) {
                         $this->dbHandler->exec($stmt);
                     }
                     // Store server version
                     $this->version = $this->dbHandler->getAttribute(PDO::ATTR_SERVER_VERSION);
                     break;
                 default:
-                    throw new Exception("Unsupported database type (" . $this->dbType . ")");
+                    throw new Exception("Unsupported database type (".$this->dbType.")");
             }
         } catch (PDOException $e) {
             throw new Exception(
-                "Connection to " . $this->dbType . " failed with message: " .
+                "Connection to ".$this->dbType." failed with message: ".
                 $e->getMessage()
             );
         }
 
-        if ( is_null($this->dbHandler) ) {
-            throw new Exception("Connection to ". $this->dbType . "failed");
+        if (is_null($this->dbHandler)) {
+            throw new Exception("Connection to ".$this->dbType."failed");
         }
 
         $this->dbHandler->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
@@ -367,7 +366,7 @@ class Mysqldump
         // This check will be removed once include-tables supports regexps
         if (0 < count($this->dumpSettings['include-tables'])) {
             $name = implode(",", $this->dumpSettings['include-tables']);
-            throw new Exception("Table (" . $name . ") not found in database");
+            throw new Exception("Table (".$name.") not found in database");
         }
 
         $this->exportTables();
@@ -394,19 +393,19 @@ class Mysqldump
     private function getDumpFileHeader()
     {
         $header = '';
-        if ( !$this->dumpSettings['skip-comments'] ) {
+        if (!$this->dumpSettings['skip-comments']) {
             // Some info about software, source and time
-            $header = "-- mysqldump-php https://github.com/ifsnop/mysqldump-php" . PHP_EOL .
-                    "--" . PHP_EOL .
-                    "-- Host: {$this->host}\tDatabase: {$this->dbName}" . PHP_EOL .
-                    "-- ------------------------------------------------------" . PHP_EOL;
+            $header = "-- mysqldump-php https://github.com/ifsnop/mysqldump-php".PHP_EOL.
+                    "--".PHP_EOL.
+                    "-- Host: {$this->host}\tDatabase: {$this->dbName}".PHP_EOL.
+                    "-- ------------------------------------------------------".PHP_EOL;
 
-            if ( !empty($this->version) ) {
-                $header .= "-- Server version \t" . $this->version . PHP_EOL;
+            if (!empty($this->version)) {
+                $header .= "-- Server version \t".$this->version.PHP_EOL;
             }
 
-            if ( !$this->dumpSettings['skip-dump-date'] ) {
-                $header .= "-- Date: " . date('r') . PHP_EOL . PHP_EOL;
+            if (!$this->dumpSettings['skip-dump-date']) {
+                $header .= "-- Date: ".date('r').PHP_EOL.PHP_EOL;
             }
         }
         return $header;
@@ -423,7 +422,7 @@ class Mysqldump
         if (!$this->dumpSettings['skip-comments']) {
             $footer .= '-- Dump completed';
             if (!$this->dumpSettings['skip-dump-date']) {
-                $footer .= ' on: ' . date('r');
+                $footer .= ' on: '.date('r');
             }
             $footer .= PHP_EOL;
         }
@@ -511,10 +510,10 @@ class Mysqldump
         $match = false;
 
         foreach ($arr as $pattern) {
-            if ( '/' != $pattern[0] ) {
+            if ('/' != $pattern[0]) {
                 continue;
             }
-            if ( 1 == preg_match($pattern, $table) ) {
+            if (1 == preg_match($pattern, $table)) {
                 $match = true;
             }
         }
@@ -531,14 +530,14 @@ class Mysqldump
     {
         // Exporting tables one by one
         foreach ($this->tables as $table) {
-            if ( $this->matches($table, $this->dumpSettings['exclude-tables']) ) {
+            if ($this->matches($table, $this->dumpSettings['exclude-tables'])) {
                 continue;
             }
             $this->getTableStructure($table);
-            if ( false === $this->dumpSettings['no-data'] ) { // don't break compatibility with old trigger
+            if (false === $this->dumpSettings['no-data']) { // don't break compatibility with old trigger
                 $this->listValues($table);
-            } else if ( true === $this->dumpSettings['no-data']
-                 || $this->matches($table, $this->dumpSettings['no-data']) ) {
+            } else if (true === $this->dumpSettings['no-data']
+                 || $this->matches($table, $this->dumpSettings['no-data'])) {
                 continue;
             } else {
                 $this->listValues($table);
@@ -556,14 +555,14 @@ class Mysqldump
         if (false === $this->dumpSettings['no-create-info']) {
             // Exporting views one by one
             foreach ($this->views as $view) {
-                if ( $this->matches($view, $this->dumpSettings['exclude-tables']) ) {
+                if ($this->matches($view, $this->dumpSettings['exclude-tables'])) {
                     continue;
                 }
                 $this->tableColumnTypes[$view] = $this->getTableColumnTypes($view);
                 $this->getViewStructureTable($view);
             }
             foreach ($this->views as $view) {
-                if ( $this->matches($view, $this->dumpSettings['exclude-tables']) ) {
+                if ($this->matches($view, $this->dumpSettings['exclude-tables'])) {
                     continue;
                 }
                 $this->getViewStructureView($view);
@@ -622,9 +621,9 @@ class Mysqldump
         if (!$this->dumpSettings['no-create-info']) {
             $ret = '';
             if (!$this->dumpSettings['skip-comments']) {
-                $ret = "--" . PHP_EOL .
-                    "-- Table structure for table `$tableName`" . PHP_EOL .
-                    "--" . PHP_EOL . PHP_EOL;
+                $ret = "--".PHP_EOL.
+                    "-- Table structure for table `$tableName`".PHP_EOL.
+                    "--".PHP_EOL.PHP_EOL;
             }
             $stmt = $this->typeAdapter->show_create_table($tableName);
             foreach ($this->dbHandler->query($stmt) as $r) {
@@ -658,7 +657,7 @@ class Mysqldump
         );
         $columns->setFetchMode(PDO::FETCH_ASSOC);
 
-        foreach($columns as $key => $col) {
+        foreach ($columns as $key => $col) {
             $types = $this->typeAdapter->parseColumnType($col);
             $columnTypes[$col['Field']] = array(
                 'is_numeric'=> $types['is_numeric'],
@@ -682,9 +681,9 @@ class Mysqldump
     private function getViewStructureTable($viewName)
     {
         if (!$this->dumpSettings['skip-comments']) {
-            $ret = "--" . PHP_EOL .
-                "-- Stand-In structure for view `${viewName}`" . PHP_EOL .
-                "--" . PHP_EOL . PHP_EOL;
+            $ret = "--".PHP_EOL.
+                "-- Stand-In structure for view `${viewName}`".PHP_EOL.
+                "--".PHP_EOL.PHP_EOL;
             $this->compressManager->write($ret);
         }
         $stmt = $this->typeAdapter->show_create_view($viewName);
@@ -713,13 +712,13 @@ class Mysqldump
      */
     function createStandInTable($viewName) {
         $ret = array();
-        foreach($this->tableColumnTypes[$viewName] as $k => $v) {
+        foreach ($this->tableColumnTypes[$viewName] as $k => $v) {
             $ret[] = "`${k}` ${v['type_sql']}";
         }
-        $ret = implode(PHP_EOL . ",", $ret);
+        $ret = implode(PHP_EOL.",", $ret);
 
-        $ret = "CREATE TABLE IF NOT EXISTS `$viewName` (" .
-            PHP_EOL . $ret . PHP_EOL . ");" . PHP_EOL;
+        $ret = "CREATE TABLE IF NOT EXISTS `$viewName` (".
+            PHP_EOL.$ret.PHP_EOL.");".PHP_EOL;
 
         return $ret;
     }
@@ -734,9 +733,9 @@ class Mysqldump
     private function getViewStructureView($viewName)
     {
         if (!$this->dumpSettings['skip-comments']) {
-            $ret = "--" . PHP_EOL .
-                "-- View structure for view `${viewName}`" . PHP_EOL .
-                "--" . PHP_EOL . PHP_EOL;
+            $ret = "--".PHP_EOL.
+                "-- View structure for view `${viewName}`".PHP_EOL.
+                "--".PHP_EOL.PHP_EOL;
             $this->compressManager->write($ret);
         }
         $stmt = $this->typeAdapter->show_create_view($viewName);
@@ -786,9 +785,9 @@ class Mysqldump
     private function getProcedureStructure($procedureName)
     {
         if (!$this->dumpSettings['skip-comments']) {
-            $ret = "--" . PHP_EOL .
-                "-- Dumping routines for database '" . $this->dbName . "'" . PHP_EOL .
-                "--" . PHP_EOL . PHP_EOL;
+            $ret = "--".PHP_EOL.
+                "-- Dumping routines for database '".$this->dbName."'".PHP_EOL.
+                "--".PHP_EOL.PHP_EOL;
             $this->compressManager->write($ret);
         }
         $stmt = $this->typeAdapter->show_create_procedure($procedureName);
@@ -809,9 +808,9 @@ class Mysqldump
     private function getEventStructure($eventName)
     {
         if (!$this->dumpSettings['skip-comments']) {
-            $ret = "--" . PHP_EOL .
-                "-- Dumping events for database '" . $this->dbName . "'" . PHP_EOL .
-                "--" . PHP_EOL . PHP_EOL;
+            $ret = "--".PHP_EOL.
+                "-- Dumping events for database '".$this->dbName."'".PHP_EOL.
+                "--".PHP_EOL.PHP_EOL;
             $this->compressManager->write($ret);
         }
         $stmt = $this->typeAdapter->show_create_event($eventName);
@@ -901,7 +900,7 @@ class Mysqldump
         $lineSize = 0;
 
         $colStmt = $this->getColumnStmt($tableName);
-        $stmt = "SELECT " . implode(",", $colStmt) . " FROM `$tableName`";
+        $stmt = "SELECT ".implode(",", $colStmt)." FROM `$tableName`";
 
         if ($this->dumpSettings['where']) {
             $stmt .= " WHERE {$this->dumpSettings['where']}";
@@ -915,29 +914,29 @@ class Mysqldump
 
                 if ($this->dumpSettings['complete-insert']) {
                     $lineSize += $this->compressManager->write(
-                        "INSERT INTO `$tableName` (" .
-                        implode(", ", $colStmt) .
-                        ") VALUES (" . implode(",", $vals) . ")"
+                        "INSERT INTO `$tableName` (".
+                        implode(", ", $colStmt).
+                        ") VALUES (".implode(",", $vals).")"
                     );
                 } else {
                     $lineSize += $this->compressManager->write(
-                        "INSERT INTO `$tableName` VALUES (" . implode(",", $vals) . ")"
+                        "INSERT INTO `$tableName` VALUES (".implode(",", $vals).")"
                     );
                 }
                 $onlyOnce = false;
             } else {
-                $lineSize += $this->compressManager->write(",(" . implode(",", $vals) . ")");
+                $lineSize += $this->compressManager->write(",(".implode(",", $vals).")");
             }
             if (($lineSize > $this->dumpSettings['net_buffer_length']) ||
                     !$this->dumpSettings['extended-insert']) {
                 $onlyOnce = true;
-                $lineSize = $this->compressManager->write(";" . PHP_EOL);
+                $lineSize = $this->compressManager->write(";".PHP_EOL);
             }
         }
         $resultSet->closeCursor();
 
         if (!$onlyOnce) {
-            $this->compressManager->write(";" . PHP_EOL);
+            $this->compressManager->write(";".PHP_EOL);
         }
 
         $this->endListValues($tableName);
@@ -954,9 +953,9 @@ class Mysqldump
     {
         if (!$this->dumpSettings['skip-comments']) {
             $this->compressManager->write(
-                "--" . PHP_EOL .
-                "-- Dumping data for table `$tableName`" .  PHP_EOL .
-                "--" . PHP_EOL . PHP_EOL
+                "--".PHP_EOL.
+                "-- Dumping data for table `$tableName`".PHP_EOL.
+                "--".PHP_EOL.PHP_EOL
             );
         }
 
@@ -1042,7 +1041,7 @@ class Mysqldump
     function getColumnStmt($tableName)
     {
         $colStmt = array();
-        foreach($this->tableColumnTypes[$tableName] as $colName => $colType) {
+        foreach ($this->tableColumnTypes[$tableName] as $colName => $colType) {
             if ($colType['type'] == 'bit' && $this->dumpSettings['hex-blob']) {
                 $colStmt[] = "LPAD(HEX(`${colName}`),2,'0') AS `${colName}`";
             } else if ($colType['is_blob'] && $this->dumpSettings['hex-blob']) {
@@ -1090,11 +1089,11 @@ abstract class CompressManagerFactory
     public static function create($c)
     {
         $c = ucfirst(strtolower($c));
-        if (! CompressMethod::isValid($c)) {
+        if (!CompressMethod::isValid($c)) {
             throw new Exception("Compression method ($c) is not defined yet");
         }
 
-        $method =  __NAMESPACE__ . "\\" . "Compress" . $c;
+        $method = __NAMESPACE__."\\"."Compress".$c;
 
         return new $method;
     }
@@ -1106,7 +1105,7 @@ class CompressBzip2 extends CompressManagerFactory
 
     public function __construct()
     {
-        if (! function_exists("bzopen")) {
+        if (!function_exists("bzopen")) {
             throw new Exception("Compression is enabled, but bzip2 lib is not installed or configured properly");
         }
     }
@@ -1144,7 +1143,7 @@ class CompressGzip extends CompressManagerFactory
 
     public function __construct()
     {
-        if (! function_exists("gzopen")) {
+        if (!function_exists("gzopen")) {
             throw new Exception("Compression is enabled, but gzip lib is not installed or configured properly");
         }
     }
@@ -1244,10 +1243,10 @@ abstract class TypeAdapterFactory
     public static function create($c, $dbHandler = null, $dumpSettings = array())
     {
         $c = ucfirst(strtolower($c));
-        if (! TypeAdapter::isValid($c)) {
+        if (!TypeAdapter::isValid($c)) {
             throw new Exception("Database type support for ($c) not yet available");
         }
-        $method =  __NAMESPACE__ . "\\" . "TypeAdapter" . $c;
+        $method = __NAMESPACE__."\\"."TypeAdapter".$c;
         return new $method($dbHandler, $dumpSettings);
     }
 
@@ -1268,8 +1267,8 @@ abstract class TypeAdapterFactory
 
     public function show_create_table($tableName)
     {
-        return "SELECT tbl_name as 'Table', sql as 'Create Table' " .
-            "FROM sqlite_master " .
+        return "SELECT tbl_name as 'Table', sql as 'Create Table' ".
+            "FROM sqlite_master ".
             "WHERE type='table' AND tbl_name='$tableName'";
     }
 
@@ -1284,8 +1283,8 @@ abstract class TypeAdapterFactory
 
     public function show_create_view($viewName)
     {
-        return "SELECT tbl_name as 'View', sql as 'Create View' " .
-            "FROM sqlite_master " .
+        return "SELECT tbl_name as 'View', sql as 'Create View' ".
+            "FROM sqlite_master ".
             "WHERE type='view' AND tbl_name='$viewName'";
     }
 
@@ -1527,9 +1526,9 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $ret = "";
 
         $ret .= "CREATE DATABASE /*!32312 IF NOT EXISTS*/ `${databaseName}`".
-            " /*!40100 DEFAULT CHARACTER SET ${characterSet} " .
-            " COLLATE ${collationDb} */;" . PHP_EOL . PHP_EOL .
-            "USE `${databaseName}`;" . PHP_EOL . PHP_EOL;
+            " /*!40100 DEFAULT CHARACTER SET ${characterSet} ".
+            " COLLATE ${collationDb} */;".PHP_EOL.PHP_EOL.
+            "USE `${databaseName}`;".PHP_EOL.PHP_EOL;
 
         return $ret;
     }
@@ -1559,23 +1558,23 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return "SHOW CREATE EVENT `$eventName`";
     }
 
-    public function create_table( $row)
+    public function create_table($row)
     {
-        if ( !isset($row['Create Table']) ) {
+        if (!isset($row['Create Table'])) {
             throw new Exception("Error getting table code, unknown output");
         }
 
         $createTable = $row['Create Table'];
-        if ( $this->dumpSettings['reset-auto-increment'] ) {
+        if ($this->dumpSettings['reset-auto-increment']) {
             $match = "/AUTO_INCREMENT=[0-9]+/s";
             $replace = "";
             $createTable = preg_replace($match, $replace, $createTable);
         }
 
-        $ret = "/*!40101 SET @saved_cs_client     = @@character_set_client */;" . PHP_EOL .
-            "/*!40101 SET character_set_client = " . $this->dumpSettings['default-character-set'] . " */;" . PHP_EOL .
-            $createTable . ";" . PHP_EOL .
-            "/*!40101 SET character_set_client = @saved_cs_client */;" . PHP_EOL .
+        $ret = "/*!40101 SET @saved_cs_client     = @@character_set_client */;".PHP_EOL.
+            "/*!40101 SET character_set_client = ".$this->dumpSettings['default-character-set']." */;".PHP_EOL.
+            $createTable.";".PHP_EOL.
+            "/*!40101 SET character_set_client = @saved_cs_client */;".PHP_EOL.
             PHP_EOL;
         return $ret;
     }
@@ -1601,7 +1600,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
             $viewStmt = $viewStmtReplaced;
         };
 
-        $ret .= $viewStmt . ';' . PHP_EOL . PHP_EOL;
+        $ret .= $viewStmt.';'.PHP_EOL.PHP_EOL;
         return $ret;
     }
 
@@ -1623,9 +1622,9 @@ class TypeAdapterMysql extends TypeAdapterFactory
             $triggerStmt = $triggerStmtReplaced;
         }
 
-        $ret .= "DELIMITER ;;" . PHP_EOL .
-            $triggerStmt . ";;" . PHP_EOL .
-            "DELIMITER ;" . PHP_EOL . PHP_EOL;
+        $ret .= "DELIMITER ;;".PHP_EOL.
+            $triggerStmt.";;".PHP_EOL.
+            "DELIMITER ;".PHP_EOL.PHP_EOL;
         return $ret;
     }
 
@@ -1633,19 +1632,19 @@ class TypeAdapterMysql extends TypeAdapterFactory
     {
         $ret = "";
         if (!isset($row['Create Procedure'])) {
-            throw new Exception("Error getting procedure code, unknown output. " .
+            throw new Exception("Error getting procedure code, unknown output. ".
                 "Please check 'https://bugs.mysql.com/bug.php?id=14564'");
         }
         $procedureStmt = $row['Create Procedure'];
 
-        $ret .= "/*!50003 DROP PROCEDURE IF EXISTS `" .
-            $row['Procedure'] . "` */;" . PHP_EOL .
-            "/*!40101 SET @saved_cs_client     = @@character_set_client */;" . PHP_EOL .
-            "/*!40101 SET character_set_client = " . $this->dumpSettings['default-character-set'] . " */;" . PHP_EOL .
-            "DELIMITER ;;" . PHP_EOL .
-            $procedureStmt . " ;;" . PHP_EOL .
-            "DELIMITER ;" . PHP_EOL .
-            "/*!40101 SET character_set_client = @saved_cs_client */;" . PHP_EOL . PHP_EOL;
+        $ret .= "/*!50003 DROP PROCEDURE IF EXISTS `".
+            $row['Procedure']."` */;".PHP_EOL.
+            "/*!40101 SET @saved_cs_client     = @@character_set_client */;".PHP_EOL.
+            "/*!40101 SET character_set_client = ".$this->dumpSettings['default-character-set']." */;".PHP_EOL.
+            "DELIMITER ;;".PHP_EOL.
+            $procedureStmt." ;;".PHP_EOL.
+            "DELIMITER ;".PHP_EOL.
+            "/*!40101 SET character_set_client = @saved_cs_client */;".PHP_EOL.PHP_EOL;
 
         return $ret;
     }
@@ -1653,8 +1652,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
     public function create_event($row)
     {
         $ret = "";
-        if ( !isset($row['Create Event']) ) {
-            throw new Exception("Error getting event code, unknown output. " .
+        if (!isset($row['Create Event'])) {
+            throw new Exception("Error getting event code, unknown output. ".
                 "Please check 'http://stackoverflow.com/questions/10853826/mysql-5-5-create-event-gives-syntax-error'");
         }
         $eventName = $row['Event'];
@@ -1671,27 +1670,27 @@ class TypeAdapterMysql extends TypeAdapterFactory
             $eventStmt = $eventStmtReplaced;
         }
 
-        $ret .= "/*!50106 SET @save_time_zone= @@TIME_ZONE */ ;" . PHP_EOL .
-            "/*!50106 DROP EVENT IF EXISTS `" . $eventName . "` */;" . PHP_EOL .
-            "DELIMITER ;;" . PHP_EOL .
-            "/*!50003 SET @saved_cs_client      = @@character_set_client */ ;;" . PHP_EOL .
-            "/*!50003 SET @saved_cs_results     = @@character_set_results */ ;;" . PHP_EOL .
-            "/*!50003 SET @saved_col_connection = @@collation_connection */ ;;" . PHP_EOL .
-            "/*!50003 SET character_set_client  = utf8 */ ;;" . PHP_EOL .
-            "/*!50003 SET character_set_results = utf8 */ ;;" . PHP_EOL .
-            "/*!50003 SET collation_connection  = utf8_general_ci */ ;;" . PHP_EOL .
-            "/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;;" . PHP_EOL .
-            "/*!50003 SET sql_mode              = '" . $sqlMode . "' */ ;;" . PHP_EOL .
-            "/*!50003 SET @saved_time_zone      = @@time_zone */ ;;" . PHP_EOL .
-            "/*!50003 SET time_zone             = 'SYSTEM' */ ;;" . PHP_EOL .
-            $eventStmt . " ;;" . PHP_EOL .
-            "/*!50003 SET time_zone             = @saved_time_zone */ ;;" . PHP_EOL .
-            "/*!50003 SET sql_mode              = @saved_sql_mode */ ;;" . PHP_EOL .
-            "/*!50003 SET character_set_client  = @saved_cs_client */ ;;" . PHP_EOL .
-            "/*!50003 SET character_set_results = @saved_cs_results */ ;;" . PHP_EOL .
-            "/*!50003 SET collation_connection  = @saved_col_connection */ ;;" . PHP_EOL .
-            "DELIMITER ;" . PHP_EOL .
-            "/*!50106 SET TIME_ZONE= @save_time_zone */ ;" . PHP_EOL . PHP_EOL;
+        $ret .= "/*!50106 SET @save_time_zone= @@TIME_ZONE */ ;".PHP_EOL.
+            "/*!50106 DROP EVENT IF EXISTS `".$eventName."` */;".PHP_EOL.
+            "DELIMITER ;;".PHP_EOL.
+            "/*!50003 SET @saved_cs_client      = @@character_set_client */ ;;".PHP_EOL.
+            "/*!50003 SET @saved_cs_results     = @@character_set_results */ ;;".PHP_EOL.
+            "/*!50003 SET @saved_col_connection = @@collation_connection */ ;;".PHP_EOL.
+            "/*!50003 SET character_set_client  = utf8 */ ;;".PHP_EOL.
+            "/*!50003 SET character_set_results = utf8 */ ;;".PHP_EOL.
+            "/*!50003 SET collation_connection  = utf8_general_ci */ ;;".PHP_EOL.
+            "/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;;".PHP_EOL.
+            "/*!50003 SET sql_mode              = '".$sqlMode."' */ ;;".PHP_EOL.
+            "/*!50003 SET @saved_time_zone      = @@time_zone */ ;;".PHP_EOL.
+            "/*!50003 SET time_zone             = 'SYSTEM' */ ;;".PHP_EOL.
+            $eventStmt." ;;".PHP_EOL.
+            "/*!50003 SET time_zone             = @saved_time_zone */ ;;".PHP_EOL.
+            "/*!50003 SET sql_mode              = @saved_sql_mode */ ;;".PHP_EOL.
+            "/*!50003 SET character_set_client  = @saved_cs_client */ ;;".PHP_EOL.
+            "/*!50003 SET character_set_results = @saved_cs_results */ ;;".PHP_EOL.
+            "/*!50003 SET collation_connection  = @saved_col_connection */ ;;".PHP_EOL.
+            "DELIMITER ;".PHP_EOL.
+            "/*!50106 SET TIME_ZONE= @save_time_zone */ ;".PHP_EOL.PHP_EOL;
             // Commented because we are doing this in restore_parameters()
             // "/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;" . PHP_EOL . PHP_EOL;
 
@@ -1702,8 +1701,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
     {
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-        return "SELECT TABLE_NAME AS tbl_name " .
-            "FROM INFORMATION_SCHEMA.TABLES " .
+        return "SELECT TABLE_NAME AS tbl_name ".
+            "FROM INFORMATION_SCHEMA.TABLES ".
             "WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='${args[0]}'";
     }
 
@@ -1711,8 +1710,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
     {
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-        return "SELECT TABLE_NAME AS tbl_name " .
-            "FROM INFORMATION_SCHEMA.TABLES " .
+        return "SELECT TABLE_NAME AS tbl_name ".
+            "FROM INFORMATION_SCHEMA.TABLES ".
             "WHERE TABLE_TYPE='VIEW' AND TABLE_SCHEMA='${args[0]}'";
     }
 
@@ -1734,8 +1733,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
     {
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-        return "SELECT SPECIFIC_NAME AS procedure_name " .
-            "FROM INFORMATION_SCHEMA.ROUTINES " .
+        return "SELECT SPECIFIC_NAME AS procedure_name ".
+            "FROM INFORMATION_SCHEMA.ROUTINES ".
             "WHERE ROUTINE_TYPE='PROCEDURE' AND ROUTINE_SCHEMA='${args[0]}'";
     }
 
@@ -1749,8 +1748,8 @@ class TypeAdapterMysql extends TypeAdapterFactory
     {
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-        return "SELECT EVENT_NAME AS event_name " .
-            "FROM INFORMATION_SCHEMA.EVENTS " .
+        return "SELECT EVENT_NAME AS event_name ".
+            "FROM INFORMATION_SCHEMA.EVENTS ".
             "WHERE EVENT_SCHEMA='${args[0]}'";
     }
 
@@ -1786,19 +1785,19 @@ class TypeAdapterMysql extends TypeAdapterFactory
     {
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-        return "LOCK TABLES `${args[0]}` WRITE;" . PHP_EOL;
+        return "LOCK TABLES `${args[0]}` WRITE;".PHP_EOL;
     }
 
     public function end_add_lock_table()
     {
-        return "UNLOCK TABLES;" . PHP_EOL;
+        return "UNLOCK TABLES;".PHP_EOL;
     }
 
     public function start_add_disable_keys()
     {
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-        return "/*!40000 ALTER TABLE `${args[0]}` DISABLE KEYS */;" .
+        return "/*!40000 ALTER TABLE `${args[0]}` DISABLE KEYS */;".
             PHP_EOL;
     }
 
@@ -1806,57 +1805,57 @@ class TypeAdapterMysql extends TypeAdapterFactory
     {
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-        return "/*!40000 ALTER TABLE `${args[0]}` ENABLE KEYS */;" .
+        return "/*!40000 ALTER TABLE `${args[0]}` ENABLE KEYS */;".
             PHP_EOL;
     }
 
     public function start_disable_autocommit()
     {
-        return "SET autocommit=0;" . PHP_EOL;
+        return "SET autocommit=0;".PHP_EOL;
     }
 
     public function end_disable_autocommit()
     {
-        return "COMMIT;" . PHP_EOL;
+        return "COMMIT;".PHP_EOL;
     }
 
     public function add_drop_database()
     {
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-        return "/*!40000 DROP DATABASE IF EXISTS `${args[0]}`*/;" .
-            PHP_EOL . PHP_EOL;
+        return "/*!40000 DROP DATABASE IF EXISTS `${args[0]}`*/;".
+            PHP_EOL.PHP_EOL;
     }
 
     public function add_drop_trigger()
     {
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-        return "DROP TRIGGER IF EXISTS `${args[0]}`;" . PHP_EOL;
+        return "DROP TRIGGER IF EXISTS `${args[0]}`;".PHP_EOL;
     }
 
     public function drop_table()
     {
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-        return "DROP TABLE IF EXISTS `${args[0]}`;" . PHP_EOL;
+        return "DROP TABLE IF EXISTS `${args[0]}`;".PHP_EOL;
     }
 
     public function drop_view()
     {
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-        return "DROP TABLE IF EXISTS `${args[0]}`;" . PHP_EOL .
-                "/*!50001 DROP VIEW IF EXISTS `${args[0]}`*/;" . PHP_EOL;
+        return "DROP TABLE IF EXISTS `${args[0]}`;".PHP_EOL.
+                "/*!50001 DROP VIEW IF EXISTS `${args[0]}`*/;".PHP_EOL;
     }
 
     public function getDatabaseHeader()
     {
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
-        return "--" . PHP_EOL .
-            "-- Current Database: `${args[0]}`" . PHP_EOL .
-            "--" . PHP_EOL . PHP_EOL;
+        return "--".PHP_EOL.
+            "-- Current Database: `${args[0]}`".PHP_EOL.
+            "--".PHP_EOL.PHP_EOL;
     }
 
     /**
@@ -1871,9 +1870,9 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $colInfo = array();
         $colParts = explode(" ", $colType['Type']);
 
-        if($fparen = strpos($colParts[0], "(")) {
+        if ($fparen = strpos($colParts[0], "(")) {
             $colInfo['type'] = substr($colParts[0], 0, $fparen);
-            $colInfo['length']  = str_replace(")", "", substr($colParts[0], $fparen+1));
+            $colInfo['length'] = str_replace(")", "", substr($colParts[0], $fparen + 1));
             $colInfo['attributes'] = isset($colParts[1]) ? $colParts[1] : NULL;
         } else {
             $colInfo['type'] = $colParts[0];
@@ -1890,20 +1889,20 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function backup_parameters()
     {
-        $ret = "/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;" . PHP_EOL .
-            "/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;" . PHP_EOL .
-            "/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;" . PHP_EOL .
-            "/*!40101 SET NAMES " . $this->dumpSettings['default-character-set'] . " */;" . PHP_EOL;
+        $ret = "/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;".PHP_EOL.
+            "/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;".PHP_EOL.
+            "/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;".PHP_EOL.
+            "/*!40101 SET NAMES ".$this->dumpSettings['default-character-set']." */;".PHP_EOL;
 
         if (false === $this->dumpSettings['skip-tz-utc']) {
-            $ret .= "/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;" . PHP_EOL .
-                "/*!40103 SET TIME_ZONE='+00:00' */;" . PHP_EOL;
+            $ret .= "/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;".PHP_EOL.
+                "/*!40103 SET TIME_ZONE='+00:00' */;".PHP_EOL;
         }
 
-        $ret .= "/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;" . PHP_EOL .
-            "/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;" . PHP_EOL .
-            "/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;" . PHP_EOL .
-            "/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;" . PHP_EOL .PHP_EOL;
+        $ret .= "/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;".PHP_EOL.
+            "/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;".PHP_EOL.
+            "/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;".PHP_EOL.
+            "/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;".PHP_EOL.PHP_EOL;
 
         return $ret;
     }
@@ -1913,16 +1912,16 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $ret = "";
 
         if (false === $this->dumpSettings['skip-tz-utc']) {
-            $ret .= "/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;" . PHP_EOL;
+            $ret .= "/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;".PHP_EOL;
         }
 
-        $ret .= "/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;" . PHP_EOL .
-            "/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;" . PHP_EOL .
-            "/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;" . PHP_EOL .
-            "/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;" . PHP_EOL .
-            "/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;" . PHP_EOL .
-            "/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;" . PHP_EOL .
-            "/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;" . PHP_EOL . PHP_EOL;
+        $ret .= "/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;".PHP_EOL.
+            "/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;".PHP_EOL.
+            "/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;".PHP_EOL.
+            "/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;".PHP_EOL.
+            "/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;".PHP_EOL.
+            "/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;".PHP_EOL.
+            "/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;".PHP_EOL.PHP_EOL;
 
         return $ret;
     }
@@ -1937,7 +1936,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
      */
     private function check_parameters($num_args, $expected_num_args, $method_name)
     {
-        if ( $num_args != $expected_num_args ) {
+        if ($num_args != $expected_num_args) {
             throw new Exception("Unexpected parameter passed to $method_name");
         }
         return;
