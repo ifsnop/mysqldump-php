@@ -47,6 +47,16 @@ $dump = new IMysqldump\Mysqldump(
     $dumpSettings);
 $dump->start("mysqldump-php_test001.sql");
 
+// checks if complete-insert && hex-blob works ok together
+print "starting mysql-php_test001_complete.sql" . PHP_EOL;
+$dumpSettings['complete-insert'] = true;
+$dump = new IMysqldump\Mysqldump(
+    "mysql:host=localhost;dbname=test001",
+    "travis",
+    "",
+    $dumpSettings);
+$dump->start("mysqldump-php_test001_complete.sql");
+
 print "starting mysql-php_test002.sql" . PHP_EOL;
 $dumpSettings['default-character-set'] = IMysqldump\Mysqldump::UTF8MB4;
 $dumpSettings['complete-insert'] = true;

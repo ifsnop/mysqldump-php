@@ -46,6 +46,15 @@ mysqldump -utravis test001 \
     > mysqldump_test001.sql
 ret[((index++))]=$?
 
+mysqldump -utravis test001 \
+    --no-autocommit \
+    --extended-insert=false \
+    --hex-blob=true \
+    --routines=true \
+    --complete-insert=true \
+    > mysqldump_test001_complete.sql
+ret[((index++))]=$?
+
 mysqldump -utravis test002 \
     --no-autocommit \
     --extended-insert=false \
@@ -102,13 +111,14 @@ cat test005.src.sql | grep ^INSERT > test005.filtered.sql
 cat test008.src.sql | grep FOREIGN > test008.filtered.sql
 cat test010.src.sql | grep CREATE | grep EVENT > test010.filtered.sql
 cat test011.src.sql | egrep "INSERT|GENERATED" > test011.filtered.sql
-cat test013.src.sql | egrep "INSERT" > test013.filtered.sql
 cat mysqldump_test001.sql | grep ^INSERT > mysqldump_test001.filtered.sql
+cat mysqldump_test001_complete.sql | grep ^INSERT > mysqldump_test001_complete.filtered.sql
 cat mysqldump_test002.sql | grep ^INSERT > mysqldump_test002.filtered.sql
 cat mysqldump_test005.sql | grep ^INSERT > mysqldump_test005.filtered.sql
 cat mysqldump_test012.sql | grep -E -e '50001 (CREATE|VIEW)' -e '50013 DEFINER' -e 'TRIGGER' | grep -v -e 'TABLE' -e 'CREATE VIEW' > mysqldump_test012.filtered.sql
 cat mysqldump_test013.sql | grep "INSERT" > mysqldump_test013.filtered.sql
 cat mysqldump-php_test001.sql | grep ^INSERT > mysqldump-php_test001.filtered.sql
+cat mysqldump-php_test001_complete.sql | grep ^INSERT > mysqldump-php_test001_complete.filtered.sql
 cat mysqldump-php_test002.sql | grep ^INSERT > mysqldump-php_test002.filtered.sql
 cat mysqldump-php_test005.sql | grep ^INSERT > mysqldump-php_test005.filtered.sql
 cat mysqldump-php_test008.sql | grep FOREIGN > mysqldump-php_test008.filtered.sql
@@ -120,6 +130,9 @@ cat mysqldump-php_test013.sql | grep INSERT > mysqldump-php_test013.filtered.sql
 
 diff test001.filtered.sql mysqldump_test001.filtered.sql
 ret[((index++))]=$?
+diff mysqldump_test001_complete.filtered.sql mysqldump-php_test001_complete.filtered.sql
+ret[((index++))]=$?
+
 diff test002.filtered.sql mysqldump_test002.filtered.sql
 ret[((index++))]=$?
 

@@ -900,7 +900,13 @@ class Mysqldump
         $onlyOnce = true;
         $lineSize = 0;
 
+        // colStmt is used to form a query to obtain row values
         $colStmt = $this->getColumnStmt($tableName);
+        // colNames is used to get the name of the columns when using complete-insert
+        if ($this->dumpSettings['complete-insert']) {
+            $colNames = $this->getColumnNames($tableName);
+        }
+
         $stmt = "SELECT ".implode(",", $colStmt)." FROM `$tableName`";
 
         if ($this->dumpSettings['where']) {
@@ -918,7 +924,7 @@ class Mysqldump
                 if ($this->dumpSettings['complete-insert']) {
                     $lineSize += $this->compressManager->write(
                         "INSERT$ignore INTO `$tableName` (".
-                        implode(", ", $colStmt).
+                        implode(", ", $colNames).
                         ") VALUES (".implode(",", $vals).")"
                     );
                 } else {
@@ -1035,7 +1041,7 @@ class Mysqldump
     }
 
     /**
-     * Build SQL List of all columns on current table
+     * Build SQL List of all columns on current table which will be used for selecting
      *
      * @param string $tableName  Name of table to get columns
      *
@@ -1058,6 +1064,27 @@ class Mysqldump
         }
 
         return $colStmt;
+    }
+
+    /**
+     * Build SQL List of all columns on current table which will be used for inserting
+     *
+     * @param string $tableName  Name of table to get columns
+     *
+     * @return string SQL sentence with columns
+     */
+    function getColumnNames($tableName)
+    {
+        $colNames = array();
+        foreach($this->tableColumnTypes[$tableName] as $colName => $colType) {
+            if ($colType['is_virtual']) {
+                $this->dumpSettings['complete-insert'] = true;
+                continue;
+            } else {
+                $colNames[] = "`${colName}`";
+            }
+        }
+        return $colNames;
     }
 }
 
