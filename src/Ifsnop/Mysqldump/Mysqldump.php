@@ -1045,7 +1045,9 @@ class Mysqldump
     {
         $colStmt = array();
         foreach ($this->tableColumnTypes[$tableName] as $colName => $colType) {
-            if ($colType['type'] == 'bit' && $this->dumpSettings['hex-blob']) {
+            if($hookColumnStmt = $this->hookTransformColumnStmt($tableName, $colName, $colType)) {
+                $colStmt[] = $hookColumnStmt;
+            } else if ($colType['type'] == 'bit' && $this->dumpSettings['hex-blob']) {
                 $colStmt[] = "LPAD(HEX(`${colName}`),2,'0') AS `${colName}`";
             } else if ($colType['is_blob'] && $this->dumpSettings['hex-blob']) {
                 $colStmt[] = "HEX(`${colName}`) AS `${colName}`";
@@ -1058,6 +1060,22 @@ class Mysqldump
         }
 
         return $colStmt;
+    }
+
+    /**
+     * Give extending classes an opportunity to transform column values
+     *
+     * @param string $tableName Name of table which contains rows
+     * @param string $colName Name of the column in question
+     * @param string $colType Type of the column in question
+     *
+     * @return string
+     */
+    function hookTransformColumnStmt(
+      /** @scrutinizer ignore-unused */ $tableName,
+      /** @scrutinizer ignore-unused */ $colName,
+      /** @scrutinizer ignore-unused */ $colType) {
+        return;
     }
 }
 
