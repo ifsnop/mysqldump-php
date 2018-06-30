@@ -10,7 +10,6 @@ mysql -e "DROP DATABASE test009;"
 mysql -e "DROP DATABASE test010;"
 mysql -e "DROP DATABASE test011;"
 mysql -e "DROP DATABASE test012;"
-mysql -e "DROP DATABASE test013;"
 
 mysql -e "DROP USER 'travis'";
 

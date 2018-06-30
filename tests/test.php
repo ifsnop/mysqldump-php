@@ -135,10 +135,13 @@ $dump->start("mysqldump-php_test012_no-definer.sql");
 
 print "starting mysql-php_test013.sql" . PHP_EOL;
 $dump = new IMysqldump\Mysqldump(
-    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test013",
+    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test001",
     "travis",
     "",
-    array("insert-ignore" => true));
+    array(
+        "insert-ignore" => true,
+        "extended-insert" => false
+    ));
 $dump->start("mysqldump-php_test013.sql");
 
 exit(0);
