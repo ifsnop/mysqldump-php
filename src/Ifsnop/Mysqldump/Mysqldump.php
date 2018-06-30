@@ -352,8 +352,13 @@ class Mysqldump
             }
         }
 
-        // Get table, view and trigger structures from database
-        $this->getDatabaseStructure();
+        // Get table, view, trigger, procedures and events
+        // structures from database
+        $this->getDatabaseStructureTables();
+        $this->getDatabaseStructureViews();
+        $this->getDatabaseStructureTriggers();
+        $this->getDatabaseStructureProcedures();
+        $this->getDatabaseStructureEvents();
 
         if ($this->dumpSettings['databases']) {
             $this->compressManager->write(
@@ -432,12 +437,12 @@ class Mysqldump
     }
 
     /**
-     * Reads table and views names from database.
+     * Reads table names from database.
      * Fills $this->tables array so they will be dumped later.
      *
      * @return null
      */
-    private function getDatabaseStructure()
+    private function getDatabaseStructureTables()
     {
         // Listing all tables from database
         if (empty($this->dumpSettings['include-tables'])) {
@@ -458,7 +463,17 @@ class Mysqldump
                 }
             }
         }
+        return;
+    }
 
+    /**
+     * Reads view names from database.
+     * Fills $this->tables array so they will be dumped later.
+     *
+     * @return null
+     */
+    private function getDatabaseStructureViews()
+    {
         // Listing all views from database
         if (empty($this->dumpSettings['include-views'])) {
             // include all views for now, blacklisting happens later
@@ -478,27 +493,58 @@ class Mysqldump
                 }
             }
         }
+        return;
+    }
 
+    /**
+     * Reads trigger names from database.
+     * Fills $this->tables array so they will be dumped later.
+     *
+     * @return null
+     */
+    private function getDatabaseStructureTriggers()
+    {
         // Listing all triggers from database
         if (false === $this->dumpSettings['skip-triggers']) {
             foreach ($this->dbHandler->query($this->typeAdapter->show_triggers($this->dbName)) as $row) {
                 array_push($this->triggers, $row['Trigger']);
             }
         }
+        return;
+    }
 
+    /**
+     * Reads procedure names from database.
+     * Fills $this->tables array so they will be dumped later.
+     *
+     * @return null
+     */
+    private function getDatabaseStructureProcedures()
+    {
         // Listing all procedures from database
         if ($this->dumpSettings['routines']) {
             foreach ($this->dbHandler->query($this->typeAdapter->show_procedures($this->dbName)) as $row) {
                 array_push($this->procedures, $row['procedure_name']);
             }
         }
+        return;
+    }
 
+    /**
+     * Reads event names from database.
+     * Fills $this->tables array so they will be dumped later.
+     *
+     * @return null
+     */
+    private function getDatabaseStructureEvents()
+    {
         // Listing all events from database
         if ($this->dumpSettings['events']) {
             foreach ($this->dbHandler->query($this->typeAdapter->show_events($this->dbName)) as $row) {
                 array_push($this->events, $row['event_name']);
             }
         }
+        return;
     }
 
     /**
@@ -1045,7 +1091,7 @@ class Mysqldump
      *
      * @param string $tableName  Name of table to get columns
      *
-     * @return array SQL sentence with columns
+     * @return array SQL sentence with columns for select
      */
     function getColumnStmt($tableName)
     {
@@ -1071,7 +1117,7 @@ class Mysqldump
      *
      * @param string $tableName  Name of table to get columns
      *
-     * @return string SQL sentence with columns
+     * @return array columns for sql sentence for insert
      */
     function getColumnNames($tableName)
     {
