@@ -91,6 +91,23 @@ Plain old PHP:
 
 Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) for some examples and a comparision between mysqldump and mysqldump-php dumps.
 
+## Changing values when exporting
+You can register a callable that will be used to transform values during the export. An example use-case for this is removing sensitive data from database dumps:
+
+```php
+$dumper = new IMysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
+
+$dumper->setTransformColumnValueHook(function ($tableName, $colName, $colValue) {
+    if ($colName === 'social_security_number') {
+        return (string) rand(1000000, 9999999);
+    }
+    
+    return $colValue;
+});
+
+$dumper->start('storage/work/dump.sql');
+```
+
 ## Constructor and default parameters
 ```php
 /**
