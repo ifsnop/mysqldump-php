@@ -81,6 +81,7 @@ class Mysqldump
     private $pdoSettings = array();
     private $version;
     private $tableColumnTypes = array();
+    private $transformColumnValueCallable;
     /**
      * database name, parsed from dsn
      * @var string
@@ -916,6 +917,18 @@ class Mysqldump
     }
 
     /**
+     * Set a callable that will will be used to transform column values.
+     *
+     * @param callable $callable
+     *
+     * @return void
+     */
+    public function setTransformColumnValueHook($callable)
+    {
+        $this->transformColumnValueCallable = $callable;
+    }
+
+    /**
      * Give extending classes an opportunity to transform column values
      *
      * @param string $tableName Name of table which contains rows
@@ -924,12 +937,17 @@ class Mysqldump
      *
      * @return string
      */
-    protected function hookTransformColumnValue(
-        /** @scrutinizer ignore-unused */ $tableName,
-        /** @scrutinizer ignore-unused */ $colName,
-        $colValue)
+    protected function hookTransformColumnValue($tableName, $colName, $colValue)
     {
-        return $colValue;
+        if (! $this->transformColumnValueCallable) {
+            return $colValue;
+        }
+
+        return call_user_func_array($this->transformColumnValueCallable, array(
+            $tableName,
+            $colName,
+            $colValue,
+        ));
     }
 
     /**
