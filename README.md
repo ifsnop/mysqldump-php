@@ -28,6 +28,7 @@ MySQLDump-PHP is the only library that supports:
 * does extended-insert and/or complete-insert.
 * supports virtual columns from MySQL 5.7.
 * does insert-ignore, like a REPLACE but ignoring errors if a duplicate key exists.
+* modifying data from database on-the-fly when dumping, using hooks.
 
 ## Important
 
