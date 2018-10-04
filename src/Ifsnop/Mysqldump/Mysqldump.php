@@ -884,7 +884,7 @@ class Mysqldump
         $ret = [];
         $columnTypes = $this->tableColumnTypes[$tableName];
         foreach ($row as $colName => $colValue) {
-            $colValue = $this->hookTransformColumnValue($tableName, $colName, $colValue);
+            $colValue = $this->hookTransformColumnValue($tableName, $colName, $colValue, $row);
             $ret[] = $this->escape($colValue, $columnTypes[$colName]);
         }
 
@@ -937,7 +937,7 @@ class Mysqldump
      *
      * @return string
      */
-    protected function hookTransformColumnValue($tableName, $colName, $colValue)
+    protected function hookTransformColumnValue($tableName, $colName, $colValue, $row)
     {
         if (! $this->transformColumnValueCallable) {
             return $colValue;
@@ -947,6 +947,7 @@ class Mysqldump
             $tableName,
             $colName,
             $colValue,
+            $row
         ));
     }
 
