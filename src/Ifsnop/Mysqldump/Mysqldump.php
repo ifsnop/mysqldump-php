@@ -881,7 +881,7 @@ class Mysqldump
      */
     private function prepareColumnValues($tableName, $row)
     {
-        $ret = [];
+        $ret = array();
         $columnTypes = $this->tableColumnTypes[$tableName];
         foreach ($row as $colName => $colValue) {
             $colValue = $this->hookTransformColumnValue($tableName, $colName, $colValue);
