@@ -41,6 +41,7 @@ before_script:
   - sleep 1
   - sudo service mysql start
   - mysql -V
+  - mysqldump -V
   - tests/create_users.sh
 
 script:

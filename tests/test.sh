@@ -40,49 +40,51 @@ checksum_test002 > test002.src.checksum
 checksum_test005 > test005.src.checksum
 mysqldump -utravis test001 \
     --no-autocommit \
-    --extended-insert=false \
-    --hex-blob=true \
-    --routines=true \
+    --skip-extended-insert \
+    --hex-blob \
+    --routines \
     > mysqldump_test001.sql
 ret[((index++))]=$?
 
+cat mysqldump_test001.sql
+
 mysqldump -utravis test001 \
     --no-autocommit \
-    --extended-insert=false \
-    --hex-blob=true \
-    --routines=true \
+    --skip-extended-insert \
     --complete-insert=true \
+    --hex-blob \
+    --routines \
     > mysqldump_test001_complete.sql
 ret[((index++))]=$?
 
 mysqldump -utravis test002 \
     --no-autocommit \
-    --extended-insert=false \
-    --complete-insert=true \
-    --hex-blob=true \
+    --skip-extended-insert \
+    --complete-insert \
+    --hex-blob \
     --default-character-set=utf8mb4 \
     > mysqldump_test002.sql
 ret[((index++))]=$?
 
 mysqldump -utravis test005 \
     --no-autocommit \
-    --extended-insert=false \
-    --hex-blob=true \
+    --skip-extended-insert \
+    --hex-blob \
     > mysqldump_test005.sql
 ret[((index++))]=$?
 
 mysqldump -utravis test012 \
     --no-autocommit \
-    --extended-insert=false \
-    --hex-blob=true \
+    --skip-extended-insert \
+    --hex-blob \
     --events \
     > mysqldump_test012.sql
 ret[((index++))]=$?
 
 mysqldump -utravis test001 \
     --no-autocommit \
-    --extended-insert=false \
-    --hex-blob=true \
+    --skip-extended-insert \
+    --hex-blob \
     --insert-ignore \
     > mysqldump_test013.sql
 ret[((index++))]=$?
@@ -128,55 +130,72 @@ cat mysqldump-php_test011b.sql | egrep "INSERT|GENERATED" > mysqldump-php_test01
 cat mysqldump-php_test012.sql | grep -E -e '50001 (CREATE|VIEW)' -e '50013 DEFINER' -e 'CREATE.*TRIGGER' > mysqldump-php_test012.filtered.sql
 cat mysqldump-php_test013.sql | grep INSERT > mysqldump-php_test013.filtered.sql
 
+echo test $index diff test001.filtered.sql mysqldump_test001.filtered.sql
 diff test001.filtered.sql mysqldump_test001.filtered.sql
 ret[((index++))]=$?
+echo test $index diff mysqldump_test001_complete.filtered.sql mysqldump-php_test001_complete.filtered.sql
 diff mysqldump_test001_complete.filtered.sql mysqldump-php_test001_complete.filtered.sql
 ret[((index++))]=$?
 
+echo test $index diff test002.filtered.sql mysqldump_test002.filtered.sql
 diff test002.filtered.sql mysqldump_test002.filtered.sql
 ret[((index++))]=$?
 
+echo test $index diff test001.filtered.sql mysqldump-php_test001.filtered.sql
 diff test001.filtered.sql mysqldump-php_test001.filtered.sql
 ret[((index++))]=$?
+echo test $index diff test002.filtered.sql mysqldump-php_test002.filtered.sql
 diff test002.filtered.sql mysqldump-php_test002.filtered.sql
 ret[((index++))]=$?
 
+echo test $index diff test001.src.checksum mysqldump-php_test001.checksum
 diff test001.src.checksum mysqldump-php_test001.checksum
 ret[((index++))]=$?
+echo test $index diff test002.src.checksum mysqldump-php_test002.checksum
 diff test002.src.checksum mysqldump-php_test002.checksum
 ret[((index++))]=$?
+echo test $index diff test005.src.checksum mysqldump-php_test005.checksum
 diff test005.src.checksum mysqldump-php_test005.checksum
 ret[((index++))]=$?
 
+echo test $index diff mysqldump_test005.filtered.sql mysqldump-php_test005.filtered.sql
 diff mysqldump_test005.filtered.sql mysqldump-php_test005.filtered.sql
 ret[((index++))]=$?
 
+echo test $index diff test008.filtered.sql mysqldump-php_test008.filtered.sql
 diff test008.filtered.sql mysqldump-php_test008.filtered.sql
 ret[((index++))]=$?
 
 #test reset-auto-increment
+echo test $index cat mysqldump-php_test009.sql \| grep -i ENGINE \| grep AUTO_INCREMENT
 test009=`cat mysqldump-php_test009.sql | grep -i ENGINE | grep AUTO_INCREMENT`
 if [[ -z $test009 ]]; then ret[((index++))]=0; else ret[((index++))]=1; fi
 
 # test backup events
+echo test $index diff test010.filtered.sql mysqldump-php_test010.filtered.sql
 diff test010.filtered.sql mysqldump-php_test010.filtered.sql
 ret[((index++))]=$?
 
 # test virtual column support, with simple inserts forced to complete (a) and complete inserts (b)
+echo test $index diff test011.filtered.sql mysqldump-php_test011a.filtered.sql
 diff test011.filtered.sql mysqldump-php_test011a.filtered.sql
 ret[((index++))]=$?
+echo test $index diff test011.filtered.sql mysqldump-php_test011b.filtered.sql
 diff test011.filtered.sql mysqldump-php_test011b.filtered.sql
 ret[((index++))]=$?
 
 # Test create views, events, trigger
+echo test $index diff mysqldump_test012.filtered.sql mysqldump-php_test012.filtered.sql
 diff mysqldump_test012.filtered.sql mysqldump-php_test012.filtered.sql
 ret[((index++))]=$?
 
 # Make sure we do not find a DEFINER
+echo test $index grep 'DEFINER' mysqldump-php_test012_no-definer.sql
 ! grep 'DEFINER' mysqldump-php_test012_no-definer.sql
 ret[((index++))]=$?
 
 # test INSERT IGNORE
+echo test $index diff mysqldump_test013.filtered.sql mysqldump-php_test013.filtered.sql
 diff mysqldump_test013.filtered.sql mysqldump-php_test013.filtered.sql
 ret[((index++))]=$?
 

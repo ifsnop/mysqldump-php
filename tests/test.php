@@ -4,6 +4,7 @@ for($i=0;$i<128;$i++) {
     echo "$i>" . bin2hex(chr($i)) . "<" . PHP_EOL;
 }
 */
+date_default_timezone_set('UTC');
 
 error_reporting(E_ALL);
 
