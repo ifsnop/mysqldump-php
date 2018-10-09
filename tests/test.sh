@@ -46,8 +46,6 @@ mysqldump -utravis test001 \
     > mysqldump_test001.sql
 ret[((index++))]=$?
 
-cat mysqldump_test001.sql
-
 mysqldump -utravis test001 \
     --no-autocommit \
     --skip-extended-insert \
