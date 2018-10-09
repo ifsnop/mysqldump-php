@@ -199,9 +199,9 @@ echo test $index diff mysqldump_test013.filtered.sql mysqldump-php_test013.filte
 diff mysqldump_test013.filtered.sql mysqldump-php_test013.filtered.sql
 ret[((index++))]=$?
 
-rm *.checksum 2> /dev/null
-rm *.filtered.sql 2> /dev/null
-rm mysqldump* 2> /dev/null
+#rm *.checksum 2> /dev/null
+#rm *.filtered.sql 2> /dev/null
+#rm mysqldump* 2> /dev/null
 
 echo "Done $index tests"
 
