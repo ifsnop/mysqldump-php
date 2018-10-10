@@ -3,13 +3,10 @@ language: php
 dist: trusty
 group: deprecated-2017Q4
 
-
 matrix:
   include:
-  - os: linux
+  - php: nightly
     sudo: required
-    php:
-      - nightly
     services:
       - mysql
     before_script:
@@ -33,12 +30,8 @@ matrix:
       - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
       - sudo mysql_upgrade -u root
       - sudo service mysql restart
-    allow_failures:
-        - php: nightly
-  - os: linux
+  - php: 7.2
     sudo: required
-    php:
-      - 7.2
     services:
       - mysql
     before_script:
@@ -62,10 +55,8 @@ matrix:
       - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
       - sudo mysql_upgrade -u root
       - sudo service mysql restart
-  - os: linux
+  - php: 7.1
     sudo: required
-    php:
-      - 7.1
     services:
       - mysql
     before_script:
@@ -89,10 +80,8 @@ matrix:
       - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
       - sudo mysql_upgrade -u root
       - sudo service mysql restart
-  - os: linux
+  - php: 7.0
     sudo: required
-    php:
-      - 7.0
     services:
       - mysql
     before_script:
@@ -116,10 +105,8 @@ matrix:
       - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
       - sudo mysql_upgrade -u root
       - sudo service mysql restart
-  - os: linux
+  - php: 5.6
     sudo: required
-    php:
-      - 5.6
     services:
       - mysql
     before_script:
@@ -143,10 +130,8 @@ matrix:
       - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
       - sudo mysql_upgrade -u root
       - sudo service mysql restart
-  - os: linux
+  - php: 5.4
     sudo: required
-    php:
-      - 5.4
     services:
       - mysql
     before_script:
@@ -170,10 +155,8 @@ matrix:
       - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
       - sudo mysql_upgrade -u root
       - sudo service mysql restart
-  - os: linux
+  - php: hhvm-3.18
     sudo: required
-    php:
-      - hhvm-3.18
     services:
       - mysql
     before_script:
@@ -197,12 +180,8 @@ matrix:
       - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
       - sudo mysql_upgrade -u root
       - sudo service mysql restart
-    allow_failures:
-        - php: hhvm-3.18
-  - os: linux
+  - php: hhvm-nightly
     sudo: required
-    php:
-      - hhvm-nightly
     services:
       - mysql
     before_script:
@@ -226,13 +205,9 @@ matrix:
       - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
       - sudo mysql_upgrade -u root
       - sudo service mysql restart
-    allow_failures:
-        - php: hhvm-nightly
-  - os: linux
+  - php: 5.3
     dist: precise
     sudo: required
-    php:
-      - 5.3
     services:
       - mysql
     before_script:
@@ -247,13 +222,9 @@ matrix:
       - cd tests && ./test.sh
     before_install:
       - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
-    allow_failures:
-        - php: 5.3
-  - os: linux
+  - php: 5.2
     dist: precise
     sudo: required
-    php:
-      - 5.2
     services:
       - mysql
     before_script:
@@ -266,5 +237,8 @@ matrix:
       - cd tests && ./test.sh
     before_install:
       - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
-    allow_failures:
-        - php: 5.2
+  allow_failures:
+    - php: nightly
+    - php: hhvm-nightly
+    - php: 5.3
+    - php: 5.2
