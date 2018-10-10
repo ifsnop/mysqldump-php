@@ -3,6 +3,7 @@ language: php
 dist: trusty
 group: deprecated-2017Q4
 
+
 matrix:
   include:
   - os: linux
@@ -32,6 +33,8 @@ matrix:
       - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
       - sudo mysql_upgrade -u root
       - sudo service mysql restart
+    allow_failures:
+        - php: nightly
   - os: linux
     sudo: required
     php:
@@ -194,6 +197,8 @@ matrix:
       - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
       - sudo mysql_upgrade -u root
       - sudo service mysql restart
+    allow_failures:
+        - php: hhvm-3.18
   - os: linux
     sudo: required
     php:
@@ -221,7 +226,8 @@ matrix:
       - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
       - sudo mysql_upgrade -u root
       - sudo service mysql restart
-
+    allow_failures:
+        - php: hhvm-nightly
   - os: linux
     dist: precise
     sudo: required
@@ -241,7 +247,8 @@ matrix:
       - cd tests && ./test.sh
     before_install:
       - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
-
+    allow_failures:
+        - php: 5.3
   - os: linux
     dist: precise
     sudo: required
@@ -259,10 +266,5 @@ matrix:
       - cd tests && ./test.sh
     before_install:
       - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
-
     allow_failures:
-      - php: 5.2
-      - php: 5.3
-      - php: hhvm-nightly
-      - php: nightly
-      - php: hhvm-3.18
+        - php: 5.2 
