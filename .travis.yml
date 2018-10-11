@@ -180,6 +180,56 @@ matrix:
       - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
       - sudo mysql_upgrade -u root
       - sudo service mysql restart
+  - php: hhvm-3.21
+    sudo: required
+    services:
+      - mysql
+    before_script:
+      - curl -s http://getcomposer.org/installer | php
+      - php composer.phar install
+      - mysql -V
+      - mysqldump -V
+      - tests/create_users.sh
+    script:
+      - php -l src/Ifsnop/Mysqldump/Mysqldump.php
+      - php src/Ifsnop/Mysqldump/Mysqldump.php
+      - cd tests && ./test.sh
+    addons:
+      apt:
+       sources:
+        - mysql-5.7-trusty
+       packages:
+        - mysql-server
+        - mysql-client
+    before_install:
+      - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+      - sudo mysql_upgrade -u root
+      - sudo service mysql restart
+  - php: hhvm-3.24
+    sudo: required
+    services:
+      - mysql
+    before_script:
+      - curl -s http://getcomposer.org/installer | php
+      - php composer.phar install
+      - mysql -V
+      - mysqldump -V
+      - tests/create_users.sh
+    script:
+      - php -l src/Ifsnop/Mysqldump/Mysqldump.php
+      - php src/Ifsnop/Mysqldump/Mysqldump.php
+      - cd tests && ./test.sh
+    addons:
+      apt:
+       sources:
+        - mysql-5.7-trusty
+       packages:
+        - mysql-server
+        - mysql-client
+    before_install:
+      - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+      - sudo mysql_upgrade -u root
+      - sudo service mysql restart
   - php: hhvm-nightly
     sudo: required
     services:
@@ -222,23 +272,7 @@ matrix:
       - cd tests && ./test.sh
     before_install:
       - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
-  - php: 5.2
-    dist: precise
-    sudo: required
-    services:
-      - mysql
-    before_script:
-      - mysql -V
-      - mysqldump -V
-      - tests/create_users.sh
-    script:
-      - php -l src/Ifsnop/Mysqldump/Mysqldump.php
-      - php src/Ifsnop/Mysqldump/Mysqldump.php
-      - cd tests && ./test.sh
-    before_install:
-      - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
   allow_failures:
     - php: nightly
     - php: hhvm-nightly
     - php: 5.3
-    - php: 5.2

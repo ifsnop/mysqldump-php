@@ -284,9 +284,25 @@ and populates a database using all possible datatypes. Then it exports it
 using both mysqldump-php and mysqldump, and compares the output. Only if
 it is identical tests are OK.
 
+Some tests are skipped if mysql server doesn't support them.
+
+A couple of tests are only compared between original sql code and
+mysqldump-php, because mysqldump doesn't work,
+
+## Bugs (from mysqldump, not from mysqldump-php)
+
+After [this](https://bugs.mysql.com/bug.php?id=80150) bug report, a new
+one has been introduced. _binary is appended also when hex-blob option is
+used, if the value is empty.
+
+## Backporting
+
+mysqldump-php is not backwards compatible with php 5.2 because we it uses
+namespaces. It can be trivially fixed.
+
 ## TODO
 
-Write more tests.
+Write more tests, test with mariadb also.
 
 ## Contributing
 
