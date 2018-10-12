@@ -12,6 +12,9 @@ MySQLDump - PHP
 [Credits](https://github.com/ifsnop/mysqldump-php#credits)
 
 [![Build Status](https://travis-ci.org/ifsnop/mysqldump-php.svg?branch=devel)](https://travis-ci.org/ifsnop/mysqldump-php)
+[![Total Downloads](https://poser.pugx.org/ifsnop/mysqldump-php/downloads)](https://packagist.org/packages/ifsnop/mysqldump-php)
+[![Monthly Downloads](https://poser.pugx.org/ifsnop/mysqldump-php/d/monthly)](https://packagist.org/packages/ifsnop/mysqldump-php)
+[![Daily Downloads](https://poser.pugx.org/ifsnop/mysqldump-php/d/daily)](https://packagist.org/packages/ifsnop/mysqldump-php)
 [![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/ifsnop/mysqldump-php/badges/quality-score.png?s=d02891e196a3ca1298619032a538ce8ae8cafd2b)](https://scrutinizer-ci.com/g/ifsnop/mysqldump-php/)
 [![Latest Stable Version](https://poser.pugx.org/ifsnop/mysqldump-php/v/stable.png)](https://packagist.org/packages/ifsnop/mysqldump-php)
 
