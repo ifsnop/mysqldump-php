@@ -48,16 +48,8 @@ From version 2.0, connections to database are made using the standard DSN, docum
 Using [Composer](https://getcomposer.org/):
 
 ```
-$ composer require ifsnop/mysqldump-php:2.*
+$ composer require ifsnop/mysqldump-php
 
-```
-
-Or via json file:
-
-```
-"require": {
-        "ifsnop/mysqldump-php":"2.*"
-}
 ```
 
 Using [Curl](https://curl.haxx.se/) to always download and decompress the latest release:
