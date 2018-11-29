@@ -35,17 +35,17 @@ MySQLDump-PHP is the only library that supports:
 
 ## Important
 
-From version 2.0, connections to database are made using the standard DSN, documented in [PDO connection string](http://php.net/manual/en/ref.pdo-mysql.connection.php).
+From version 2.0, connections to database are made using the standard DSN, documented in [PDO connection string](https://secure.php.net/manual/en/ref.pdo-mysql.connection.php).
 
 ## Requirements
 
 - PHP 5.3.0 or newer
 - MySQL 4.1.0 or newer
-- [PDO](http://php.net/pdo)
+- [PDO](https://secure.php.net/pdo)
 
 ## Installing
 
-Using [Composer](http://getcomposer.org):
+Using [Composer](https://getcomposer.org/):
 
 ```
 $ composer require ifsnop/mysqldump-php:2.*
@@ -60,7 +60,7 @@ Or via json file:
 }
 ```
 
-Using [Curl](http://curl.haxx.se) to always download and decompress the latest release:
+Using [Curl](https://curl.haxx.se/) to always download and decompress the latest release:
 
 ```
 $ curl --silent --location https://api.github.com/repos/ifsnop/mysqldump-php/releases | grep -i tarball_url | head -n 1 | cut -d '"' -f 4 | xargs curl --location --silent | tar xvz
@@ -68,7 +68,7 @@ $ curl --silent --location https://api.github.com/repos/ifsnop/mysqldump-php/rel
 
 ## Getting started
 
-With [Autoloader](http://www.php-fig.org/psr/psr-4/)/[Composer](http://getcomposer.org):
+With [Autoloader](https://www.php-fig.org/psr/psr-4/)/[Composer](https://getcomposer.org):
 
 ```php
 <?php
@@ -105,7 +105,7 @@ $dumper->setTransformColumnValueHook(function ($tableName, $colName, $colValue) 
     if ($colName === 'social_security_number') {
         return (string) rand(1000000, 9999999);
     }
-    
+
     return $colValue;
 });
 
@@ -191,66 +191,66 @@ $this->_dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dump
   - Removes the AUTO_INCREMENT option from the database definition
   - Useful when used with no-data, so when db is recreated, it will start from 1 instead of using an old value
 - **add-drop-database**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-database
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-database
 - **add-drop-table**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table
 - **add-drop-triggers**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-trigger
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-trigger
 - **add-locks**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks
 - **complete-insert**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_complete-insert
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_complete-insert
 - **databases**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_databases
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_databases
 - **default-character-set**
   - utf8 (default, compatible option), utf8mb4 (for full utf8 compliance)
   - Could be specified using the declared consts: IMysqldump\Mysqldump::UTF8 or IMysqldump\Mysqldump::UTF8MB4BZIP2
-  - http://dev.mysql.com/doc/refman/5.5/en/charset-unicode-utf8mb4.html
+  - https://dev.mysql.com/doc/refman/5.5/en/charset-unicode-utf8mb4.html
   - https://mathiasbynens.be/notes/mysql-utf8mb4
 - **disable-keys**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_disable-keys
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_disable-keys
 - **events**
   - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_events
 - **extended-insert**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert
 - **hex-blob**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_hex-blob
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_hex-blob
 - **insert-ignore**
   - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_insert-ignore
 - **lock-tables**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_lock-tables
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_lock-tables
 - **net_buffer_length**
-  - http://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_net_buffer_length
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_net_buffer_length
 - **no-autocommit**
   - Option to disable autocommit (faster inserts, no problems with index keys)
-  - http://dev.mysql.com/doc/refman/4.1/en/commit.html
+  - https://dev.mysql.com/doc/refman/4.1/en/commit.html
 - **no-create-info**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-create-info
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-create-info
 - **no-data**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data
   - Do not dump data for these tables (array of table names), support regexps, `true` to ignore all tables
 - **routines**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_routines
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_routines
 - **single-transaction**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_single-transaction
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_single-transaction
 - **skip-comments**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_comments
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_comments
 - **skip-dump-date**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_dump-date
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_dump-date
 - **skip-triggers**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_triggers
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_triggers
 - **skip-tz-utc**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_tz-utc
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_tz-utc
 - **skip-definer**
   - https://dev.mysql.com/doc/refman/5.7/en/mysqlpump.html#option_mysqlpump_skip-definer
 - **where**
-  - http://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_where
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_where
 
 The following options are now enabled by default, and there is no way to disable them since
 they should always be used.
 
 - **disable-foreign-keys-check**
-  - http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
+  - https://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
 
 ## PDO Settings
 
@@ -258,9 +258,9 @@ they should always be used.
 - **PDO::ATTR_ERRMODE**
 - **PDO::MYSQL_ATTR_INIT_COMMAND**
 - **PDO::MYSQL_ATTR_USE_BUFFERED_QUERY**
-  - http://www.php.net/manual/en/ref.pdo-mysql.php
-  - http://stackoverflow.com/questions/13728106/unexpectedly-hitting-php-memory-limit-with-a-single-pdo-query/13729745#13729745
-  - http://www.php.net/manual/en/mysqlinfo.concepts.buffering.php
+  - https://secure.php.net/manual/en/ref.pdo-mysql.php
+  - https://stackoverflow.com/questions/13728106/unexpectedly-hitting-php-memory-limit-with-a-single-pdo-query/13729745#13729745
+  - https://secure.php.net/manual/en/mysqlinfo.concepts.buffering.php
 
 ## Errors
 
@@ -277,7 +277,7 @@ To dump a database, you need the following privileges :
 
 Use **SHOW GRANTS FOR user@host;** to know what privileges user has. See the following link for more information:
 
-[Which are the minimum privileges required to get a backup of a MySQL database schema?](http://dba.stackexchange.com/questions/55546/which-are-the-minimum-privileges-required-to-get-a-backup-of-a-mysql-database-sc/55572#55572)
+[Which are the minimum privileges required to get a backup of a MySQL database schema?](https://dba.stackexchange.com/questions/55546/which-are-the-minimum-privileges-required-to-get-a-backup-of-a-mysql-database-sc/55572#55572)
 
 ## Tests
 
@@ -310,18 +310,18 @@ Write more tests, test with mariadb also.
 ## Contributing
 
 Format all code to PHP-FIG standards.
-http://www.php-fig.org/
+https://www.php-fig.org/
 
 ## License
 
-This project is open-sourced software licensed under the [GPL license](http://www.gnu.org/copyleft/gpl.html)
+This project is open-sourced software licensed under the [GPL license](https://www.gnu.org/copyleft/gpl.html)
 
 ## Credits
 
 After more than 8 years, there is barely anything left from the original source code, but:
 
 Originally based on James Elliott's script from 2009.
-http://code.google.com/p/db-mysqldump/
+https://code.google.com/archive/p/db-mysqldump/
 
 Adapted and extended by Michael J. Calkins.
 https://github.com/clouddueling
