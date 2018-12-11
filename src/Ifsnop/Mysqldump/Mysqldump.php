@@ -449,13 +449,13 @@ class Mysqldump
         if (empty($this->dumpSettings['include-tables'])) {
             // include all tables for now, blacklisting happens later
             foreach ($this->dbHandler->query($this->typeAdapter->show_tables($this->dbName)) as $row) {
-                array_push($this->tables, current($row));
+                $this->tables[] = current($row);
             }
         } else {
             // include only the tables mentioned in include-tables
             foreach ($this->dbHandler->query($this->typeAdapter->show_tables($this->dbName)) as $row) {
                 if (in_array(current($row), $this->dumpSettings['include-tables'], true)) {
-                    array_push($this->tables, current($row));
+                    $this->tables[] = current($row);
                     $elem = array_search(
                         current($row),
                         $this->dumpSettings['include-tables']
@@ -479,13 +479,13 @@ class Mysqldump
         if (empty($this->dumpSettings['include-views'])) {
             // include all views for now, blacklisting happens later
             foreach ($this->dbHandler->query($this->typeAdapter->show_views($this->dbName)) as $row) {
-                array_push($this->views, current($row));
+                $this->views[] = current($row);
             }
         } else {
             // include only the tables mentioned in include-tables
             foreach ($this->dbHandler->query($this->typeAdapter->show_views($this->dbName)) as $row) {
                 if (in_array(current($row), $this->dumpSettings['include-views'], true)) {
-                    array_push($this->views, current($row));
+                    $this->views[] = current($row);
                     $elem = array_search(
                         current($row),
                         $this->dumpSettings['include-views']
@@ -508,7 +508,7 @@ class Mysqldump
         // Listing all triggers from database
         if (false === $this->dumpSettings['skip-triggers']) {
             foreach ($this->dbHandler->query($this->typeAdapter->show_triggers($this->dbName)) as $row) {
-                array_push($this->triggers, $row['Trigger']);
+                $this->triggers[] = $row['Trigger'];
             }
         }
         return;
@@ -525,7 +525,7 @@ class Mysqldump
         // Listing all procedures from database
         if ($this->dumpSettings['routines']) {
             foreach ($this->dbHandler->query($this->typeAdapter->show_procedures($this->dbName)) as $row) {
-                array_push($this->procedures, $row['procedure_name']);
+                $this->procedures[] = $row['procedure_name'];
             }
         }
         return;
@@ -542,7 +542,7 @@ class Mysqldump
         // Listing all events from database
         if ($this->dumpSettings['events']) {
             foreach ($this->dbHandler->query($this->typeAdapter->show_events($this->dbName)) as $row) {
-                array_push($this->events, $row['event_name']);
+                $this->events[] = $row['event_name'];
             }
         }
         return;
@@ -1663,7 +1663,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
         $createTable = $row['Create Table'];
         if ($this->dumpSettings['reset-auto-increment']) {
-            $match = "/AUTO_INCREMENT=[0-9]+/s";
+            $match = "/AUTO_INCREMENT=\d+/s";
             $replace = "";
             $createTable = preg_replace($match, $replace, $createTable);
         }
