@@ -968,9 +968,16 @@ class Mysqldump
         ));
     }
 
+   /**
+    * Give extending classes an opportunity to transform table names
+    *
+    * @param string $tableName Name of table which contains rows
+    *
+    * @return string
+    */
     protected function hookTransformTableName($tableName)
     {
-      if (! $this->$this->transformTableNameCallable) {
+      if (! $this->transformTableNameCallable) {
         return $tableName;
       }
 
