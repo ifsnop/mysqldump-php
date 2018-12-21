@@ -82,6 +82,7 @@ class Mysqldump
     private $version;
     private $tableColumnTypes = array();
     private $transformColumnValueCallable;
+    private $transformTableNameCallable;
     /**
      * database name, parsed from dsn
      * @var string
@@ -449,7 +450,8 @@ class Mysqldump
         if (empty($this->dumpSettings['include-tables'])) {
             // include all tables for now, blacklisting happens later
             foreach ($this->dbHandler->query($this->typeAdapter->show_tables($this->dbName)) as $row) {
-                $this->tables[] = current($row);
+                $tableName = $this->hookTransformTableName(current($row));
+                $this->tables[] = $tableName;
             }
         } else {
             // include only the tables mentioned in include-tables
@@ -932,6 +934,18 @@ class Mysqldump
     }
 
     /**
+     * Set a callable that will transform table names.
+     *
+     * @param callable $callable
+     *
+     * @return void
+     */
+    public function setTransformTableNameHook($callable)
+    {
+      $this->transformTableNameCallable = $callable;
+    }
+
+    /**
      * Give extending classes an opportunity to transform column values
      *
      * @param string $tableName Name of table which contains rows
@@ -952,6 +966,15 @@ class Mysqldump
             $colValue,
             $row
         ));
+    }
+
+    protected function hookTransformTableName($tableName)
+    {
+      if (! $this->$this->transformTableNameCallable) {
+        return $tableName;
+      }
+
+      return call_user_func($this->transformTableNameCallable, $tableName);
     }
 
     /**
