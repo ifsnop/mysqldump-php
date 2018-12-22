@@ -978,7 +978,10 @@ class Mysqldump
     protected function hookTransformTableName($tableName, $row = FALSE, $reset = FALSE)
     {
         if (! $this->transformTableNameCallable) {
-            return $row ?? $tableName;
+            if ($row) {
+                return $row;
+            }
+            return $tableName;
         }
 
         $tableNameNew = call_user_func($this->transformTableNameCallable, $tableName, $reset);
