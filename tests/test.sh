@@ -24,7 +24,7 @@ for i in 000; do
 done
 }
 
-for i in $(seq 0 35) ; do
+for i in $(seq 0 40) ; do
     ret[$i]=0
 done
 
@@ -153,78 +153,99 @@ fi
 cat mysqldump-php_test012.sql | grep -E -e '50001 (CREATE|VIEW)' -e '50013 DEFINER' -e 'CREATE.*TRIGGER' > mysqldump-php_test012.filtered.sql
 cat mysqldump-php_test013.sql | grep INSERT > mysqldump-php_test013.filtered.sql
 
-echo test $index diff test001.filtered.sql mysqldump_test001.filtered.sql
+test="test $index diff test001.filtered.sql mysqldump_test001.filtered.sql"
 diff test001.filtered.sql mysqldump_test001.filtered.sql
 ret[((index++))]=$?
-echo test $index diff mysqldump_test001_complete.filtered.sql mysqldump-php_test001_complete.filtered.sql
+if [[ $? -ne 0 ]]; then echo $test; fi
+
+test="test $index diff mysqldump_test001_complete.filtered.sql mysqldump-php_test001_complete.filtered.sql"
 diff mysqldump_test001_complete.filtered.sql mysqldump-php_test001_complete.filtered.sql
 ret[((index++))]=$?
+if [[ $? -ne 0 ]]; then echo $test; fi
 
-echo test $index diff test002.filtered.sql mysqldump_test002.filtered.sql
+test="test $index diff test002.filtered.sql mysqldump_test002.filtered.sql"
 diff test002.filtered.sql mysqldump_test002.filtered.sql
 ret[((index++))]=$?
+if [[ $? -ne 0 ]]; then echo $test; fi
 
-echo test $index diff test001.filtered.sql mysqldump-php_test001.filtered.sql
+test="test $index diff test001.filtered.sql mysqldump-php_test001.filtered.sql"
 diff test001.filtered.sql mysqldump-php_test001.filtered.sql
 ret[((index++))]=$?
-echo test $index diff test002.filtered.sql mysqldump-php_test002.filtered.sql
+if [[ $? -ne 0 ]]; then echo $test; fi
+
+test="test $index diff test002.filtered.sql mysqldump-php_test002.filtered.sql"
 diff test002.filtered.sql mysqldump-php_test002.filtered.sql
 ret[((index++))]=$?
+if [[ $? -ne 0 ]]; then echo $test; fi
 
-echo test $index diff test001.src.checksum mysqldump-php_test001.checksum
+test="test $index diff test001.src.checksum mysqldump-php_test001.checksum"
 diff test001.src.checksum mysqldump-php_test001.checksum
 ret[((index++))]=$?
-echo test $index diff test002.src.checksum mysqldump-php_test002.checksum
+if [[ $? -ne 0 ]]; then echo $test; fi
+
+test="test $index diff test002.src.checksum mysqldump-php_test002.checksum"
 diff test002.src.checksum mysqldump-php_test002.checksum
 ret[((index++))]=$?
-echo test $index diff test005.src.checksum mysqldump-php_test005.checksum
+if [[ $? -ne 0 ]]; then echo $test; fi
+
+test="test $index diff test005.src.checksum mysqldump-php_test005.checksum"
 diff test005.src.checksum mysqldump-php_test005.checksum
 ret[((index++))]=$?
+if [[ $? -ne 0 ]]; then echo $test; fi
 
-echo test $index diff mysqldump_test005.filtered.sql mysqldump-php_test005.filtered.sql
+test="test $index diff mysqldump_test005.filtered.sql mysqldump-php_test005.filtered.sql"
 diff mysqldump_test005.filtered.sql mysqldump-php_test005.filtered.sql
 ret[((index++))]=$?
+if [[ $? -ne 0 ]]; then echo $test; fi
 
-echo test $index diff test008.filtered.sql mysqldump-php_test008.filtered.sql
+test="test $index diff test008.filtered.sql mysqldump-php_test008.filtered.sql"
 diff test008.filtered.sql mysqldump-php_test008.filtered.sql
 ret[((index++))]=$?
+if [[ $? -ne 0 ]]; then echo $test; fi
 
-#test reset-auto-increment
-echo test $index cat mysqldump-php_test009.sql \| grep -i ENGINE \| grep AUTO_INCREMENT
-test009=`cat mysqldump-php_test009.sql | grep -i ENGINE | grep AUTO_INCREMENT`
-if [[ -z $test009 ]]; then ret[((index++))]=0; else ret[((index++))]=1; fi
+#test reset-auto-increment, make sure we don't find an AUTO_INCREMENT
+test="test $index cat mysqldump-php_test009.sql \| grep -i ENGINE \| grep AUTO_INCREMENT"
+cat mysqldump-php_test009.sql | grep -i ENGINE | (! grep AUTO_INCREMENT)
+ret[((index++))]=$?
+if [[ $? -ne 0 ]]; then echo $test; fi
 
 # test backup events
-echo test $index diff test010.filtered.sql mysqldump-php_test010.filtered.sql
+test="test $index diff test010.filtered.sql mysqldump-php_test010.filtered.sql"
 diff test010.filtered.sql mysqldump-php_test010.filtered.sql
 ret[((index++))]=$?
+if [[ $? -ne 0 ]]; then echo $test; fi
 
 if [[ $major -eq 5 && $medium -ge 7 ]]; then
     # test virtual column support, with simple inserts forced to complete (a) and complete inserts (b)
-    echo test $index diff test011.filtered.sql mysqldump-php_test011a.filtered.sql
+    test="test $index diff test011.filtered.sql mysqldump-php_test011a.filtered.sql"
     diff test011.filtered.sql mysqldump-php_test011a.filtered.sql
     ret[((index++))]=$?
-    echo test $index diff test011.filtered.sql mysqldump-php_test011b.filtered.sql
+    if [[ $? -ne 0 ]]; then echo $test; fi
+    test="test $index diff test011.filtered.sql mysqldump-php_test011b.filtered.sql"
     diff test011.filtered.sql mysqldump-php_test011b.filtered.sql
     ret[((index++))]=$?
+    if [[ $? -ne 0 ]]; then echo $test; fi
 else
     echo test011 disabled, only valid for mysql server version > 5.7.0
 fi
 
 # Test create views, events, trigger
-echo test $index diff mysqldump_test012.filtered.sql mysqldump-php_test012.filtered.sql
+test="test $index diff mysqldump_test012.filtered.sql mysqldump-php_test012.filtered.sql"
 diff mysqldump_test012.filtered.sql mysqldump-php_test012.filtered.sql
 ret[((index++))]=$?
+if [[ $? -ne 0 ]]; then echo $test; fi
 
 # Make sure we do not find a DEFINER
-echo test $index grep 'DEFINER' mysqldump-php_test012_no-definer.sql
+test="test $index grep 'DEFINER' mysqldump-php_test012_no-definer.sql"
 ! grep 'DEFINER' mysqldump-php_test012_no-definer.sql
 ret[((index++))]=$?
+if [[ $? -ne 0 ]]; then echo $test; fi
 
 # test INSERT IGNORE
-echo test $index diff mysqldump_test013.filtered.sql mysqldump-php_test013.filtered.sql
+test="test $index diff mysqldump_test013.filtered.sql mysqldump-php_test013.filtered.sql"
 diff mysqldump_test013.filtered.sql mysqldump-php_test013.filtered.sql
 ret[((index++))]=$?
+if [[ $? -ne 0 ]]; then echo $test; fi
 
 rm *.checksum 2> /dev/null
 rm *.filtered.sql 2> /dev/null
