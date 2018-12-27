@@ -985,7 +985,9 @@ class Mysqldump
 
         $ignore = $this->dumpSettings['insert-ignore'] ? '  IGNORE' : '';
 
+        $count = 0;
         foreach ($resultSet as $row) {
+            $count++;
             $vals = $this->prepareColumnValues($tableName, $row);
             if ($onlyOnce || !$this->dumpSettings['extended-insert']) {
                 if ($this->dumpSettings['complete-insert']) {
@@ -1015,7 +1017,7 @@ class Mysqldump
             $this->compressManager->write(";".PHP_EOL);
         }
 
-        $this->endListValues($tableName);
+        $this->endListValues($tableName, $count);
     }
 
     /**
@@ -1070,10 +1072,11 @@ class Mysqldump
      * Table rows extractor, close locks and commits after dump
      *
      * @param string $tableName  Name of table to export
+     * @param int $count         Number of rows inserted
      *
      * @return null
      */
-    public function endListValues($tableName)
+    public function endListValues($tableName, $count = 0)
     {
         if ($this->dumpSettings['disable-keys']) {
             $this->compressManager->write(
@@ -1103,6 +1106,14 @@ class Mysqldump
         }
 
         $this->compressManager->write(PHP_EOL);
+
+        if (!$this->dumpSettings['skip-comments']) {
+            $this->compressManager->write(
+                "-- Dumped table `$tableName` with $count row(s)".PHP_EOL.
+                "--".PHP_EOL.PHP_EOL
+            );
+        }
+
 
         return;
     }
