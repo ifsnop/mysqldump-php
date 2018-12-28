@@ -942,7 +942,7 @@ class Mysqldump
      */
     protected function hookTransformColumnValue($tableName, $colName, $colValue, $row)
     {
-        if (! $this->transformColumnValueCallable) {
+        if (!$this->transformColumnValueCallable) {
             return $colValue;
         }
 
@@ -1071,10 +1071,10 @@ class Mysqldump
     /**
      * Table rows extractor, close locks and commits after dump
      *
-     * @param string $tableName  Name of table to export
-     * @param int $count         Number of rows inserted
+     * @param string $tableName Name of table to export.
+     * @param integer    $count     Number of rows inserted.
      *
-     * @return null
+     * @return void
      */
     public function endListValues($tableName, $count = 0)
     {
@@ -1107,13 +1107,12 @@ class Mysqldump
 
         $this->compressManager->write(PHP_EOL);
 
-        if (!$this->dumpSettings['skip-comments']) {
+        if (! $this->dumpSettings['skip-comments']) {
             $this->compressManager->write(
-                "-- Dumped table `$tableName` with $count row(s)".PHP_EOL.
-                "--".PHP_EOL.PHP_EOL
+                "-- Dumped table `" . $tableName . "` with $count row(s)".PHP_EOL.
+                '--'.PHP_EOL.PHP_EOL
             );
         }
-
 
         return;
     }
