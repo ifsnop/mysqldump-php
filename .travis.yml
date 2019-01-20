@@ -19,6 +19,7 @@ matrix:
       - php -l src/Ifsnop/Mysqldump/Mysqldump.php
       - php src/Ifsnop/Mysqldump/Mysqldump.php
       - cd tests && ./test.sh
+      - vendor/bin/phpunit
     addons:
       apt:
        sources:
@@ -44,6 +45,7 @@ matrix:
       - php -l src/Ifsnop/Mysqldump/Mysqldump.php
       - php src/Ifsnop/Mysqldump/Mysqldump.php
       - cd tests && ./test.sh
+      - vendor/bin/phpunit
     addons:
       apt:
        sources:
@@ -69,6 +71,7 @@ matrix:
       - php -l src/Ifsnop/Mysqldump/Mysqldump.php
       - php src/Ifsnop/Mysqldump/Mysqldump.php
       - cd tests && ./test.sh
+      - vendor/bin/phpunit
     addons:
       apt:
        sources:
@@ -94,6 +97,7 @@ matrix:
       - php -l src/Ifsnop/Mysqldump/Mysqldump.php
       - php src/Ifsnop/Mysqldump/Mysqldump.php
       - cd tests && ./test.sh
+      - vendor/bin/phpunit
     addons:
       apt:
        sources:
@@ -119,6 +123,7 @@ matrix:
       - php -l src/Ifsnop/Mysqldump/Mysqldump.php
       - php src/Ifsnop/Mysqldump/Mysqldump.php
       - cd tests && ./test.sh
+      - vendor/bin/phpunit
     addons:
       apt:
        sources:
@@ -144,6 +149,7 @@ matrix:
       - php -l src/Ifsnop/Mysqldump/Mysqldump.php
       - php src/Ifsnop/Mysqldump/Mysqldump.php
       - cd tests && ./test.sh
+      - vendor/bin/phpunit
     addons:
       apt:
        sources:
@@ -169,6 +175,7 @@ matrix:
       - php -l src/Ifsnop/Mysqldump/Mysqldump.php
       - php src/Ifsnop/Mysqldump/Mysqldump.php
       - cd tests && ./test.sh
+      - vendor/bin/phpunit
     addons:
       apt:
        sources:
@@ -194,6 +201,7 @@ matrix:
       - php -l src/Ifsnop/Mysqldump/Mysqldump.php
       - php src/Ifsnop/Mysqldump/Mysqldump.php
       - cd tests && ./test.sh
+      - vendor/bin/phpunit
     addons:
       apt:
        sources:
@@ -219,6 +227,7 @@ matrix:
       - php -l src/Ifsnop/Mysqldump/Mysqldump.php
       - php src/Ifsnop/Mysqldump/Mysqldump.php
       - cd tests && ./test.sh
+      - vendor/bin/phpunit
     addons:
       apt:
        sources:
@@ -244,6 +253,7 @@ matrix:
       - php -l src/Ifsnop/Mysqldump/Mysqldump.php
       - php src/Ifsnop/Mysqldump/Mysqldump.php
       - cd tests && ./test.sh
+      - vendor/bin/phpunit
     addons:
       apt:
        sources:
@@ -270,6 +280,7 @@ matrix:
       - php -l src/Ifsnop/Mysqldump/Mysqldump.php
       - php src/Ifsnop/Mysqldump/Mysqldump.php
       - cd tests && ./test.sh
+      - vendor/bin/phpunit
     before_install:
       - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
   allow_failures:
