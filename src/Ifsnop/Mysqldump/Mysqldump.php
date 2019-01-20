@@ -99,6 +99,14 @@ class Mysqldump
     private $dsnArray = array();
 
     /**
+     * Keyed on table name, with the value as the conditions
+     * e.g. - 'users' => 'date_registered > NOW() - INTERVAL 6 MONTH'
+     *
+     * @var array
+     */
+    private $tableWheres = array();
+
+    /**
      * Constructor of Mysqldump. Note that in the case of an SQLite database
      * connection, the filename must be in the $db parameter.
      *
@@ -221,6 +229,33 @@ class Mysqldump
             }
         }
         return $array1;
+    }
+
+    /**
+     * Keyed by table name, with the value as the conditions:
+     * e.g. 'users' => 'date_registered > NOW() - INTERVAL 6 MONTH AND deleted=0'
+     *
+     * @param array $tableWheres
+     */
+    public function setTableWheres(array $tableWheres)
+    {
+        $this->tableWheres = $tableWheres;
+    }
+
+    /**
+     * @param $tableName
+     *
+     * @return bool|mixed
+     */
+    public function getTableWhere($tableName)
+    {
+        if (!empty($this->tableWheres[$tableName])) {
+            return $this->tableWheres[$tableName];
+        } elseif ($this->dumpSettings['where']) {
+            return $this->dumpSettings['where'];
+        }
+
+        return false;
     }
 
     /**
@@ -977,9 +1012,13 @@ class Mysqldump
 
         $stmt = "SELECT ".implode(",", $colStmt)." FROM `$tableName`";
 
-        if ($this->dumpSettings['where']) {
-            $stmt .= " WHERE {$this->dumpSettings['where']}";
+        // Table specific conditions override the default 'where'
+        $condition = $this->getTableWhere($tableName);
+
+        if ($condition) {
+            $stmt .= " WHERE {$condition}";
         }
+
         $resultSet = $this->dbHandler->query($stmt);
         $resultSet->setFetchMode(PDO::FETCH_ASSOC);
 

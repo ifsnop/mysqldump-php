@@ -104,6 +104,19 @@ $dumper->setTransformColumnValueHook(function ($tableName, $colName, $colValue) 
 $dumper->start('storage/work/dump.sql');
 ```
 
+## Table specific export conditions
+You can register table specific 'where' clauses to limit data on a per table basis.  These override the default `where` dump setting:
+
+```php
+$dumper = new IMysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
+
+$dumper->setTableWheres(array(
+    'users' => 'date_registered > NOW() - INTERVAL 3 MONTH AND deleted=0',
+    'logs' => 'date_logged > NOW() - INTERVAL 1 DAY',
+    'posts' => 'isLive=1'
+));
+```
+
 ## Constructor and default parameters
 ```php
 /**
