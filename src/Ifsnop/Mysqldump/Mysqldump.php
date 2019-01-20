@@ -105,6 +105,7 @@ class Mysqldump
      * @var array
      */
     private $tableWheres = array();
+    private $tableLimits = array();
 
     /**
      * Constructor of Mysqldump. Note that in the case of an SQLite database
@@ -256,6 +257,36 @@ class Mysqldump
         }
 
         return false;
+    }
+
+    /**
+     * Keyed by table name, with the value as the numeric limit:
+     * e.g. 'users' => 3000
+     *
+     * @param array $tableLimits
+     */
+    public function setTableLimits(array $tableLimits)
+    {
+        $this->tableLimits = $tableLimits;
+    }
+
+    /**
+     * Returns the LIMIT for the table.  Must be numeric to be returned.
+     * @param $tableName
+     * @return bool
+     */
+    public function getTableLimit($tableName)
+    {
+        if (empty($this->tableLimits[$tableName])) {
+            return false;
+        }
+
+        $limit = $this->tableLimits[$tableName];
+        if (!is_numeric($limit)) {
+            return false;
+        }
+
+        return $limit;
     }
 
     /**
@@ -1017,6 +1048,12 @@ class Mysqldump
 
         if ($condition) {
             $stmt .= " WHERE {$condition}";
+        }
+
+        $limit = $this->getTableLimit($tableName);
+
+        if ($limit) {
+            $stmt .= " LIMIT {$limit}";
         }
 
         $resultSet = $this->dbHandler->query($stmt);

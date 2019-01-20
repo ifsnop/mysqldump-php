@@ -117,6 +117,19 @@ $dumper->setTableWheres(array(
 ));
 ```
 
+## Table specific export limits
+You can register table specific 'limits' to limit the returned rows on a per table basis:
+
+```php
+$dumper = new IMysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
+
+$dumper->setTableLimits(array(
+    'users' => 300,
+    'logs' => 50,
+    'posts' => 10
+));
+```
+
 ## Constructor and default parameters
 ```php
 /**
