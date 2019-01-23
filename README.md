@@ -85,7 +85,7 @@ Plain old PHP:
     $dump->start('storage/work/dump.sql');
 ```
 
-Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/full-example) for some examples and a comparision between mysqldump and mysqldump-php dumps.
+Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/Full-usage-example) for some examples and a comparision between mysqldump and mysqldump-php dumps.
 
 ## Changing values when exporting
 You can register a callable that will be used to transform values during the export. An example use-case for this is removing sensitive data from database dumps:
