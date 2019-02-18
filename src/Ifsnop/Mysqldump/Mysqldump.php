@@ -1183,9 +1183,9 @@ class Mysqldump
 
         $this->compressManager->write(PHP_EOL);
 
-        if (! $this->dumpSettings['skip-comments']) {
+        if (!$this->dumpSettings['skip-comments']) {
             $this->compressManager->write(
-                "-- Dumped table `" . $tableName . "` with $count row(s)".PHP_EOL.
+                "-- Dumped table `".$tableName."` with $count row(s)".PHP_EOL.
                 '--'.PHP_EOL.PHP_EOL
             );
         }
