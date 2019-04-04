@@ -1254,9 +1254,9 @@ class Mysqldump
 abstract class CompressMethod
 {
     public static $enums = array(
-        "None",
-        "Gzip",
-        "Bzip2"
+        Mysqldump::NONE,
+        Mysqldump::GZIP,
+        Mysqldump::BZIP2,
     );
 
     /**
