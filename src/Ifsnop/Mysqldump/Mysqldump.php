@@ -38,6 +38,7 @@ class Mysqldump
     const GZIP  = 'Gzip';
     const BZIP2 = 'Bzip2';
     const NONE  = 'None';
+    const GZIPSTREAM = 'Gzipstream';
 
     // List of available connection strings.
     const UTF8    = 'utf8';
@@ -1257,6 +1258,7 @@ abstract class CompressMethod
         Mysqldump::NONE,
         Mysqldump::GZIP,
         Mysqldump::BZIP2,
+        Mysqldump::GZIPSTREAM,
     );
 
     /**
@@ -1393,6 +1395,41 @@ class CompressNone extends CompressManagerFactory
     {
         return fclose($this->fileHandler);
     }
+}
+
+class CompressGzipstream extends CompressManagerFactory
+{
+  private $fileHandler = null;
+
+  private $compressContext;
+
+  /**
+   * @param string $filename
+   */
+  public function open($filename)
+  {
+    $this->fileHandler = fopen($filename, "wb");
+    if (false === $this->fileHandler) {
+      throw new Exception("Output file is not writable");
+    }
+
+    $this->compressContext = deflate_init(ZLIB_ENCODING_GZIP, ['level' => 9]);
+    return true;
+  }
+
+  public function write($str)
+  {
+    if (false === ($bytesWritten = fwrite($this->fileHandler, deflate_add($this->compressContext, $str, ZLIB_NO_FLUSH)))) {
+      throw new Exception("Writting to file failed! Probably, there is no more free space left?");
+    }
+    return $bytesWritten;
+  }
+
+  public function close()
+  {
+    fwrite($this->fileHandler, deflate_add($this->compressContext, '', ZLIB_FINISH));
+    return fclose($this->fileHandler);
+  }
 }
 
 /**
