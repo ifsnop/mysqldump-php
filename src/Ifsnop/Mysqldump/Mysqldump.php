@@ -72,6 +72,7 @@ class Mysqldump
     private $views = array();
     private $triggers = array();
     private $procedures = array();
+    private $functions = array();
     private $events = array();
     private $dbHandler = null;
     private $dbType = "";
@@ -423,12 +424,13 @@ class Mysqldump
             }
         }
 
-        // Get table, view, trigger, procedures and events structures from
+        // Get table, view, trigger, procedures, functions and events structures from
         // database.
         $this->getDatabaseStructureTables();
         $this->getDatabaseStructureViews();
         $this->getDatabaseStructureTriggers();
         $this->getDatabaseStructureProcedures();
+        $this->getDatabaseStructureFunctions();
         $this->getDatabaseStructureEvents();
 
         if ($this->dumpSettings['databases']) {
@@ -450,6 +452,7 @@ class Mysqldump
         $this->exportTriggers();
         $this->exportViews();
         $this->exportProcedures();
+        $this->exportFunctions();
         $this->exportEvents();
 
         // Restore saved parameters.
@@ -604,6 +607,23 @@ class Mysqldump
     }
 
     /**
+     * Reads functions names from database.
+     * Fills $this->tables array so they will be dumped later.
+     *
+     * @return null
+     */
+    private function getDatabaseStructureFunctions()
+    {
+        // Listing all functions from database
+        if ($this->dumpSettings['routines']) {
+            foreach ($this->dbHandler->query($this->typeAdapter->show_functions($this->dbName)) as $row) {
+                array_push($this->functions, $row['function_name']);
+            }
+        }
+        return;
+    }
+
+    /**
      * Reads event names from database.
      * Fills $this->tables array so they will be dumped later.
      *
@@ -714,6 +734,19 @@ class Mysqldump
         // Exporting triggers one by one
         foreach ($this->procedures as $procedure) {
             $this->getProcedureStructure($procedure);
+        }
+    }
+
+    /**
+     * Exports all the functions found in database
+     *
+     * @return null
+     */
+    private function exportFunctions()
+    {
+        // Exporting triggers one by one
+        foreach ($this->functions as $function) {
+            $this->getFunctionStructure($function);
         }
     }
 
@@ -917,6 +950,29 @@ class Mysqldump
         foreach ($this->dbHandler->query($stmt) as $r) {
             $this->compressManager->write(
                 $this->typeAdapter->create_procedure($r)
+            );
+            return;
+        }
+    }
+
+    /**
+     * Function structure extractor
+     *
+     * @param string $functionName  Name of function to export
+     * @return null
+     */
+    private function getFunctionStructure($functionName)
+    {
+        if (!$this->dumpSettings['skip-comments']) {
+            $ret = "--".PHP_EOL.
+                "-- Dumping routines for database '".$this->dbName."'".PHP_EOL.
+                "--".PHP_EOL.PHP_EOL;
+            $this->compressManager->write($ret);
+        }
+        $stmt = $this->typeAdapter->show_create_function($functionName);
+        foreach ($this->dbHandler->query($stmt) as $r) {
+            $this->compressManager->write(
+                $this->typeAdapter->create_function($r)
             );
             return;
         }
@@ -1513,6 +1569,15 @@ abstract class TypeAdapterFactory
         return "";
     }
 
+    /**
+     * function create_function Modify function code, add delimiters, etc
+     * @todo make it do something with sqlite
+     */
+    public function create_function($functionName)
+    {
+        return "";
+    }
+
     public function show_tables()
     {
         return "SELECT tbl_name FROM sqlite_master WHERE type='table'";
@@ -1540,6 +1605,11 @@ abstract class TypeAdapterFactory
     }
 
     public function show_procedures()
+    {
+        return "";
+    }
+
+    public function show_functions()
     {
         return "";
     }
@@ -1742,6 +1812,11 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return "SHOW CREATE PROCEDURE `$procedureName`";
     }
 
+    public function show_create_function($functionName)
+    {
+        return "SHOW CREATE FUNCTION `$functionName`";
+    }
+
     public function show_create_event($eventName)
     {
         return "SHOW CREATE EVENT `$eventName`";
@@ -1838,6 +1913,27 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return $ret;
     }
 
+    public function create_function($row)
+    {
+        $ret = "";
+        if (!isset($row['Create Function'])) {
+            throw new Exception("Error getting function code, unknown output. ".
+                "Please check 'https://bugs.mysql.com/bug.php?id=14564'");
+        }
+        $functionStmt = $row['Create Function'];
+
+        $ret .= "/*!50003 DROP FUNCTION IF EXISTS `".
+            $row['Function']."` */;".PHP_EOL.
+            "/*!40101 SET @saved_cs_client     = @@character_set_client */;".PHP_EOL.
+            "/*!40101 SET character_set_client = ".$this->dumpSettings['default-character-set']." */;".PHP_EOL.
+            "DELIMITER ;;".PHP_EOL.
+            $functionStmt." ;;".PHP_EOL.
+            "DELIMITER ;".PHP_EOL.
+            "/*!40101 SET character_set_client = @saved_cs_client */;".PHP_EOL.PHP_EOL;
+
+        return $ret;
+    }
+
     public function create_event($row)
     {
         $ret = "";
@@ -1925,6 +2021,15 @@ class TypeAdapterMysql extends TypeAdapterFactory
         return "SELECT SPECIFIC_NAME AS procedure_name ".
             "FROM INFORMATION_SCHEMA.ROUTINES ".
             "WHERE ROUTINE_TYPE='PROCEDURE' AND ROUTINE_SCHEMA='${args[0]}'";
+    }
+
+    public function show_functions()
+    {
+        $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
+        $args = func_get_args();
+        return "SELECT SPECIFIC_NAME AS function_name ".
+            "FROM INFORMATION_SCHEMA.ROUTINES ".
+            "WHERE ROUTINE_TYPE='FUNCTION' AND ROUTINE_SCHEMA='${args[0]}'";
     }
 
     /**
