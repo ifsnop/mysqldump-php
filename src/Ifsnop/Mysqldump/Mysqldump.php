@@ -450,9 +450,9 @@ class Mysqldump
 
         $this->exportTables();
         $this->exportTriggers();
+        $this->exportFunctions();
         $this->exportViews();
         $this->exportProcedures();
-        $this->exportFunctions();
         $this->exportEvents();
 
         // Restore saved parameters.
