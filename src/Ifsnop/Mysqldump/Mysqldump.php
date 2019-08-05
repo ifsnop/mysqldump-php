@@ -1372,7 +1372,8 @@ class CompressBzip2 extends CompressManagerFactory
 
     public function write($str)
     {
-        if (false === ($bytesWritten = bzwrite($this->fileHandler, $str))) {
+        $bytesWritten = bzwrite($this->fileHandler, $str);
+        if (false === $bytesWritten) {
             throw new Exception("Writting to file failed! Probably, there is no more free space left?");
         }
         return $bytesWritten;
@@ -1410,7 +1411,8 @@ class CompressGzip extends CompressManagerFactory
 
     public function write($str)
     {
-        if (false === ($bytesWritten = gzwrite($this->fileHandler, $str))) {
+        $bytesWritten = gzwrite($this->fileHandler, $str);
+        if (false === $bytesWritten) {
             throw new Exception("Writting to file failed! Probably, there is no more free space left?");
         }
         return $bytesWritten;
@@ -1441,7 +1443,8 @@ class CompressNone extends CompressManagerFactory
 
     public function write($str)
     {
-        if (false === ($bytesWritten = fwrite($this->fileHandler, $str))) {
+        $bytesWritten = fwrite($this->fileHandler, $str);
+        if (false === $bytesWritten) {
             throw new Exception("Writting to file failed! Probably, there is no more free space left?");
         }
         return $bytesWritten;
@@ -1469,13 +1472,15 @@ class CompressGzipstream extends CompressManagerFactory
       throw new Exception("Output file is not writable");
     }
 
-    $this->compressContext = deflate_init(ZLIB_ENCODING_GZIP, ['level' => 9]);
+    $this->compressContext = deflate_init(ZLIB_ENCODING_GZIP, array('level' => 9));
     return true;
   }
 
   public function write($str)
   {
-    if (false === ($bytesWritten = fwrite($this->fileHandler, deflate_add($this->compressContext, $str, ZLIB_NO_FLUSH)))) {
+
+    $bytesWritten = fwrite($this->fileHandler, deflate_add($this->compressContext, $str, ZLIB_NO_FLUSH));
+    if (false === $bytesWritten) {
       throw new Exception("Writting to file failed! Probably, there is no more free space left?");
     }
     return $bytesWritten;
