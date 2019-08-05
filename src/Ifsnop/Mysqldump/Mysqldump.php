@@ -1180,7 +1180,7 @@ class Mysqldump
             $this->dbHandler->exec($this->typeAdapter->start_transaction());
         }
 
-        if ($this->dumpSettings['lock-tables']) {
+        if ($this->dumpSettings['lock-tables'] && !$this->dumpSettings['single-transaction']) {
             $this->typeAdapter->lock_table($tableName);
         }
 
@@ -1232,7 +1232,7 @@ class Mysqldump
             $this->dbHandler->exec($this->typeAdapter->commit_transaction());
         }
 
-        if ($this->dumpSettings['lock-tables']) {
+        if ($this->dumpSettings['lock-tables'] && !$this->dumpSettings['single-transaction']) {
             $this->typeAdapter->unlock_table($tableName);
         }
 
@@ -2054,8 +2054,10 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function start_transaction()
     {
-        return "START TRANSACTION";
+        return "START TRANSACTION " .
+            "/*!40100 WITH CONSISTENT SNAPSHOT */";
     }
+
 
     public function commit_transaction()
     {
