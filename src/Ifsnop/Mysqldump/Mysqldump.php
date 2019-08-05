@@ -452,8 +452,8 @@ class Mysqldump
         $this->exportTables();
         $this->exportTriggers();
         $this->exportFunctions();
-        $this->exportViews();
         $this->exportProcedures();
+        $this->exportViews();
         $this->exportEvents();
 
         // Restore saved parameters.
@@ -1937,6 +1937,16 @@ class TypeAdapterMysql extends TypeAdapterFactory
                 "Please check 'https://bugs.mysql.com/bug.php?id=14564'");
         }
         $procedureStmt = $row['Create Procedure'];
+        if ( $this->dumpSettings['skip-definer'] ) {
+            if ($procedureStmtReplaced = preg_replace(
+                '/^(CREATE)\s+('.self::DEFINER_RE.')?\s+(PROCEDURE\s.*)$/s',
+                '\1 \3',
+                $procedureStmt,
+                1
+            )) {
+                $procedureStmt = $procedureStmtReplaced;
+            }
+        }
 
         $ret .= "/*!50003 DROP PROCEDURE IF EXISTS `".
             $row['Procedure']."` */;".PHP_EOL.
@@ -1958,6 +1968,16 @@ class TypeAdapterMysql extends TypeAdapterFactory
                 "Please check 'https://bugs.mysql.com/bug.php?id=14564'");
         }
         $functionStmt = $row['Create Function'];
+        if ( $this->dumpSettings['skip-definer'] ) {
+            if ($functionStmtReplaced = preg_replace(
+                '/^(CREATE)\s+('.self::DEFINER_RE.')?\s+(FUNCTION\s.*)$/s',
+                '\1 \3',
+                $functionStmt,
+                1
+            )) {
+                $functionStmt = $functionStmtReplaced;
+            }
+        }
 
         $ret .= "/*!50003 DROP FUNCTION IF EXISTS `".
             $row['Function']."` */;".PHP_EOL.

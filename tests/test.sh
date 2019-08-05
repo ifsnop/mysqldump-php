@@ -101,6 +101,7 @@ mysqldump -utravis test012 \
     --skip-extended-insert \
     --hex-blob \
     --events \
+    --routines \
     > mysqldump_test012.sql
 errCode=$?; ret[((index++))]=$errCode
 
@@ -147,7 +148,7 @@ cat mysqldump_test001.sql | grep ^INSERT > mysqldump_test001.filtered.sql
 cat mysqldump_test001_complete.sql | grep ^INSERT > mysqldump_test001_complete.filtered.sql
 cat mysqldump_test002.sql | grep ^INSERT > mysqldump_test002.filtered.sql
 cat mysqldump_test005.sql | grep ^INSERT > mysqldump_test005.filtered.sql
-cat mysqldump_test012.sql | grep -E -e '50001 (CREATE|VIEW)' -e '50013 DEFINER' -e 'TRIGGER' | grep -v -e 'TABLE' -e 'CREATE VIEW' > mysqldump_test012.filtered.sql
+cat mysqldump_test012.sql | grep -E -e '50001 (CREATE|VIEW)' -e '50013 DEFINER' -e 'TRIGGER' -e 'FUNCTION' -e 'PROCEDURE' | grep -v -e 'TABLE' -e 'CREATE VIEW' > mysqldump_test012.filtered.sql
 cat mysqldump_test013.sql | grep "INSERT" > mysqldump_test013.filtered.sql
 cat mysqldump-php_test001.sql | grep ^INSERT > mysqldump-php_test001.filtered.sql
 cat mysqldump-php_test001_complete.sql | grep ^INSERT > mysqldump-php_test001_complete.filtered.sql
@@ -164,7 +165,7 @@ else
     echo "test011 disabled, only valid for mysql server version > 5.7.0"
 fi
 
-cat mysqldump-php_test012.sql | grep -E -e '50001 (CREATE|VIEW)' -e '50013 DEFINER' -e 'CREATE.*TRIGGER' > mysqldump-php_test012.filtered.sql
+cat mysqldump-php_test012.sql | grep -E -e '50001 (CREATE|VIEW)' -e '50013 DEFINER' -e 'CREATE.*TRIGGER' -e 'FUNCTION' -e 'PROCEDURE' > mysqldump-php_test012.filtered.sql
 cat mysqldump-php_test013.sql | grep INSERT > mysqldump-php_test013.filtered.sql
 
 test="test $index diff test001.filtered.sql mysqldump_test001.filtered.sql"
