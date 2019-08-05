@@ -26,12 +26,13 @@ MySQLDump-PHP is the only library that supports:
 * output binary blobs as hex.
 * resolves view dependencies (using Stand-In tables).
 * output compared against original mysqldump. Linked to travis-ci testing system (testing from php 5.3 to 7.1 & hhvm)
-* dumps stored procedures.
+* dumps stored routines (functions and procedures).
 * dumps events.
 * does extended-insert and/or complete-insert.
 * supports virtual columns from MySQL 5.7.
 * does insert-ignore, like a REPLACE but ignoring errors if a duplicate key exists.
 * modifying data from database on-the-fly when dumping, using hooks.
+* can save directly to google cloud storage over a compressed stream wrapper (GZIPSTREAM).
 
 ## Important
 
