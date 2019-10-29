@@ -25,7 +25,7 @@ Out of the box, MySQLDump-PHP supports backing up table structures, the data its
 MySQLDump-PHP is the only library that supports:
 * output binary blobs as hex.
 * resolves view dependencies (using Stand-In tables).
-* output compared against original mysqldump. Linked to travis-ci testing system (testing from php 5.3 to 7.1 & hhvm)
+* output compared against original mysqldump. Linked to travis-ci testing system (testing from php 5.3 to 7.3 & hhvm)
 * dumps stored routines (functions and procedures).
 * dumps events.
 * does extended-insert and/or complete-insert.
