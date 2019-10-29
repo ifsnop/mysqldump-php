@@ -1973,6 +1973,9 @@ class TypeAdapterMysql extends TypeAdapterFactory
                 "Please check 'https://bugs.mysql.com/bug.php?id=14564'");
         }
         $functionStmt = $row['Create Function'];
+        $characterSetClient = $row['character_set_client'];
+        $collationConnection = $row['collation_connection'];
+        $sqlMode = $row['sql_mode'];
         if ( $this->dumpSettings['skip-definer'] ) {
             if ($functionStmtReplaced = preg_replace(
                 '/^(CREATE)\s+('.self::DEFINER_RE.')?\s+(FUNCTION\s.*)$/s',
@@ -1987,11 +1990,24 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $ret .= "/*!50003 DROP FUNCTION IF EXISTS `".
             $row['Function']."` */;".PHP_EOL.
             "/*!40101 SET @saved_cs_client     = @@character_set_client */;".PHP_EOL.
-            "/*!40101 SET character_set_client = ".$this->dumpSettings['default-character-set']." */;".PHP_EOL.
+            "/*!50003 SET @saved_cs_results     = @@character_set_results */ ;".PHP_EOL.
+            "/*!50003 SET @saved_col_connection = @@collation_connection */ ;".PHP_EOL.
+            "/*!40101 SET character_set_client = ".$characterSetClient." */;".PHP_EOL.
+            "/*!40101 SET character_set_results = ".$characterSetClient." */;".PHP_EOL.
+            "/*!50003 SET collation_connection  = ".$collationConnection." */ ;".PHP_EOL.
+            "/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;;".PHP_EOL.
+            "/*!50003 SET sql_mode              = '".$sqlMode."' */ ;;".PHP_EOL.
+            "/*!50003 SET @saved_time_zone      = @@time_zone */ ;;".PHP_EOL.
+            "/*!50003 SET time_zone             = 'SYSTEM' */ ;;".PHP_EOL.
             "DELIMITER ;;".PHP_EOL.
             $functionStmt." ;;".PHP_EOL.
             "DELIMITER ;".PHP_EOL.
-            "/*!40101 SET character_set_client = @saved_cs_client */;".PHP_EOL.PHP_EOL;
+            "/*!50003 SET sql_mode              = @saved_sql_mode */ ;".PHP_EOL.
+            "/*!50003 SET character_set_client  = @saved_cs_client */ ;".PHP_EOL.
+            "/*!50003 SET character_set_results = @saved_cs_results */ ;".PHP_EOL.
+            "/*!50003 SET collation_connection  = @saved_col_connection */ ;".PHP_EOL.
+            "/*!50106 SET TIME_ZONE= @saved_time_zone */ ;".PHP_EOL.PHP_EOL;
+
 
         return $ret;
     }
