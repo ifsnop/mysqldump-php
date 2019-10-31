@@ -104,6 +104,15 @@ $dumper->setTransformColumnValueHook(function ($tableName, $colName, $colValue) 
 
 $dumper->start('storage/work/dump.sql');
 ```
+## Getting information about the dump
+You can register a callable that will be used to report on the progress of the dump
+
+```php
+$dumper->setInfoHook(function($object, $info) {
+    if ($object === 'table') {
+        echo $info['name'], $info['rowCount'];
+    });
+```
 
 ## Table specific export conditions
 You can register table specific 'where' clauses to limit data on a per table basis.  These override the default `where` dump setting:

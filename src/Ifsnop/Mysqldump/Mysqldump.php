@@ -84,6 +84,7 @@ class Mysqldump
     private $version;
     private $tableColumnTypes = array();
     private $transformColumnValueCallable;
+    private $infoCallable;
 
     /**
      * Database name, parsed from dsn.
@@ -111,6 +112,7 @@ class Mysqldump
      */
     private $tableWheres = array();
     private $tableLimits = array();
+
 
     /**
      * Constructor of Mysqldump. Note that in the case of an SQLite database
@@ -723,6 +725,7 @@ class Mysqldump
         foreach ($this->triggers as $trigger) {
             $this->getTriggerStructure($trigger);
         }
+
     }
 
     /**
@@ -1061,6 +1064,18 @@ class Mysqldump
     }
 
     /**
+     * Set a callable that will be used to report dump information
+     *
+     * @param callable $callable
+     *
+     * @return void
+     */
+    public function setInfoHook($callable)
+    {
+        $this->infoCallable = $callable;
+    }
+
+    /**
      * Give extending classes an opportunity to transform column values
      *
      * @param string $tableName Name of table which contains rows
@@ -1157,6 +1172,10 @@ class Mysqldump
         }
 
         $this->endListValues($tableName, $count);
+
+        if ($this->infoCallable) {
+            call_user_func($this->infoCallable, 'table', array('name' => $tableName, 'rowCount' => $count));
+        }
     }
 
     /**
