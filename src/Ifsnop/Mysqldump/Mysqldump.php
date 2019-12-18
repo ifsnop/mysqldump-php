@@ -1081,6 +1081,7 @@ class Mysqldump
      * @param string $tableName Name of table which contains rows
      * @param string $colName Name of the column in question
      * @param string $colValue Value of the column in question
+     * @param array $row Full row
      *
      * @return string
      */
