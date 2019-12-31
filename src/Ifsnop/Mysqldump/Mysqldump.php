@@ -815,11 +815,11 @@ class Mysqldump
 
         foreach ($columns as $key => $col) {
             $types = $this->typeAdapter->parseColumnType($col);
-            $columnTypes[$col['Field']] = array(
+            $columnTypes[$this->typeAdapter->extractColumnName($col)] = array(
                 'is_numeric'=> $types['is_numeric'],
                 'is_blob' => $types['is_blob'],
                 'type' => $types['type'],
-                'type_sql' => $col['Type'],
+                'type_sql' => !empty($col['Type']) ? $col['Type']: $types['type'],
                 'is_virtual' => $types['is_virtual']
             );
         }
@@ -1757,6 +1757,11 @@ abstract class TypeAdapterFactory
     {
         return PHP_EOL;
     }
+
+    public function extractColumnName($colType)
+    {
+      return $colType['Field'];
+    }
 }
 
 class TypeAdapterPgsql extends TypeAdapterFactory
@@ -1769,6 +1774,25 @@ class TypeAdapterDblib extends TypeAdapterFactory
 
 class TypeAdapterSqlite extends TypeAdapterFactory
 {
+    public function parseColumnType($colType)
+    {
+        $colInfo = array();
+        $colInfo['type'] = $colType['type'];
+        $colInfo['is_numeric'] = in_array($colInfo['type'], array('INTEGER', 'REAL'));
+        $colInfo['is_blob'] = $colInfo['type'] === 'BLOB';
+        $colInfo['is_virtual'] = FALSE;
+        return $colInfo;
+    }
+
+    public function extractColumnName($colType)
+    {
+        return $colType['name'];
+    }
+
+    public function setup_transaction()
+    {
+      return "PRAGMA no_op";
+    }
 }
 
 class TypeAdapterMysql extends TypeAdapterFactory
