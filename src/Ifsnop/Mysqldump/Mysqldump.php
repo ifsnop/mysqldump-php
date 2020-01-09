@@ -134,6 +134,7 @@ class Mysqldump
         $dumpSettingsDefault = array(
             'include-tables' => array(),
             'exclude-tables' => array(),
+            'include-views' => array(),
             'compress' => Mysqldump::NONE,
             'init_commands' => array(),
             'no-data' => array(),
@@ -198,8 +199,10 @@ class Mysqldump
             throw new Exception("Include-tables and exclude-tables should be arrays");
         }
 
-        // Dump the same views as tables, mimic mysqldump behaviour
-        $this->dumpSettings['include-views'] = $this->dumpSettings['include-tables'];
+        // If no include-views is passed in, dump the same views as tables, mimic mysqldump behaviour.
+        if ( ! isset( $dumpSettings['include-views'] ) ) {
+			$this->dumpSettings['include-views'] = $this->dumpSettings['include-tables'];
+        }
 
         // Create a new compressManager to manage compressed output
         $this->compressManager = CompressManagerFactory::create($this->dumpSettings['compress']);
