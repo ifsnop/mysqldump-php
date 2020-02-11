@@ -89,22 +89,25 @@ Plain old PHP:
 Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/Full-usage-example) for some examples and a comparision between mysqldump and mysqldump-php dumps.
 
 ## Changing values when exporting
+
 You can register a callable that will be used to transform values during the export. An example use-case for this is removing sensitive data from database dumps:
 
 ```php
 $dumper = new IMysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
 
-$dumper->setTransformColumnValueHook(function ($tableName, $colName, $colValue) {
-    if ($colName === 'social_security_number') {
-        return (string) rand(1000000, 9999999);
+$dumper->setTransformTableRowHook(function ($tableName, array $row) {
+    if ($tableName === 'customers') {
+        $row['social_security_number'] = (string) rand(1000000, 9999999);
     }
 
-    return $colValue;
+    return $row;
 });
 
 $dumper->start('storage/work/dump.sql');
 ```
+
 ## Getting information about the dump
+
 You can register a callable that will be used to report on the progress of the dump
 
 ```php
@@ -115,6 +118,7 @@ $dumper->setInfoHook(function($object, $info) {
 ```
 
 ## Table specific export conditions
+
 You can register table specific 'where' clauses to limit data on a per table basis.  These override the default `where` dump setting:
 
 ```php
@@ -128,6 +132,7 @@ $dumper->setTableWheres(array(
 ```
 
 ## Table specific export limits
+
 You can register table specific 'limits' to limit the returned rows on a per table basis:
 
 ```php
@@ -141,6 +146,7 @@ $dumper->setTableLimits(array(
 ```
 
 ## Constructor and default parameters
+
 ```php
 /**
  * Constructor of Mysqldump. Note that in the case of an SQLite database

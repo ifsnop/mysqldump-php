@@ -83,6 +83,7 @@ class Mysqldump
     private $pdoSettings = array();
     private $version;
     private $tableColumnTypes = array();
+    private $transformTableRowCallable;
     private $transformColumnValueCallable;
     private $infoCallable;
 
@@ -1014,12 +1015,20 @@ class Mysqldump
      *
      * @return array
      */
-    private function prepareColumnValues($tableName, $row)
+    private function prepareColumnValues($tableName, array $row)
     {
         $ret = array();
         $columnTypes = $this->tableColumnTypes[$tableName];
+
+        if ($this->transformTableRowCallable) {
+            $row = call_user_func($this->transformTableRowCallable, $tableName, $row);
+        }
+
         foreach ($row as $colName => $colValue) {
-            $colValue = $this->hookTransformColumnValue($tableName, $colName, $colValue, $row);
+            if ($this->transformColumnValueCallable) {
+                $colValue = call_user_func($this->transformColumnValueCallable, $tableName, $colName, $colValue, $row);
+            }
+
             $ret[] = $this->escape($colValue, $columnTypes[$colName]);
         }
 
@@ -1052,11 +1061,25 @@ class Mysqldump
     }
 
     /**
-     * Set a callable that will will be used to transform column values.
+     * Set a callable that will be used to transform table rows
      *
      * @param callable $callable
      *
      * @return void
+     */
+    public function setTransformTableRowHook($callable)
+    {
+        $this->transformTableRowCallable = $callable;
+    }
+
+    /**
+     * Set a callable that will be used to transform column values
+     *
+     * @param callable $callable
+     *
+     * @return void
+     *
+     * @deprecated Use setTransformTableRowHook instead for better performance
      */
     public function setTransformColumnValueHook($callable)
     {
@@ -1073,30 +1096,6 @@ class Mysqldump
     public function setInfoHook($callable)
     {
         $this->infoCallable = $callable;
-    }
-
-    /**
-     * Give extending classes an opportunity to transform column values
-     *
-     * @param string $tableName Name of table which contains rows
-     * @param string $colName Name of the column in question
-     * @param string $colValue Value of the column in question
-     * @param array $row Full row
-     *
-     * @return string
-     */
-    protected function hookTransformColumnValue($tableName, $colName, $colValue, $row)
-    {
-        if (!$this->transformColumnValueCallable) {
-            return $colValue;
-        }
-
-        return call_user_func_array($this->transformColumnValueCallable, array(
-            $tableName,
-            $colName,
-            $colValue,
-            $row
-        ));
     }
 
     /**
