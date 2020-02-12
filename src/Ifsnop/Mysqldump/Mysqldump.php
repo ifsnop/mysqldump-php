@@ -201,8 +201,8 @@ class Mysqldump
         }
 
         // If no include-views is passed in, dump the same views as tables, mimic mysqldump behaviour.
-        if ( ! isset( $dumpSettings['include-views'] ) ) {
-			$this->dumpSettings['include-views'] = $this->dumpSettings['include-tables'];
+        if (!isset($dumpSettings['include-views'])) {
+            $this->dumpSettings['include-views'] = $this->dumpSettings['include-tables'];
         }
 
         // Create a new compressManager to manage compressed output
