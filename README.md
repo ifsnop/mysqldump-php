@@ -215,9 +215,11 @@ $this->_dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dump
 ## Dump Settings
 
 - **include-tables**
-  - Only include these tables (array of table names), include all if empty
+  - Only include these tables (array of table names), include all if empty.
 - **exclude-tables**
-  - Exclude these tables (array of table names), include all if empty, supports regexps
+  - Exclude these tables (array of table names), include all if empty, supports regexps.
+- **include-views**
+  - Only include these views (array of view names), include all if empty. By default, all views named as the include-tables array are included.
 - **compress**
   - Gzip, Bzip2, None.
   - Could be specified using the declared consts: IMysqldump\Mysqldump::GZIP, IMysqldump\Mysqldump::BZIP2 or IMysqldump\Mysqldump::NONE
