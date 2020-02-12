@@ -1477,39 +1477,39 @@ class CompressNone extends CompressManagerFactory
 
 class CompressGzipstream extends CompressManagerFactory
 {
-  private $fileHandler = null;
+    private $fileHandler = null;
 
-  private $compressContext;
+    private $compressContext;
 
-  /**
-   * @param string $filename
-   */
-  public function open($filename)
-  {
+    /**
+     * @param string $filename
+     */
+    public function open($filename)
+    {
     $this->fileHandler = fopen($filename, "wb");
     if (false === $this->fileHandler) {
-      throw new Exception("Output file is not writable");
+        throw new Exception("Output file is not writable");
     }
 
     $this->compressContext = deflate_init(ZLIB_ENCODING_GZIP, array('level' => 9));
     return true;
-  }
+    }
 
-  public function write($str)
-  {
+    public function write($str)
+    {
 
     $bytesWritten = fwrite($this->fileHandler, deflate_add($this->compressContext, $str, ZLIB_NO_FLUSH));
     if (false === $bytesWritten) {
-      throw new Exception("Writting to file failed! Probably, there is no more free space left?");
+        throw new Exception("Writting to file failed! Probably, there is no more free space left?");
     }
     return $bytesWritten;
-  }
+    }
 
-  public function close()
-  {
+    public function close()
+    {
     fwrite($this->fileHandler, deflate_add($this->compressContext, '', ZLIB_FINISH));
     return fclose($this->fileHandler);
-  }
+    }
 }
 
 /**
@@ -1961,7 +1961,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
                 "Please check 'https://bugs.mysql.com/bug.php?id=14564'");
         }
         $procedureStmt = $row['Create Procedure'];
-        if ( $this->dumpSettings['skip-definer'] ) {
+        if ($this->dumpSettings['skip-definer']) {
             if ($procedureStmtReplaced = preg_replace(
                 '/^(CREATE)\s+('.self::DEFINER_RE.')?\s+(PROCEDURE\s.*)$/s',
                 '\1 \3',
@@ -2135,7 +2135,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function start_transaction()
     {
-        return "START TRANSACTION " .
+        return "START TRANSACTION ".
             "/*!40100 WITH CONSISTENT SNAPSHOT */";
     }
 
