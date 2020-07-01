@@ -69,41 +69,41 @@ class Mysqldump
     public $fileName = 'php://stdout';
 
     // Internal stuff.
-    protected $tables = array();
-    protected $views = array();
-    protected $triggers = array();
-    protected $procedures = array();
-    protected $functions = array();
-    protected $events = array();
+    private $tables = array();
+    private $views = array();
+    private $triggers = array();
+    private $procedures = array();
+    private $functions = array();
+    private $events = array();
     protected $dbHandler = null;
-    protected $dbType = "";
-    protected $compressManager;
-    protected $typeAdapter;
+    private $dbType = "";
+    private $compressManager;
+    private $typeAdapter;
     protected $dumpSettings = array();
     protected $pdoSettings = array();
-    protected $version;
-    protected $tableColumnTypes = array();
-    protected $transformTableRowCallable;
-    protected $transformColumnValueCallable;
-    protected $infoCallable;
+    private $version;
+    private $tableColumnTypes = array();
+    private $transformTableRowCallable;
+    private $transformColumnValueCallable;
+    private $infoCallable;
 
     /**
      * Database name, parsed from dsn.
      * @var string
      */
-    protected $dbName;
+    private $dbName;
 
     /**
      * Host name, parsed from dsn.
      * @var string
      */
-    protected $host;
+    private $host;
 
     /**
      * Dsn string parsed as an array.
      * @var array
      */
-    protected $dsnArray = array();
+    private $dsnArray = array();
 
     /**
      * Keyed on table name, with the value as the conditions.
@@ -111,8 +111,8 @@ class Mysqldump
      *
      * @var array
      */
-    protected $tableWheres = array();
-    protected $tableLimits = array();
+    private $tableWheres = array();
+    private $tableLimits = array();
 
 
     /**
@@ -309,7 +309,7 @@ class Mysqldump
      * @param string $dsn dsn string to parse
      * @return boolean
      */
-    protected function parseDsn($dsn)
+    private function parseDsn($dsn)
     {
         if (empty($dsn) || (false === ($pos = strpos($dsn, ":")))) {
             throw new Exception("Empty DSN string");
@@ -350,7 +350,7 @@ class Mysqldump
      *
      * @return null
      */
-    protected function connect()
+    private function connect()
     {
         // Connecting with PDO.
         try {
@@ -479,7 +479,7 @@ class Mysqldump
      *
      * @return string
      */
-    protected function getDumpFileHeader()
+    private function getDumpFileHeader()
     {
         $header = '';
         if (!$this->dumpSettings['skip-comments']) {
@@ -505,7 +505,7 @@ class Mysqldump
      *
      * @return string
      */
-    protected function getDumpFileFooter()
+    private function getDumpFileFooter()
     {
         $footer = '';
         if (!$this->dumpSettings['skip-comments']) {
@@ -525,7 +525,7 @@ class Mysqldump
      *
      * @return null
      */
-    protected function getDatabaseStructureTables()
+    private function getDatabaseStructureTables()
     {
         // Listing all tables from database
         if (empty($this->dumpSettings['include-tables'])) {
@@ -555,7 +555,7 @@ class Mysqldump
      *
      * @return null
      */
-    protected function getDatabaseStructureViews()
+    private function getDatabaseStructureViews()
     {
         // Listing all views from database
         if (empty($this->dumpSettings['include-views'])) {
@@ -585,7 +585,7 @@ class Mysqldump
      *
      * @return null
      */
-    protected function getDatabaseStructureTriggers()
+    private function getDatabaseStructureTriggers()
     {
         // Listing all triggers from database
         if (false === $this->dumpSettings['skip-triggers']) {
@@ -602,7 +602,7 @@ class Mysqldump
      *
      * @return null
      */
-    protected function getDatabaseStructureProcedures()
+    private function getDatabaseStructureProcedures()
     {
         // Listing all procedures from database
         if ($this->dumpSettings['routines']) {
@@ -619,7 +619,7 @@ class Mysqldump
      *
      * @return null
      */
-    protected function getDatabaseStructureFunctions()
+    private function getDatabaseStructureFunctions()
     {
         // Listing all functions from database
         if ($this->dumpSettings['routines']) {
@@ -636,7 +636,7 @@ class Mysqldump
      *
      * @return null
      */
-    protected function getDatabaseStructureEvents()
+    private function getDatabaseStructureEvents()
     {
         // Listing all events from database
         if ($this->dumpSettings['events']) {
@@ -653,7 +653,7 @@ class Mysqldump
      * @param $arr array with strings or patterns
      * @return boolean
      */
-    protected function matches($table, $arr)
+    private function matches($table, $arr)
     {
         $match = false;
 
@@ -674,7 +674,7 @@ class Mysqldump
      *
      * @return null
      */
-    protected function exportTables()
+    private function exportTables()
     {
         // Exporting tables one by one
         foreach ($this->tables as $table) {
@@ -698,7 +698,7 @@ class Mysqldump
      *
      * @return null
      */
-    protected function exportViews()
+    private function exportViews()
     {
         if (false === $this->dumpSettings['no-create-info']) {
             // Exporting views one by one
@@ -723,7 +723,7 @@ class Mysqldump
      *
      * @return null
      */
-    protected function exportTriggers()
+    private function exportTriggers()
     {
         // Exporting triggers one by one
         foreach ($this->triggers as $trigger) {
@@ -737,7 +737,7 @@ class Mysqldump
      *
      * @return null
      */
-    protected function exportProcedures()
+    private function exportProcedures()
     {
         // Exporting triggers one by one
         foreach ($this->procedures as $procedure) {
@@ -750,7 +750,7 @@ class Mysqldump
      *
      * @return null
      */
-    protected function exportFunctions()
+    private function exportFunctions()
     {
         // Exporting triggers one by one
         foreach ($this->functions as $function) {
@@ -763,7 +763,7 @@ class Mysqldump
      *
      * @return null
      */
-    protected function exportEvents()
+    private function exportEvents()
     {
         // Exporting triggers one by one
         foreach ($this->events as $event) {
@@ -778,7 +778,7 @@ class Mysqldump
      * @param string $tableName  Name of table to export
      * @return null
      */
-    protected function getTableStructure($tableName)
+    private function getTableStructure($tableName)
     {
         if (!$this->dumpSettings['no-create-info']) {
             $ret = '';
@@ -812,7 +812,7 @@ class Mysqldump
      * @return array type column types detailed
      */
 
-    protected function getTableColumnTypes($tableName)
+    private function getTableColumnTypes($tableName)
     {
         $columnTypes = array();
         $columns = $this->dbHandler->query(
@@ -841,7 +841,7 @@ class Mysqldump
      * @param string $viewName  Name of view to export
      * @return null
      */
-    protected function getViewStructureTable($viewName)
+    private function getViewStructureTable($viewName)
     {
         if (!$this->dumpSettings['skip-comments']) {
             $ret = "--".PHP_EOL.
@@ -894,7 +894,7 @@ class Mysqldump
      * @param string $viewName  Name of view to export
      * @return null
      */
-    protected function getViewStructureView($viewName)
+    private function getViewStructureView($viewName)
     {
         if (!$this->dumpSettings['skip-comments']) {
             $ret = "--".PHP_EOL.
@@ -924,7 +924,7 @@ class Mysqldump
      * @param string $triggerName  Name of trigger to export
      * @return null
      */
-    protected function getTriggerStructure($triggerName)
+    private function getTriggerStructure($triggerName)
     {
         $stmt = $this->typeAdapter->show_create_trigger($triggerName);
         foreach ($this->dbHandler->query($stmt) as $r) {
@@ -946,7 +946,7 @@ class Mysqldump
      * @param string $procedureName  Name of procedure to export
      * @return null
      */
-    protected function getProcedureStructure($procedureName)
+    private function getProcedureStructure($procedureName)
     {
         if (!$this->dumpSettings['skip-comments']) {
             $ret = "--".PHP_EOL.
@@ -969,7 +969,7 @@ class Mysqldump
      * @param string $functionName  Name of function to export
      * @return null
      */
-    protected function getFunctionStructure($functionName)
+    private function getFunctionStructure($functionName)
     {
         if (!$this->dumpSettings['skip-comments']) {
             $ret = "--".PHP_EOL.
@@ -992,7 +992,7 @@ class Mysqldump
      * @param string $eventName  Name of event to export
      * @return null
      */
-    protected function getEventStructure($eventName)
+    private function getEventStructure($eventName)
     {
         if (!$this->dumpSettings['skip-comments']) {
             $ret = "--".PHP_EOL.
@@ -1018,7 +1018,7 @@ class Mysqldump
      *
      * @return array
      */
-    protected function prepareColumnValues($tableName, array $row)
+    private function prepareColumnValues($tableName, array $row)
     {
         $ret = array();
         $columnTypes = $this->tableColumnTypes[$tableName];
@@ -1046,7 +1046,7 @@ class Mysqldump
      *
      * @return string
      */
-    protected function escape($colValue, $colType)
+    private function escape($colValue, $colType)
     {
         if (is_null($colValue)) {
             return "NULL";
@@ -1108,7 +1108,7 @@ class Mysqldump
      *
      * @return null
      */
-    protected function listValues($tableName)
+    private function listValues($tableName)
     {
         $this->prepareListValues($tableName);
 
@@ -1370,7 +1370,7 @@ abstract class CompressManagerFactory
 
 class CompressBzip2 extends CompressManagerFactory
 {
-    protected $fileHandler = null;
+    private $fileHandler = null;
 
     public function __construct()
     {
@@ -1409,7 +1409,7 @@ class CompressBzip2 extends CompressManagerFactory
 
 class CompressGzip extends CompressManagerFactory
 {
-    protected $fileHandler = null;
+    private $fileHandler = null;
 
     public function __construct()
     {
@@ -1448,7 +1448,7 @@ class CompressGzip extends CompressManagerFactory
 
 class CompressNone extends CompressManagerFactory
 {
-    protected $fileHandler = null;
+    private $fileHandler = null;
 
     /**
      * @param string $filename
@@ -1480,9 +1480,9 @@ class CompressNone extends CompressManagerFactory
 
 class CompressGzipstream extends CompressManagerFactory
 {
-    protected $fileHandler = null;
+    private $fileHandler = null;
 
-    protected $compressContext;
+    private $compressContext;
 
     /**
      * @param string $filename
@@ -2329,7 +2329,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
      * @param integer $expected_num_args
      * @param string $method_name
      */
-    protected function check_parameters($num_args, $expected_num_args, $method_name)
+    private function check_parameters($num_args, $expected_num_args, $method_name)
     {
         if ($num_args != $expected_num_args) {
             throw new Exception("Unexpected parameter passed to $method_name");
