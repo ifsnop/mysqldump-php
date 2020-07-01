@@ -114,7 +114,7 @@ class Mysqldump
     private $tableWheres = array();
     private $tableLimits = array();
 
-    const DUMP_SETTINGS_DEFAULTS = array(
+    protected $dump_settings_defaults = array(
 	    'include-tables' => array(),
 	    'exclude-tables' => array(),
 	    'include-views' => array(),
@@ -150,7 +150,7 @@ class Mysqldump
 	    'disable-foreign-keys-check' => true
     );
 
-	const PDO_SETTINGS_DEFAULT = array(
+	protected $pdo_settings_defaults = array(
 		PDO::ATTR_PERSISTENT => true,
 		PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 	);
@@ -179,18 +179,18 @@ class Mysqldump
 
         // This drops MYSQL dependency, only use the constant if it's defined.
         if ("mysql" === $this->dbType) {
-            self::PDO_SETTINGS_DEFAULT[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = false;
+            $this->pdo_settings_defaults[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = false;
         }
 
-        $this->pdoSettings = self::array_replace_recursive(self::PDO_SETTINGS_DEFAULT, $pdoSettings);
-        $this->dumpSettings = self::array_replace_recursive(self::DUMP_SETTINGS_DEFAULTS, $dumpSettings);
+        $this->pdoSettings = self::array_replace_recursive($this->pdo_settings_defaults, $pdoSettings);
+        $this->dumpSettings = self::array_replace_recursive($this->dump_settings_defaults, $dumpSettings);
         $this->dumpSettings['init_commands'][] = "SET NAMES ".$this->dumpSettings['default-character-set'];
 
         if (false === $this->dumpSettings['skip-tz-utc']) {
             $this->dumpSettings['init_commands'][] = "SET TIME_ZONE='+00:00'";
         }
 
-        $diff = array_diff(array_keys($this->dumpSettings), array_keys(self::DUMP_SETTINGS_DEFAULTS));
+        $diff = array_diff(array_keys($this->dumpSettings), array_keys($this->dump_settings_defaults));
         if (count($diff) > 0) {
             throw new Exception("Unexpected value in dumpSettings: (".implode(",", $diff).")");
         }
