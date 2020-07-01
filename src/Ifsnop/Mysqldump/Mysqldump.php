@@ -350,7 +350,7 @@ class Mysqldump
      *
      * @return null
      */
-    private function connect()
+    protected function connect()
     {
         // Connecting with PDO.
         try {
