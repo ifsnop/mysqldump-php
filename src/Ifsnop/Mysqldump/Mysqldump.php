@@ -114,6 +114,47 @@ class Mysqldump
     private $tableWheres = array();
     private $tableLimits = array();
 
+    const DUMP_SETTINGS_DEFAULTS = array(
+	    'include-tables' => array(),
+	    'exclude-tables' => array(),
+	    'include-views' => array(),
+	    'compress' => Mysqldump::NONE,
+	    'init_commands' => array(),
+	    'no-data' => array(),
+	    'reset-auto-increment' => false,
+	    'add-drop-database' => false,
+	    'add-drop-table' => false,
+	    'add-drop-trigger' => true,
+	    'add-locks' => true,
+	    'complete-insert' => false,
+	    'databases' => false,
+	    'default-character-set' => Mysqldump::UTF8,
+	    'disable-keys' => true,
+	    'extended-insert' => true,
+	    'events' => false,
+	    'hex-blob' => true, /* faster than escaped content */
+	    'insert-ignore' => false,
+	    'net_buffer_length' => self::MAXLINESIZE,
+	    'no-autocommit' => true,
+	    'no-create-info' => false,
+	    'lock-tables' => true,
+	    'routines' => false,
+	    'single-transaction' => true,
+	    'skip-triggers' => false,
+	    'skip-tz-utc' => false,
+	    'skip-comments' => false,
+	    'skip-dump-date' => false,
+	    'skip-definer' => false,
+	    'where' => '',
+	    /* deprecated */
+	    'disable-foreign-keys-check' => true
+    );
+
+	const PDO_SETTINGS_DEFAULT = array(
+		PDO::ATTR_PERSISTENT => true,
+		PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+	);
+
 
     /**
      * Constructor of Mysqldump. Note that in the case of an SQLite database
@@ -132,65 +173,24 @@ class Mysqldump
         $dumpSettings = array(),
         $pdoSettings = array()
     ) {
-        $dumpSettingsDefault = array(
-            'include-tables' => array(),
-            'exclude-tables' => array(),
-            'include-views' => array(),
-            'compress' => Mysqldump::NONE,
-            'init_commands' => array(),
-            'no-data' => array(),
-            'reset-auto-increment' => false,
-            'add-drop-database' => false,
-            'add-drop-table' => false,
-            'add-drop-trigger' => true,
-            'add-locks' => true,
-            'complete-insert' => false,
-            'databases' => false,
-            'default-character-set' => Mysqldump::UTF8,
-            'disable-keys' => true,
-            'extended-insert' => true,
-            'events' => false,
-            'hex-blob' => true, /* faster than escaped content */
-            'insert-ignore' => false,
-            'net_buffer_length' => self::MAXLINESIZE,
-            'no-autocommit' => true,
-            'no-create-info' => false,
-            'lock-tables' => true,
-            'routines' => false,
-            'single-transaction' => true,
-            'skip-triggers' => false,
-            'skip-tz-utc' => false,
-            'skip-comments' => false,
-            'skip-dump-date' => false,
-            'skip-definer' => false,
-            'where' => '',
-            /* deprecated */
-            'disable-foreign-keys-check' => true
-        );
-
-        $pdoSettingsDefault = array(
-            PDO::ATTR_PERSISTENT => true,
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        );
-
         $this->user = $user;
         $this->pass = $pass;
         $this->parseDsn($dsn);
 
         // This drops MYSQL dependency, only use the constant if it's defined.
         if ("mysql" === $this->dbType) {
-            $pdoSettingsDefault[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = false;
+            self::PDO_SETTINGS_DEFAULT[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = false;
         }
 
-        $this->pdoSettings = self::array_replace_recursive($pdoSettingsDefault, $pdoSettings);
-        $this->dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dumpSettings);
+        $this->pdoSettings = self::array_replace_recursive(self::PDO_SETTINGS_DEFAULT, $pdoSettings);
+        $this->dumpSettings = self::array_replace_recursive(self::DUMP_SETTINGS_DEFAULTS, $dumpSettings);
         $this->dumpSettings['init_commands'][] = "SET NAMES ".$this->dumpSettings['default-character-set'];
 
         if (false === $this->dumpSettings['skip-tz-utc']) {
             $this->dumpSettings['init_commands'][] = "SET TIME_ZONE='+00:00'";
         }
 
-        $diff = array_diff(array_keys($this->dumpSettings), array_keys($dumpSettingsDefault));
+        $diff = array_diff(array_keys($this->dumpSettings), array_keys(self::DUMP_SETTINGS_DEFAULTS));
         if (count($diff) > 0) {
             throw new Exception("Unexpected value in dumpSettings: (".implode(",", $diff).")");
         }
