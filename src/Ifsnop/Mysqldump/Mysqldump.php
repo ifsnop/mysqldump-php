@@ -182,8 +182,8 @@ class Mysqldump
             $pdoSettingsDefault[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = false;
         }
 
-        $this->pdoSettings = self::array_replace_recursive($pdoSettingsDefault, $pdoSettings);
-        $this->dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dumpSettings);
+        $this->pdoSettings = array_replace_recursive($pdoSettingsDefault, $pdoSettings);
+        $this->dumpSettings = array_replace_recursive($dumpSettingsDefault, $dumpSettings);
         $this->dumpSettings['init_commands'][] = "SET NAMES ".$this->dumpSettings['default-character-set'];
 
         if (false === $this->dumpSettings['skip-tz-utc']) {
@@ -215,31 +215,6 @@ class Mysqldump
     public function __destruct()
     {
         $this->dbHandler = null;
-    }
-
-    /**
-     * Custom array_replace_recursive to be used if PHP < 5.3
-     * Replaces elements from passed arrays into the first array recursively.
-     *
-     * @param array $array1 The array in which elements are replaced
-     * @param array $array2 The array from which elements will be extracted
-     *
-     * @return array Returns an array, or NULL if an error occurs.
-     */
-    public static function array_replace_recursive($array1, $array2)
-    {
-        if (function_exists('array_replace_recursive')) {
-            return array_replace_recursive($array1, $array2);
-        }
-
-        foreach ($array2 as $key => $value) {
-            if (is_array($value)) {
-                $array1[$key] = self::array_replace_recursive($array1[$key], $value);
-            } else {
-                $array1[$key] = $value;
-            }
-        }
-        return $array1;
     }
 
     /**
