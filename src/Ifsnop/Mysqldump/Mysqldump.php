@@ -287,7 +287,7 @@ class Mysqldump
      */
     public function getTableLimit($tableName)
     {
-        if (empty($this->tableLimits[$tableName])) {
+        if (!isset($this->tableLimits[$tableName])) {
             return false;
         }
 
@@ -1133,7 +1133,7 @@ class Mysqldump
 
         $limit = $this->getTableLimit($tableName);
 
-        if ($limit) {
+        if ($limit !== false) {
             $stmt .= " LIMIT {$limit}";
         }
 
