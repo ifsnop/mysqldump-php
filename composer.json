@@ -1,10 +1,10 @@
 {
     "name": "ifsnop/mysqldump-php",
-    "description": "This is a php version of linux's mysqldump in terminal \"$ mysqldump -u username -p...\"",
+    "description": "PHP version of mysqldump cli that comes with MySQL",
     "type": "library",
-    "keywords": ["backup", "mysqldump", "export", "dump", "mysql", "sqlite", "pdo", "database"],
+    "keywords": ["mysql", "mysqldump", "pdo", "php7", "php5", "database", "php", "sql", "hhvm", "mariadb", "mysql-backup"],
     "homepage": "https://github.com/ifsnop/mysqldump-php",
-    "license": "MIT",
+    "license": "GPL-3.0-or-later",
     "minimum-stability": "stable",
     "authors": [
         {
@@ -18,7 +18,7 @@
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "1.*",
-        "phpunit/phpunit": "3.7.*"
+        "phpunit/phpunit": "4.8.36"
     },
     "autoload": {
         "psr-4": {"Ifsnop\\": "src/Ifsnop/"}
