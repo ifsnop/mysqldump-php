@@ -1876,7 +1876,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
         }
         
 		if ($this->dumpSettings['if-not-exists'] ) {
-			$createTable = preg_replace('/CREATE TABLE/', 'CREATE TABLE IF NOT EXISTS', $createTable, 1);
+			$createTable = preg_replace('/^CREATE TABLE/', 'CREATE TABLE IF NOT EXISTS', $createTable);
         }        
 
         $ret = "/*!40101 SET @saved_cs_client     = @@character_set_client */;".PHP_EOL.
