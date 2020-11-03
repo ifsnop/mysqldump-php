@@ -652,6 +652,9 @@ class Mysqldump
      */
     private function exportTables()
     {
+        if ($this->infoCallable) {
+            call_user_func($this->infoCallable, 'export', array('name' => 'begin', 'rowCount' => count($this->tables)));
+        }
         // Exporting tables one by one
         foreach ($this->tables as $table) {
             if ($this->matches($table, $this->dumpSettings['exclude-tables'])) {
