@@ -172,6 +172,7 @@ $dumpSettingsDefault = array(
     'compress' => Mysqldump::NONE,
     'init_commands' => array(),
     'no-data' => array(),
+    'if-not-exists' => false,
     'reset-auto-increment' => false,
     'add-drop-database' => false,
     'add-drop-table' => false,
@@ -220,6 +221,8 @@ $this->_dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dump
   - Exclude these tables (array of table names), include all if empty, supports regexps.
 - **include-views**
   - Only include these views (array of view names), include all if empty. By default, all views named as the include-tables array are included.
+- **if-not-exists**
+  - Only create a new table when a table of the same name does not already exist. No error message is thrown if the table already exists. 
 - **compress**
   - Gzip, Bzip2, None.
   - Could be specified using the declared consts: IMysqldump\Mysqldump::GZIP, IMysqldump\Mysqldump::BZIP2 or IMysqldump\Mysqldump::NONE
