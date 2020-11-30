@@ -1266,13 +1266,13 @@ class Mysqldump
     {
         $colStmt = array();
         foreach ($this->tableColumnTypes[$tableName] as $colName => $colType) {
-            if ($colType['type'] == 'bit' && $this->dumpSettings['hex-blob']) {
+            if ($colType['is_virtual']) {
+                $this->dumpSettings['complete-insert'] = true;
+                continue;
+            } elseif ($colType['type'] == 'bit' && $this->dumpSettings['hex-blob']) {
                 $colStmt[] = "LPAD(HEX(`${colName}`),2,'0') AS `${colName}`";
             } elseif ($colType['is_blob'] && $this->dumpSettings['hex-blob']) {
                 $colStmt[] = "HEX(`${colName}`) AS `${colName}`";
-            } elseif ($colType['is_virtual']) {
-                $this->dumpSettings['complete-insert'] = true;
-                continue;
             } else {
                 $colStmt[] = "`${colName}`";
             }
