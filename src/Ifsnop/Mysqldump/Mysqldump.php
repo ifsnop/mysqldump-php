@@ -43,7 +43,8 @@ class Mysqldump
     // List of available connection strings.
     const UTF8    = 'utf8';
     const UTF8MB4 = 'utf8mb4';
-
+    const BINARY = 'binary';
+    
     /**
      * Database username.
      * @var string
