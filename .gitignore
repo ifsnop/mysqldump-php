@@ -3,6 +3,7 @@
 /.settings
 # Vim swap files
 .*.sw*
+.phpunit.result.cache
 
 /composer.lock
 /composer.phar

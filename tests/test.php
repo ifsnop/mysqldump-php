@@ -62,7 +62,7 @@ print "starting mysql-php_test002.sql" . PHP_EOL;
 $dumpSettings['default-character-set'] = IMysqldump\Mysqldump::UTF8MB4;
 $dumpSettings['complete-insert'] = true;
 $dump = new IMysqldump\Mysqldump(
-    "mysql:host=localhost;dbname=test002",
+    "mysql:host=localhost;dbname=test002;",
     "travis",
     "",
     $dumpSettings);
@@ -87,7 +87,7 @@ $dump->start("mysqldump-php_test006.sql");
 
 print "starting mysql-php_test008.sql" . PHP_EOL;
 $dump = new IMysqldump\Mysqldump(
-    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test008",
+    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test008;",
     "travis",
     "",
     array("no-data" => true, "add-drop-table" => true));
@@ -95,7 +95,7 @@ $dump->start("mysqldump-php_test008.sql");
 
 print "starting mysql-php_test009.sql" . PHP_EOL;
 $dump = new IMysqldump\Mysqldump(
-    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test009",
+    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test009;",
     "travis",
     "",
     array("no-data" => true, "add-drop-table" => true, "reset-auto-increment" => true, "add-drop-database" => true));
@@ -103,7 +103,7 @@ $dump->start("mysqldump-php_test009.sql");
 
 print "starting mysql-php_test010.sql" . PHP_EOL;
 $dump = new IMysqldump\Mysqldump(
-    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test010",
+    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test010;",
     "travis",
     "",
     array("events" => true));
@@ -119,7 +119,7 @@ $dump->start("mysqldump-php_test011a.sql");
 
 print "starting mysql-php_test011b.sql" . PHP_EOL;
 $dump = new IMysqldump\Mysqldump(
-    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test011",
+    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test011;",
     "travis",
     "",
     array('complete-insert' =>  true));
@@ -127,7 +127,7 @@ $dump->start("mysqldump-php_test011b.sql");
 
 print "starting mysql-php_test012.sql" . PHP_EOL;
 $dump = new IMysqldump\Mysqldump(
-    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test012",
+    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test012;",
     "travis",
     "",
     array("events" => true,
@@ -153,7 +153,7 @@ $dump->start("mysqldump-php_test012_no-definer.sql");
 
 print "starting mysql-php_test013.sql" . PHP_EOL;
 $dump = new IMysqldump\Mysqldump(
-    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test001",
+    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test001;",
     "travis",
     "",
     array(
