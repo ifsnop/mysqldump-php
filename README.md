@@ -111,10 +111,11 @@ $dumper->start('storage/work/dump.sql');
 You can register a callable that will be used to report on the progress of the dump
 
 ```php
-$dumper->setInfoHook(function($object, $info) {
+$dumper->setInfoHook(function ($object, $info) {
     if ($object === 'table') {
         echo $info['name'], $info['rowCount'];
-    });
+    }
+});
 ```
 
 ## Table specific export conditions
