@@ -355,7 +355,7 @@ https://www.php-fig.org/
 
 ## License
 
-This project is open-sourced software licensed under the [GPL license](https://www.gnu.org/copyleft/gpl.html)
+This project is open-sourced software licensed under the MIT license.
 
 ## Credits
 

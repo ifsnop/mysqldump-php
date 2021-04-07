@@ -4,7 +4,7 @@
     "type": "library",
     "keywords": ["mysql", "mysqldump", "pdo", "php7", "php5", "database", "php", "sql", "hhvm", "mariadb", "mysql-backup"],
     "homepage": "https://github.com/ifsnop/mysqldump-php",
-    "license": "GPL-3.0-or-later",
+    "license": "MIT",
     "minimum-stability": "stable",
     "authors": [
         {

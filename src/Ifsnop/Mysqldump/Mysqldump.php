@@ -8,7 +8,7 @@
  * @category Library
  * @package  Ifsnop\Mysqldump
  * @author   Diego Torres <ifsnop@github.com>
- * @license  http://www.gnu.org/copyleft/gpl.html GNU General Public License
+ * @license  MIT
  * @link     https://github.com/ifsnop/mysqldump-php
  *
  */
@@ -24,7 +24,7 @@ use PDOException;
  *
  * @category Library
  * @author   Diego Torres <ifsnop@github.com>
- * @license  http://www.gnu.org/copyleft/gpl.html GNU General Public License
+ * @license  MIT
  * @link     https://github.com/ifsnop/mysqldump-php
  *
  */
