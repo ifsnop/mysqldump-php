@@ -156,6 +156,7 @@ class Mysqldump
             'insert-ignore' => false,
             'net_buffer_length' => self::MAXLINESIZE,
             'no-autocommit' => true,
+            'no-create-db' => false,
             'no-create-info' => false,
             'lock-tables' => true,
             'routines' => false,
@@ -1812,6 +1813,11 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
     public function databases()
     {
+
+        if ($this->dumpSettings['no-create-db']) {
+            return "";
+        }
+
         $this->check_parameters(func_num_args(), $expected_num_args = 1, __METHOD__);
         $args = func_get_args();
         $databaseName = $args[0];

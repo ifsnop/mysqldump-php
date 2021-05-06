@@ -188,6 +188,7 @@ $dumpSettingsDefault = array(
     'insert-ignore' => false,
     'net_buffer_length' => self::MAXLINESIZE,
     'no-autocommit' => true,
+    'no-create-db' => false,
     'no-create-info' => false,
     'lock-tables' => true,
     'routines' => false,
@@ -263,6 +264,8 @@ $this->_dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dump
 - **no-autocommit**
   - Option to disable autocommit (faster inserts, no problems with index keys)
   - https://dev.mysql.com/doc/refman/4.1/en/commit.html
+- **no-create-db**
+  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-create-db
 - **no-create-info**
   - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-create-info
 - **no-data**
