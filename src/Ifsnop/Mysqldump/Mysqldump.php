@@ -44,7 +44,7 @@ class Mysqldump
     const UTF8    = 'utf8';
     const UTF8MB4 = 'utf8mb4';
     const BINARY = 'binary';
-    
+
     /**
      * Database username.
      * @var string
@@ -1875,10 +1875,10 @@ class TypeAdapterMysql extends TypeAdapterFactory
             $replace = "";
             $createTable = preg_replace($match, $replace, $createTable);
         }
-        
+
 		if ($this->dumpSettings['if-not-exists'] ) {
 			$createTable = preg_replace('/^CREATE TABLE/', 'CREATE TABLE IF NOT EXISTS', $createTable);
-        }        
+        }
 
         $ret = "/*!40101 SET @saved_cs_client     = @@character_set_client */;".PHP_EOL.
             "/*!40101 SET character_set_client = ".$this->dumpSettings['default-character-set']." */;".PHP_EOL.
