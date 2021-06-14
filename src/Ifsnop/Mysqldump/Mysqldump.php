@@ -158,6 +158,7 @@ class Mysqldump
             'no-autocommit' => true,
             'no-create-info' => false,
             'lock-tables' => true,
+            'replace' => false,
             'routines' => false,
             'single-transaction' => true,
             'skip-triggers' => false,
@@ -804,7 +805,8 @@ class Mysqldump
                 'is_blob' => $types['is_blob'],
                 'type' => $types['type'],
                 'type_sql' => $col['Type'],
-                'is_virtual' => $types['is_virtual']
+                'is_virtual' => $types['is_virtual'],
+                'key_sql' => $col['Key'],
             );
         }
 
@@ -1117,13 +1119,17 @@ class Mysqldump
         $resultSet = $this->dbHandler->query($stmt);
         $resultSet->setFetchMode(PDO::FETCH_ASSOC);
 
-        $ignore = $this->dumpSettings['insert-ignore'] ? '  IGNORE' : '';
+        $replace = $this->dumpSettings['replace']  && $this->getHasPrimaryKey($tableName);
+        $strUpdates = $replace ? $this->getUpdateColumnsOnDuplicate($tableName) : '';
+        $extendedInsert = $this->dumpSettings['extended-insert'] && !$replace;
+        $ignore = $this->dumpSettings['insert-ignore'] && !$replace ? '  IGNORE' : '';
+	    
 
         $count = 0;
         foreach ($resultSet as $row) {
             $count++;
             $vals = $this->prepareColumnValues($tableName, $row);
-            if ($onlyOnce || !$this->dumpSettings['extended-insert']) {
+            if ($onlyOnce || !$extendedInsert) {
                 if ($this->dumpSettings['complete-insert']) {
                     $lineSize += $this->compressManager->write(
                         "INSERT$ignore INTO `$tableName` (".
@@ -1135,12 +1141,14 @@ class Mysqldump
                         "INSERT$ignore INTO `$tableName` VALUES (".implode(",", $vals).")"
                     );
                 }
+		if ($replace) {
+                    $lineSize += $this->compressManager->write(" ON DUPLICATE KEY UPDATE {$strUpdates}");
+		}
                 $onlyOnce = false;
             } else {
                 $lineSize += $this->compressManager->write(",(".implode(",", $vals).")");
             }
-            if (($lineSize > $this->dumpSettings['net_buffer_length']) ||
-                    !$this->dumpSettings['extended-insert']) {
+            if (($lineSize > $this->dumpSettings['net_buffer_length']) || !$extendedInsert) {
                 $onlyOnce = true;
                 $lineSize = $this->compressManager->write(";".PHP_EOL);
             }
@@ -1156,6 +1164,41 @@ class Mysqldump
         if ($this->infoCallable) {
             call_user_func($this->infoCallable, 'table', array('name' => $tableName, 'rowCount' => $count));
         }
+    }
+
+    /**
+     * Does the table have a primary key
+     *
+     * @param string $tableName Name of table
+     *
+     * @return bool
+     */
+   public function getHasPrimaryKey($tableName)
+   {
+        foreach ($this->tableColumnTypes[$tableName] as $colName => $colType) {
+            if ($colType['key_sql'] == 'PRI') {
+                return true;
+            }
+	}
+        return false;
+    }
+
+    /**
+     * Build SQL List of all non-primary key columns on current table which will be used for update on duplicate key
+     *
+     * @param string $tableName Name of table to get columns
+     *
+     * @return string update columns for sql sentence where update on duplicate key
+     */
+    public function getUpdateColumnsOnDuplicate($tableName)
+    {
+        $colUpdates = array();
+        foreach ($this->tableColumnTypes[$tableName] as $colName => $colType) {
+            if ($colType['key_sql'] != 'PRI') {
+                $colUpdates[] = "`${colName}`=`${colName}`";
+            }
+        }
+        return implode(',',$colUpdates);
     }
 
     /**
