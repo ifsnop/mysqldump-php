@@ -1,9 +1,11 @@
 # editors
 /.project
 /.settings
+/.idea
 # Vim swap files
 .*.sw*
 
 /composer.lock
 /composer.phar
 /vendor/
+/.phpunit.result.cache

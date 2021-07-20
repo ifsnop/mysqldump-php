@@ -1,8 +1,9 @@
 <?php
 
 use Ifsnop\Mysqldump\Mysqldump;
+use PHPUnit\Framework\TestCase;
 
-class MysqldumpTest extends PHPUnit_Framework_TestCase
+class MysqldumpTest extends TestCase
 {
 
     /** @test */
