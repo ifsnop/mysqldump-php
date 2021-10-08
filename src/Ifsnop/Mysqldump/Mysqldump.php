@@ -44,7 +44,7 @@ class Mysqldump
     const UTF8    = 'utf8';
     const UTF8MB4 = 'utf8mb4';
     const BINARY = 'binary';
-    
+
     /**
      * Database username.
      * @var string
@@ -165,6 +165,7 @@ class Mysqldump
             'skip-comments' => false,
             'skip-dump-date' => false,
             'skip-definer' => false,
+            'verbose-mode' => false,
             'where' => '',
             /* deprecated */
             'disable-foreign-keys-check' => true
@@ -217,6 +218,20 @@ class Mysqldump
     public function __destruct()
     {
         $this->dbHandler = null;
+    }
+
+    /**
+     * Wrapper function with ability to verbose log queries:
+     *
+     * @param string $query
+     */
+    public function dbQuery(string $query)
+    {
+        if ($this->dumpSettings['verbose-mode']) {
+            $tail = substr($query,  -1) === ';' ? '' : ';';
+            echo($query . $tail . PHP_EOL);
+        }
+        return $this->dbHandler->query($query);
     }
 
     /**
@@ -507,12 +522,12 @@ class Mysqldump
         // Listing all tables from database
         if (empty($this->dumpSettings['include-tables'])) {
             // include all tables for now, blacklisting happens later
-            foreach ($this->dbHandler->query($this->typeAdapter->show_tables($this->dbName)) as $row) {
+            foreach ($this->dbQuery($this->typeAdapter->show_tables($this->dbName)) as $row) {
                 array_push($this->tables, current($row));
             }
         } else {
             // include only the tables mentioned in include-tables
-            foreach ($this->dbHandler->query($this->typeAdapter->show_tables($this->dbName)) as $row) {
+            foreach ($this->dbQuery($this->typeAdapter->show_tables($this->dbName)) as $row) {
                 if (in_array(current($row), $this->dumpSettings['include-tables'], true)) {
                     array_push($this->tables, current($row));
                     $elem = array_search(
@@ -537,12 +552,12 @@ class Mysqldump
         // Listing all views from database
         if (empty($this->dumpSettings['include-views'])) {
             // include all views for now, blacklisting happens later
-            foreach ($this->dbHandler->query($this->typeAdapter->show_views($this->dbName)) as $row) {
+            foreach ($this->dbQuery($this->typeAdapter->show_views($this->dbName)) as $row) {
                 array_push($this->views, current($row));
             }
         } else {
             // include only the tables mentioned in include-tables
-            foreach ($this->dbHandler->query($this->typeAdapter->show_views($this->dbName)) as $row) {
+            foreach ($this->dbQuery($this->typeAdapter->show_views($this->dbName)) as $row) {
                 if (in_array(current($row), $this->dumpSettings['include-views'], true)) {
                     array_push($this->views, current($row));
                     $elem = array_search(
@@ -566,7 +581,7 @@ class Mysqldump
     {
         // Listing all triggers from database
         if (false === $this->dumpSettings['skip-triggers']) {
-            foreach ($this->dbHandler->query($this->typeAdapter->show_triggers($this->dbName)) as $row) {
+            foreach ($this->dbQuery($this->typeAdapter->show_triggers($this->dbName)) as $row) {
                 array_push($this->triggers, $row['Trigger']);
             }
         }
@@ -583,7 +598,7 @@ class Mysqldump
     {
         // Listing all procedures from database
         if ($this->dumpSettings['routines']) {
-            foreach ($this->dbHandler->query($this->typeAdapter->show_procedures($this->dbName)) as $row) {
+            foreach ($this->dbQuery($this->typeAdapter->show_procedures($this->dbName)) as $row) {
                 array_push($this->procedures, $row['procedure_name']);
             }
         }
@@ -600,7 +615,7 @@ class Mysqldump
     {
         // Listing all functions from database
         if ($this->dumpSettings['routines']) {
-            foreach ($this->dbHandler->query($this->typeAdapter->show_functions($this->dbName)) as $row) {
+            foreach ($this->dbQuery($this->typeAdapter->show_functions($this->dbName)) as $row) {
                 array_push($this->functions, $row['function_name']);
             }
         }
@@ -617,7 +632,7 @@ class Mysqldump
     {
         // Listing all events from database
         if ($this->dumpSettings['events']) {
-            foreach ($this->dbHandler->query($this->typeAdapter->show_events($this->dbName)) as $row) {
+            foreach ($this->dbQuery($this->typeAdapter->show_events($this->dbName)) as $row) {
                 array_push($this->events, $row['event_name']);
             }
         }
@@ -765,7 +780,7 @@ class Mysqldump
                     "--".PHP_EOL.PHP_EOL;
             }
             $stmt = $this->typeAdapter->show_create_table($tableName);
-            foreach ($this->dbHandler->query($stmt) as $r) {
+            foreach ($this->dbQuery($stmt) as $r) {
                 $this->compressManager->write($ret);
                 if ($this->dumpSettings['add-drop-table']) {
                     $this->compressManager->write(
@@ -792,7 +807,7 @@ class Mysqldump
     private function getTableColumnTypes($tableName)
     {
         $columnTypes = array();
-        $columns = $this->dbHandler->query(
+        $columns = $this->dbQuery(
             $this->typeAdapter->show_columns($tableName)
         );
         $columns->setFetchMode(PDO::FETCH_ASSOC);
@@ -829,7 +844,7 @@ class Mysqldump
         $stmt = $this->typeAdapter->show_create_view($viewName);
 
         // create views as tables, to resolve dependencies
-        foreach ($this->dbHandler->query($stmt) as $r) {
+        foreach ($this->dbQuery($stmt) as $r) {
             if ($this->dumpSettings['add-drop-table']) {
                 $this->compressManager->write(
                     $this->typeAdapter->drop_view($viewName)
@@ -883,7 +898,7 @@ class Mysqldump
 
         // create views, to resolve dependencies
         // replacing tables with views
-        foreach ($this->dbHandler->query($stmt) as $r) {
+        foreach ($this->dbQuery($stmt) as $r) {
             // because we must replace table with view, we should delete it
             $this->compressManager->write(
                 $this->typeAdapter->drop_view($viewName)
@@ -904,7 +919,7 @@ class Mysqldump
     private function getTriggerStructure($triggerName)
     {
         $stmt = $this->typeAdapter->show_create_trigger($triggerName);
-        foreach ($this->dbHandler->query($stmt) as $r) {
+        foreach ($this->dbQuery($stmt) as $r) {
             if ($this->dumpSettings['add-drop-trigger']) {
                 $this->compressManager->write(
                     $this->typeAdapter->add_drop_trigger($triggerName)
@@ -932,7 +947,7 @@ class Mysqldump
             $this->compressManager->write($ret);
         }
         $stmt = $this->typeAdapter->show_create_procedure($procedureName);
-        foreach ($this->dbHandler->query($stmt) as $r) {
+        foreach ($this->dbQuery($stmt) as $r) {
             $this->compressManager->write(
                 $this->typeAdapter->create_procedure($r)
             );
@@ -955,7 +970,7 @@ class Mysqldump
             $this->compressManager->write($ret);
         }
         $stmt = $this->typeAdapter->show_create_function($functionName);
-        foreach ($this->dbHandler->query($stmt) as $r) {
+        foreach ($this->dbQuery($stmt) as $r) {
             $this->compressManager->write(
                 $this->typeAdapter->create_function($r)
             );
@@ -978,7 +993,7 @@ class Mysqldump
             $this->compressManager->write($ret);
         }
         $stmt = $this->typeAdapter->show_create_event($eventName);
-        foreach ($this->dbHandler->query($stmt) as $r) {
+        foreach ($this->dbQuery($stmt) as $r) {
             $this->compressManager->write(
                 $this->typeAdapter->create_event($r)
             );
@@ -1114,7 +1129,7 @@ class Mysqldump
             $stmt .= " LIMIT {$limit}";
         }
 
-        $resultSet = $this->dbHandler->query($stmt);
+        $resultSet = $this->dbQuery($stmt);
         $resultSet->setFetchMode(PDO::FETCH_ASSOC);
 
         $ignore = $this->dumpSettings['insert-ignore'] ? '  IGNORE' : '';
@@ -1816,11 +1831,11 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $args = func_get_args();
         $databaseName = $args[0];
 
-        $resultSet = $this->dbHandler->query("SHOW VARIABLES LIKE 'character_set_database';");
+        $resultSet = $this->dbQuery("SHOW VARIABLES LIKE 'character_set_database';");
         $characterSet = $resultSet->fetchColumn(1);
         $resultSet->closeCursor();
 
-        $resultSet = $this->dbHandler->query("SHOW VARIABLES LIKE 'collation_database';");
+        $resultSet = $this->dbQuery("SHOW VARIABLES LIKE 'collation_database';");
         $collationDb = $resultSet->fetchColumn(1);
         $resultSet->closeCursor();
         $ret = "";
@@ -1875,10 +1890,10 @@ class TypeAdapterMysql extends TypeAdapterFactory
             $replace = "";
             $createTable = preg_replace($match, $replace, $createTable);
         }
-        
+
 		if ($this->dumpSettings['if-not-exists'] ) {
 			$createTable = preg_replace('/^CREATE TABLE/', 'CREATE TABLE IF NOT EXISTS', $createTable);
-        }        
+        }
 
         $ret = "/*!40101 SET @saved_cs_client     = @@character_set_client */;".PHP_EOL.
             "/*!40101 SET character_set_client = ".$this->dumpSettings['default-character-set']." */;".PHP_EOL.
