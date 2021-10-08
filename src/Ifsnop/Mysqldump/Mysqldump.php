@@ -1116,7 +1116,7 @@ class Mysqldump
         }
 
         if ($this->dumpSettings['verbose-mode']) {
-          echo($stmt . ";\n");
+          echo($stmt . ';' . PHP_EOL);
         }
         $resultSet = $this->dbHandler->query($stmt);
         $resultSet->setFetchMode(PDO::FETCH_ASSOC);
