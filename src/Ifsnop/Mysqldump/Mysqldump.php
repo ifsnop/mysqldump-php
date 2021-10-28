@@ -165,6 +165,7 @@ class Mysqldump
             'skip-comments' => false,
             'skip-dump-date' => false,
             'skip-definer' => false,
+			'append_extra_sqls' => false,
             'where' => '',
             /* deprecated */
             'disable-foreign-keys-check' => true
@@ -438,6 +439,15 @@ class Mysqldump
         $this->exportProcedures();
         $this->exportViews();
         $this->exportEvents();
+
+		// extra sqls that should be run
+        if ($this->dumpSettings['append_extra_sqls']) {
+            $this->compressManager->write("-- START EXTRA SQLS".PHP_EOL);
+	        $this->compressManager->write("SET autocommit=0;".PHP_EOL);
+            $this->compressManager->write($this->dumpSettings['append_extra_sqls'].PHP_EOL);
+	        $this->compressManager->write("COMMIT;".PHP_EOL);
+            $this->compressManager->write("-- END EXTRA SQLS".PHP_EOL);
+        }
 
         // Restore saved parameters.
         $this->compressManager->write(
