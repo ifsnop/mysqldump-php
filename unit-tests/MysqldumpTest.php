@@ -45,4 +45,18 @@ class MysqldumpTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($dump->getTableLimit('table_with_invalid_limit'));
         $this->assertFalse($dump->getTableLimit('table_name_with_no_limit'));
     }
+
+    /** @test */
+    public function tableSpecificPartitionsConditionsWork()
+    {
+        $dump = new Mysqldump('mysql:host=localhost;dbname=test', 'testing', 'testing');
+
+        $dump->setTablePartitions(array(
+            'users' => array('p200220101', 'p20220102'),
+            'logs' => array('p200220101')
+        ));
+
+        $this->assertEquals(array('p200220101', 'p20220102'), $dump->getTablePartitions('users'));
+        $this->assertEquals(array('p200220101'), $dump->getTablePartitions('logs'));
+    }
 }
