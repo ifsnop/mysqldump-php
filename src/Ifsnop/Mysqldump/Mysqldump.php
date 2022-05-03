@@ -115,6 +115,14 @@ class Mysqldump
     private $tableWheres = array();
     private $tableLimits = array();
 
+    /**
+     * Keyed on table name, with the value as the array of partition names.
+     * e.g. - 'users' => [ 'p20220101', 'p20220102' ]
+     *
+     * @var array
+     */
+    private $tableParitions = array();
+
 
     /**
      * Constructor of Mysqldump. Note that in the case of an SQLite database
@@ -241,6 +249,31 @@ class Mysqldump
             return $this->tableWheres[$tableName];
         } elseif ($this->dumpSettings['where']) {
             return $this->dumpSettings['where'];
+        }
+
+        return false;
+    }
+
+    /**
+     * Keyed on table name, with the value as the array of partition names:
+     * e.g. - 'users' => [ 'p20220101', 'p20220102' ]
+     *
+     * @param array $tableWheres
+     */
+    public function setTablePartitions(array $tableWheres)
+    {
+        $this->tableParitions = $tableWheres;
+    }
+
+    /**
+     * @param $tableName
+     *
+     * @return false|mixed
+     */
+    public function getTablePartitions($tableName)
+    {
+        if (!empty($this->tableParitions[$tableName])) {
+            return $this->tableParitions[$tableName];
         }
 
         return false;
@@ -1100,6 +1133,13 @@ class Mysqldump
         }
 
         $stmt = "SELECT ".implode(",", $colStmt)." FROM `$tableName`";
+
+        // Table specific partitions
+        $partitions = $this->getTablePartitions($tableName);
+
+        if ($partitions) {
+            $stmt .= " PARTITION (".implode(",", $partitions).")";
+        }
 
         // Table specific conditions override the default 'where'
         $condition = $this->getTableWhere($tableName);
