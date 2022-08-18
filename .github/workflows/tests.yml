@@ -13,6 +13,18 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_DATABASE: test_db
+          MYSQL_USER: user
+          MYSQL_PASSWORD: password
+          MYSQL_ROOT_PASSWORD: rootpassword
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
     strategy:
       matrix:
         php-versions: ['7.4', '8.0', '8.1']
@@ -38,3 +50,6 @@ jobs:
 
       - name: Run PHPunit tests
         run: vendor/bin/phpunit
+
+      - name: Create user and databases for testing
+        run: ./tests/scripts/create_users.sh
