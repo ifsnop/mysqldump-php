@@ -3,7 +3,7 @@
 /**
  * PHP version of mysqldump cli that comes with MySQL.
  *
- * Tags: mysql mysqldump pdo php7 php5 database php sql hhvm mariadb mysql-backup.
+ * Tags: mysql mysqldump pdo php7 php5 database php sql mariadb mysql-backup.
  *
  * @category Library
  * @package  Ifsnop\Mysqldump

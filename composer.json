@@ -2,7 +2,7 @@
     "name": "druidfi/mysqldump-php",
     "description": "PHP version of mysqldump cli that comes with MySQL",
     "type": "library",
-    "keywords": ["mysql", "mysqldump", "pdo", "php7", "php8", "database", "php", "sql", "hhvm", "mariadb", "mysql-backup"],
+    "keywords": ["mysql", "mysqldump", "pdo", "php7", "php8", "database", "php", "sql", "mariadb", "mysql-backup"],
     "homepage": "https://github.com/druidfi/mysqldump-php",
     "license": "GPL-3.0-or-later",
     "minimum-stability": "stable",
@@ -18,7 +18,8 @@
         }
     ],
     "require": {
-        "php": "^7.4 || ^8.0"
+        "php": "^7.4 || ^8.0",
+        "composer-runtime-api": "^2"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "3.*",
