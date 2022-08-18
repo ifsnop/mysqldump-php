@@ -1,5 +1,5 @@
 {
-    "name": "ifsnop/mysqldump-php",
+    "name": "druidfi/mysqldump-php",
     "description": "PHP version of mysqldump cli that comes with MySQL",
     "type": "library",
     "keywords": ["mysql", "mysqldump", "pdo", "php7", "php8", "database", "php", "sql", "hhvm", "mariadb", "mysql-backup"],

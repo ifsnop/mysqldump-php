@@ -1,24 +1,16 @@
-MySQLDump - PHP
-=========
+# MySQLDump - PHP
 
-[Requirements](https://github.com/ifsnop/mysqldump-php#requirements) |
-[Installing](https://github.com/ifsnop/mysqldump-php#installing) |
-[Getting started](https://github.com/ifsnop/mysqldump-php#getting-started) |
-[API](https://github.com/ifsnop/mysqldump-php#constructor-and-default-parameters) |
-[Settings](https://github.com/ifsnop/mysqldump-php#dump-settings) |
-[PDO Settings](https://github.com/ifsnop/mysqldump-php#pdo-settings) |
-[TODO](https://github.com/ifsnop/mysqldump-php#todo) |
-[License](https://github.com/ifsnop/mysqldump-php#license) |
-[Credits](https://github.com/ifsnop/mysqldump-php#credits)
+[Requirements](https://github.com/druidfi/mysqldump-php#requirements) |
+[Installing](https://github.com/druidfi/mysqldump-php#installing) |
+[Getting started](https://github.com/druidfi/mysqldump-php#getting-started) |
+[API](https://github.com/druidfi/mysqldump-php#constructor-and-default-parameters) |
+[Settings](https://github.com/druidfi/mysqldump-php#dump-settings) |
+[PDO Settings](https://github.com/druidfi/mysqldump-php#pdo-settings) |
+[TODO](https://github.com/druidfi/mysqldump-php#todo) |
+[License](https://github.com/druidfi/mysqldump-php#license) |
+[Credits](https://github.com/druidfi/mysqldump-php#credits)
 
-[![Build Status](https://travis-ci.org/ifsnop/mysqldump-php.svg?branch=devel)](https://travis-ci.org/ifsnop/mysqldump-php)
-[![Total Downloads](https://poser.pugx.org/ifsnop/mysqldump-php/downloads)](https://packagist.org/packages/ifsnop/mysqldump-php)
-[![Monthly Downloads](https://poser.pugx.org/ifsnop/mysqldump-php/d/monthly)](https://packagist.org/packages/ifsnop/mysqldump-php)
-[![Daily Downloads](https://poser.pugx.org/ifsnop/mysqldump-php/d/daily)](https://packagist.org/packages/ifsnop/mysqldump-php)
-[![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/ifsnop/mysqldump-php/badges/quality-score.png?s=d02891e196a3ca1298619032a538ce8ae8cafd2b)](https://scrutinizer-ci.com/g/ifsnop/mysqldump-php/)
-[![Latest Stable Version](https://poser.pugx.org/ifsnop/mysqldump-php/v/stable.png)](https://packagist.org/packages/ifsnop/mysqldump-php)
-
-This is a php version of mysqldump cli that comes with MySQL, without dependencies, output compression and sane defaults.
+This is a PHP version of mysqldump cli that comes with MySQL, without dependencies, output compression and sane defaults.
 
 Out of the box, MySQLDump-PHP supports backing up table structures, the data itself, views, triggers and events.
 
@@ -40,7 +32,7 @@ From version 2.0, connections to database are made using the standard DSN, docum
 
 ## Requirements
 
-- PHP 5.3.0 or newer
+- PHP 7.4 or 8.x
 - MySQL 4.1.0 or newer
 - [PDO](https://secure.php.net/pdo)
 
@@ -49,19 +41,10 @@ From version 2.0, connections to database are made using the standard DSN, docum
 Using [Composer](https://getcomposer.org/):
 
 ```
-$ composer require ifsnop/mysqldump-php
-
-```
-
-Using [Curl](https://curl.haxx.se/) to always download and decompress the latest release:
-
-```
-$ curl --silent --location https://api.github.com/repos/ifsnop/mysqldump-php/releases | grep -i tarball_url | head -n 1 | cut -d '"' -f 4 | xargs curl --location --silent | tar xvz
+composer require druidfi/mysqldump-php
 ```
 
 ## Getting started
-
-With [Autoloader](https://www.php-fig.org/psr/psr-4/)/[Composer](https://getcomposer.org):
 
 ```php
 <?php
@@ -339,14 +322,10 @@ After [this](https://bugs.mysql.com/bug.php?id=80150) bug report, a new
 one has been introduced. _binary is appended also when hex-blob option is
 used, if the value is empty.
 
-## Backporting
-
-mysqldump-php is not backwards compatible with php 5.2 because we it uses
-namespaces. However, it could be trivially fixed if needed.
-
 ## Todo
 
-Write more tests, test with mariadb also.
+- Update PHP code with latest PHP codestyle changes like short array syntax.
+- Write more tests, test with mariadb also.
 
 ## Contributing
 
@@ -359,13 +338,11 @@ This project is open-sourced software licensed under the [GPL license](https://w
 
 ## Credits
 
-After more than 8 years, there is barely anything left from the original source code, but:
+Forked from Diego Torres's version which have latest updates from 2020.
+https://github.com/ifsnop/mysqldump-php
 
 Originally based on James Elliott's script from 2009.
 https://code.google.com/archive/p/db-mysqldump/
 
 Adapted and extended by Michael J. Calkins.
 https://github.com/clouddueling
-
-Currently maintained, developed and improved by Diego Torres.
-https://github.com/ifsnop
