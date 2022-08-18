@@ -17,7 +17,7 @@ Out of the box, MySQLDump-PHP supports backing up table structures, the data its
 MySQLDump-PHP is the only library that supports:
 * output binary blobs as hex.
 * resolves view dependencies (using Stand-In tables).
-* output compared against original mysqldump. Linked to travis-ci testing system (testing from php 5.3 to 7.3 & hhvm)
+* output compared against original mysqldump.
 * dumps stored routines (functions and procedures).
 * dumps events.
 * does extended-insert and/or complete-insert.
@@ -28,7 +28,8 @@ MySQLDump-PHP is the only library that supports:
 
 ## Important
 
-From version 2.0, connections to database are made using the standard DSN, documented in [PDO connection string](https://secure.php.net/manual/en/ref.pdo-mysql.connection.php).
+Connections to database are made using the standard DSN, documented in
+[PDO connection string](https://secure.php.net/manual/en/ref.pdo-mysql.connection.php).
 
 ## Requirements
 
@@ -59,21 +60,13 @@ try {
 }
 ```
 
-Plain old PHP:
-
-```php
-<?php
-
-    include_once(dirname(__FILE__) . '/mysqldump-php-2.0.0/src/Ifsnop/Mysqldump/Mysqldump.php');
-    $dump = new Ifsnop\Mysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
-    $dump->start('storage/work/dump.sql');
-```
-
-Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/Full-usage-example) for some examples and a comparision between mysqldump and mysqldump-php dumps.
+Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/Full-usage-example) for some examples and a comparison
+between mysqldump and mysqldump-php dumps.
 
 ## Changing values when exporting
 
-You can register a callable that will be used to transform values during the export. An example use-case for this is removing sensitive data from database dumps:
+You can register a callable that will be used to transform values during the export. An example use-case for this is
+removing sensitive data from database dumps:
 
 ```php
 $dumper = new IMysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
@@ -102,7 +95,8 @@ $dumper->setInfoHook(function($object, $info) {
 
 ## Table specific export conditions
 
-You can register table specific 'where' clauses to limit data on a per table basis.  These override the default `where` dump setting:
+You can register table specific 'where' clauses to limit data on a per table basis.  These override the default `where`
+dump setting:
 
 ```php
 $dumper = new IMysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
