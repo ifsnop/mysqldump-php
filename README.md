@@ -1,20 +1,10 @@
-# MySQLDump - PHP
-
-[Requirements](https://github.com/druidfi/mysqldump-php#requirements) |
-[Installing](https://github.com/druidfi/mysqldump-php#installing) |
-[Getting started](https://github.com/druidfi/mysqldump-php#getting-started) |
-[API](https://github.com/druidfi/mysqldump-php#constructor-and-default-parameters) |
-[Settings](https://github.com/druidfi/mysqldump-php#dump-settings) |
-[PDO Settings](https://github.com/druidfi/mysqldump-php#pdo-settings) |
-[TODO](https://github.com/druidfi/mysqldump-php#todo) |
-[License](https://github.com/druidfi/mysqldump-php#license) |
-[Credits](https://github.com/druidfi/mysqldump-php#credits)
+# mysqldump-php
 
 This is a PHP version of mysqldump cli that comes with MySQL, without dependencies, output compression and sane defaults.
 
-Out of the box, MySQLDump-PHP supports backing up table structures, the data itself, views, triggers and events.
+Out of the box, `mysqldump-php` supports backing up table structures, the data itself, views, triggers and events.
 
-MySQLDump-PHP is the only library that supports:
+`mysqldump-php` is the only library that supports:
 * output binary blobs as hex.
 * resolves view dependencies (using Stand-In tables).
 * output compared against original mysqldump.
@@ -26,16 +16,13 @@ MySQLDump-PHP is the only library that supports:
 * modifying data from database on-the-fly when dumping, using hooks.
 * can save directly to google cloud storage over a compressed stream wrapper (GZIPSTREAM).
 
-## Important
-
-Connections to database are made using the standard DSN, documented in
-[PDO connection string](https://secure.php.net/manual/en/ref.pdo-mysql.connection.php).
-
 ## Requirements
 
 - PHP 7.4 or 8.x
 - MySQL 4.1.0 or newer
 - [PDO](https://secure.php.net/pdo)
+- Connections to database are made using the standard DSN, documented in
+  [PDO connection string](https://secure.php.net/manual/en/ref.pdo-mysql.connection.php).
 
 ## Installing
 
@@ -297,38 +284,29 @@ Use **SHOW GRANTS FOR user@host;** to know what privileges user has. See the fol
 
 ## Tests
 
-Current code for testing is an ugly hack. Probably there are much better ways
-of doing them using PHPUnit, so PR's are welcomed. The testing script creates
-and populates a database using all possible datatypes. Then it exports it
-using both mysqldump-php and mysqldump, and compares the output. Only if
-it is identical tests are OK. After [this](https://github.com/ifsnop/mysqldump-php/commit/8496fbb1b26dde404804bc8865ec32044da5b813)
-commit, some test are performed using phpunit.
+The testing script creates and populates a database using all possible datatypes. Then it exports it using both
+mysqldump-php and mysqldump, and compares the output. Only if it is identical tests are OK.
 
 Some tests are skipped if mysql server doesn't support them.
 
-A couple of tests are only comparing between original sql code and
-mysqldump-php generated sql, because some options are not available in
-mysqldump.
+A couple of tests are only comparing between original sql code and mysqldump-php generated sql, because some options
+are not available in mysqldump.
 
 ## Bugs (from mysqldump, not from mysqldump-php)
 
-After [this](https://bugs.mysql.com/bug.php?id=80150) bug report, a new
-one has been introduced. _binary is appended also when hex-blob option is
-used, if the value is empty.
+After [this](https://bugs.mysql.com/bug.php?id=80150) bug report, a new one has been introduced. _binary is appended
+also when hex-blob option is used, if the value is empty.
 
-## Todo
+## TODO
 
 - Update PHP code with latest PHP codestyle changes like short array syntax.
+- Recreate Travis tests with Github Actions.
 - Write more tests, test with mariadb also.
 
 ## Contributing
 
 Format all code to PHP-FIG standards.
 https://www.php-fig.org/
-
-## License
-
-This project is open-sourced software licensed under the [GPL license](https://www.gnu.org/copyleft/gpl.html)
 
 ## Credits
 
@@ -340,3 +318,7 @@ https://code.google.com/archive/p/db-mysqldump/
 
 Adapted and extended by Michael J. Calkins.
 https://github.com/clouddueling
+
+## License
+
+This project is open-sourced software licensed under the [GPL license](https://www.gnu.org/copyleft/gpl.html)
