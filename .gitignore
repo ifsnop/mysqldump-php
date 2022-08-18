@@ -1,4 +1,5 @@
 # editors
+/.idea
 /.project
 /.settings
 # Vim swap files
