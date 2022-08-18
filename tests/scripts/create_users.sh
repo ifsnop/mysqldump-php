@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USER=${1:-drupal}
+USER=${1:-travis}
 mysql -u root -p$MYSQL_ROOT_PASSWORD -e "CREATE USER IF NOT EXISTS '$USER'@'%';"
 mysql -u root -p$MYSQL_ROOT_PASSWORD -e "CREATE DATABASE IF NOT EXISTS test001;"
 mysql -u root -p$MYSQL_ROOT_PASSWORD -e "CREATE DATABASE IF NOT EXISTS test002;"

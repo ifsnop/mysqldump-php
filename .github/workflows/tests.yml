@@ -25,13 +25,8 @@ jobs:
       MYSQL_ROOT_PASSWORD: secretroot
 
     services:
-      mysql:
-        image: mysql:${{ matrix.mysql-versions }}
-        env:
-          MYSQL_DATABASE: ${{ env.DB_DATABASE }}
-          MYSQL_USER: ${{ env.MYSQL_USER }}
-          MYSQL_PASSWORD: ${{ env.MYSQL_PASSWORD }}
-          MYSQL_ROOT_PASSWORD: ${{ env.MYSQL_ROOT_PASSWORD }}
+      db:
+        image: druidfi/mysql:${{ matrix.mysql-versions }}-drupal
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
