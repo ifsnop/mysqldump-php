@@ -1,6 +1,10 @@
 name: Run tests
 
 on:
+  push:
+    branches:
+      # Push events on main branch
+      - main
   pull_request:
 
 jobs:
