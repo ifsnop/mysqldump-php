@@ -1,7 +1,8 @@
 #!/bin/bash
 
-MYSQL_CMD="mysql -h 127.0.0.1 -u root -p$MYSQL_ROOT_PASSWORD"
-USER=${1:-travis}
+MYSQL_ROOT_PASSWORD=${1:-drupal}
+MYSQL_CMD="mysql -h db -u root -p$MYSQL_ROOT_PASSWORD"
+USER=tester
 
 $MYSQL_CMD -e "CREATE USER IF NOT EXISTS '$USER'@'%';"
 $MYSQL_CMD -e "CREATE DATABASE IF NOT EXISTS test001;"
@@ -27,5 +28,7 @@ $MYSQL_CMD -e "GRANT ALL PRIVILEGES ON test012.* TO '$USER'@'%' WITH GRANT OPTIO
 $MYSQL_CMD -e "GRANT SUPER,LOCK TABLES ON *.* TO '$USER'@'%';"
 $MYSQL_CMD -e "GRANT SELECT ON mysql.proc to '$USER'@'%';"
 $MYSQL_CMD -e "FLUSH PRIVILEGES;"
+$MYSQL_CMD -e "use mysql; update user set authentication_string=PASSWORD('') where User='$USER'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
 
-echo "Done"
+echo "Listing created databases with user '$USER'"
+mysql -h db -u $USER -e "SHOW databases;"
