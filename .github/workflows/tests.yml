@@ -15,7 +15,16 @@ jobs:
 
     strategy:
       matrix:
+        #mysql-versions: ['5.7', '8.0']
+        mysql-versions: ['5.7']
         php-versions: ['7.4', '8.0', '8.1']
+
+    services:
+      db:
+        image: druidfi/mysql:${{ matrix.mysql-versions }}-drupal
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
 
@@ -38,3 +47,9 @@ jobs:
 
       - name: Run PHPunit tests
         run: vendor/bin/phpunit
+
+#      - name: Create user and databases for testing
+#        run: ./tests/scripts/create_users.sh 127.0.0.1
+#
+#      - name: Run test script
+#        run: ./tests/scripts/test.sh 127.0.0.1

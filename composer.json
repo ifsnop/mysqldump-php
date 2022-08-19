@@ -19,7 +19,8 @@
     ],
     "require": {
         "php": "^7.4 || ^8.0",
-        "composer-runtime-api": "^2"
+        "composer-runtime-api": "^2",
+        "ext-pdo": "*"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "3.*",

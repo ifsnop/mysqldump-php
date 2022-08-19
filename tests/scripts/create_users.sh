@@ -1,26 +1,48 @@
 #!/bin/bash
 
-mysql -u root -e "CREATE USER 'travis'@'%';"
-mysql -u root -e "CREATE DATABASE test001;"
-mysql -u root -e "CREATE DATABASE test002;"
-mysql -u root -e "CREATE DATABASE test005;"
-mysql -u root -e "CREATE DATABASE test006a;"
-mysql -u root -e "CREATE DATABASE test006b;"
-mysql -u root -e "CREATE DATABASE test008;"
-mysql -u root -e "CREATE DATABASE test009;"
-mysql -u root -e "CREATE DATABASE test010;"
-mysql -u root -e "CREATE DATABASE test011;"
-mysql -u root -e "CREATE DATABASE test012;"
-mysql -u root -e "GRANT ALL PRIVILEGES ON test001.* TO 'travis'@'%' WITH GRANT OPTION;"
-mysql -u root -e "GRANT ALL PRIVILEGES ON test002.* TO 'travis'@'%' WITH GRANT OPTION;"
-mysql -u root -e "GRANT ALL PRIVILEGES ON test005.* TO 'travis'@'%' WITH GRANT OPTION;"
-mysql -u root -e "GRANT ALL PRIVILEGES ON test006a.* TO 'travis'@'%' WITH GRANT OPTION;"
-mysql -u root -e "GRANT ALL PRIVILEGES ON test006b.* TO 'travis'@'%' WITH GRANT OPTION;"
-mysql -u root -e "GRANT ALL PRIVILEGES ON test008.* TO 'travis'@'%' WITH GRANT OPTION;"
-mysql -u root -e "GRANT ALL PRIVILEGES ON test009.* TO 'travis'@'%' WITH GRANT OPTION;"
-mysql -u root -e "GRANT ALL PRIVILEGES ON test010.* TO 'travis'@'%' WITH GRANT OPTION;"
-mysql -u root -e "GRANT ALL PRIVILEGES ON test011.* TO 'travis'@'%' WITH GRANT OPTION;"
-mysql -u root -e "GRANT ALL PRIVILEGES ON test012.* TO 'travis'@'%' WITH GRANT OPTION;"
-mysql -u root -e "GRANT SUPER,LOCK TABLES ON *.* TO 'travis'@'%';"
-mysql -u root -e "GRANT SELECT ON mysql.proc to 'travis'@'%';"
-mysql -u root -e "FLUSH PRIVILEGES;"
+HOST=${1:-db}
+MYSQL_ROOT_PASSWORD=drupal
+MYSQL_CMD="mysql -h $HOST -u root -p$MYSQL_ROOT_PASSWORD"
+USER=travis
+
+major=`$MYSQL_CMD -e "SELECT @@version\G" | grep version |awk '{print $2}' | awk -F"." '{print $1}'`
+medium=`$MYSQL_CMD -e "SELECT @@version\G" | grep version |awk '{print $2}' | awk -F"." '{print $2}'`
+minor=`$MYSQL_CMD -e "SELECT @@version\G" | grep version |awk '{print $2}' | awk -F"." '{print $3}'`
+
+$MYSQL_CMD -e "CREATE USER IF NOT EXISTS '$USER'@'%';"
+$MYSQL_CMD -e "CREATE DATABASE IF NOT EXISTS test001;"
+$MYSQL_CMD -e "CREATE DATABASE IF NOT EXISTS test002;"
+$MYSQL_CMD -e "CREATE DATABASE IF NOT EXISTS test005;"
+$MYSQL_CMD -e "CREATE DATABASE IF NOT EXISTS test006a;"
+$MYSQL_CMD -e "CREATE DATABASE IF NOT EXISTS test006b;"
+$MYSQL_CMD -e "CREATE DATABASE IF NOT EXISTS test008;"
+$MYSQL_CMD -e "CREATE DATABASE IF NOT EXISTS test009;"
+$MYSQL_CMD -e "CREATE DATABASE IF NOT EXISTS test010;"
+$MYSQL_CMD -e "CREATE DATABASE IF NOT EXISTS test011;"
+$MYSQL_CMD -e "CREATE DATABASE IF NOT EXISTS test012;"
+$MYSQL_CMD -e "GRANT ALL PRIVILEGES ON test001.* TO '$USER'@'%' WITH GRANT OPTION;"
+$MYSQL_CMD -e "GRANT ALL PRIVILEGES ON test002.* TO '$USER'@'%' WITH GRANT OPTION;"
+$MYSQL_CMD -e "GRANT ALL PRIVILEGES ON test005.* TO '$USER'@'%' WITH GRANT OPTION;"
+$MYSQL_CMD -e "GRANT ALL PRIVILEGES ON test006a.* TO '$USER'@'%' WITH GRANT OPTION;"
+$MYSQL_CMD -e "GRANT ALL PRIVILEGES ON test006b.* TO '$USER'@'%' WITH GRANT OPTION;"
+$MYSQL_CMD -e "GRANT ALL PRIVILEGES ON test008.* TO '$USER'@'%' WITH GRANT OPTION;"
+$MYSQL_CMD -e "GRANT ALL PRIVILEGES ON test009.* TO '$USER'@'%' WITH GRANT OPTION;"
+$MYSQL_CMD -e "GRANT ALL PRIVILEGES ON test010.* TO '$USER'@'%' WITH GRANT OPTION;"
+$MYSQL_CMD -e "GRANT ALL PRIVILEGES ON test011.* TO '$USER'@'%' WITH GRANT OPTION;"
+$MYSQL_CMD -e "GRANT ALL PRIVILEGES ON test012.* TO '$USER'@'%' WITH GRANT OPTION;"
+$MYSQL_CMD -e "GRANT SUPER,LOCK TABLES ON *.* TO '$USER'@'%';"
+
+if [[ $major -eq 5 && $medium -ge 7 ]]; then
+  $MYSQL_CMD -e "GRANT SELECT ON mysql.proc to '$USER'@'%';"
+fi
+
+if [[ $major -eq 5 && $medium -ge 7 ]]; then
+  $MYSQL_CMD -e "use mysql; update user set authentication_string=PASSWORD('') where User='$USER'; update user set plugin='mysql_native_password';"
+else if [[ $major -eq 8 ]]; then
+  $MYSQL_CMD -e "ALTER USER '$USER'@'localhost' IDENTIFIED WITH caching_sha2_password BY '';"
+fi
+
+$MYSQL_CMD -e "FLUSH PRIVILEGES;"
+
+echo "Listing created databases with user '$USER'"
+mysql -h $HOST -u $USER -e "SHOW databases;"
