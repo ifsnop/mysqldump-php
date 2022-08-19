@@ -32,7 +32,6 @@ use PDOException;
  */
 class Mysqldump
 {
-
     // Same as mysqldump.
     const MAXLINESIZE = 1000000;
 
@@ -49,99 +48,90 @@ class Mysqldump
     
     /**
      * Database username.
-     * @var string
      */
-    public $user;
+    public string $user;
 
     /**
      * Database password.
-     * @var string
      */
-    public $pass;
+    public string $pass;
 
     /**
      * Connection string for PDO.
-     * @var string
      */
-    public $dsn;
+    public string $dsn;
 
     /**
      * Destination filename, defaults to stdout.
-     * @var string
      */
-    public $fileName = 'php://stdout';
+    public string $fileName = 'php://stdout';
 
     // Internal stuff.
-    private $tables = array();
-    private $views = array();
-    private $triggers = array();
-    private $procedures = array();
-    private $functions = array();
-    private $events = array();
+    private array $tables = [];
+    private array $views = [];
+    private array $triggers = [];
+    private array $procedures = [];
+    private array $functions = [];
+    private array $events = [];
     private $dbHandler = null;
     private $dbType = "";
     private $compressManager;
     private $typeAdapter;
-    private $dumpSettings = array();
-    private $pdoSettings = array();
+    private array $dumpSettings = [];
+    private array $pdoSettings = [];
     private $version;
-    private $tableColumnTypes = array();
+    private $tableColumnTypes = [];
     private $transformTableRowCallable;
     private $transformColumnValueCallable;
     private $infoCallable;
 
     /**
      * Database name, parsed from dsn.
-     * @var string
      */
-    private $dbName;
+    private string $dbName;
 
     /**
      * Host name, parsed from dsn.
-     * @var string
      */
-    private $host;
+    private string $host;
 
     /**
      * Dsn string parsed as an array.
-     * @var array
      */
-    private $dsnArray = array();
+    private array $dsnArray = [];
 
     /**
      * Keyed on table name, with the value as the conditions.
      * e.g. - 'users' => 'date_registered > NOW() - INTERVAL 6 MONTH'
-     *
-     * @var array
      */
-    private $tableWheres = array();
-    private $tableLimits = array();
-
+    private array $tableWheres = [];
+    private array $tableLimits = [];
 
     /**
      * Constructor of Mysqldump. Note that in the case of an SQLite database
      * connection, the filename must be in the $db parameter.
      *
-     * @param string $dsn        PDO DSN connection string
-     * @param string $user       SQL account username
-     * @param string $pass       SQL account password
-     * @param array  $dumpSettings SQL database settings
-     * @param array  $pdoSettings  PDO configured attributes
+     * @param string $dsn PDO DSN connection string
+     * @param string $user SQL account username
+     * @param string $pass SQL account password
+     * @param array $dumpSettings SQL database settings
+     * @param array $pdoSettings PDO configured attributes
+     * @throws Exception
      */
     public function __construct(
-        $dsn = '',
-        $user = '',
-        $pass = '',
-        $dumpSettings = array(),
-        $pdoSettings = array()
+        string $dsn = '',
+        string $user = '',
+        string $pass = '',
+        array $dumpSettings = [],
+        array $pdoSettings = []
     ) {
-        $dumpSettingsDefault = array(
-            'include-tables' => array(),
-            'exclude-tables' => array(),
-            'include-views' => array(),
-            'compress' => Mysqldump::NONE,
-            'init_commands' => array(),
-            'no-data' => array(),
+        $dumpSettingsDefault = [
+            'include-tables' => [],
+            'exclude-tables' => [],
+            'include-views' => [],
+            'compress' => self::NONE,
+            'init_commands' => [],
+            'no-data' => [],
             'if-not-exists' => false,
             'reset-auto-increment' => false,
             'add-drop-database' => false,
@@ -150,7 +140,7 @@ class Mysqldump
             'add-locks' => true,
             'complete-insert' => false,
             'databases' => false,
-            'default-character-set' => Mysqldump::UTF8,
+            'default-character-set' => self::UTF8,
             'disable-keys' => true,
             'extended-insert' => true,
             'events' => false,
@@ -170,12 +160,12 @@ class Mysqldump
             'where' => '',
             /* deprecated */
             'disable-foreign-keys-check' => true
-        );
+        ];
 
-        $pdoSettingsDefault = array(
+        $pdoSettingsDefault = [
             PDO::ATTR_PERSISTENT => true,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        );
+        ];
 
         $this->user = $user;
         $this->pass = $pass;
@@ -251,8 +241,6 @@ class Mysqldump
     /**
      * Keyed by table name, with the value as the numeric limit:
      * e.g. 'users' => 3000
-     *
-     * @param array $tableLimits
      */
     public function setTableLimits(array $tableLimits)
     {
@@ -287,8 +275,9 @@ class Mysqldump
      *
      * @param string $dsn dsn string to parse
      * @return boolean
+     * @throws Exception
      */
-    private function parseDsn($dsn)
+    private function parseDsn(string $dsn): bool
     {
         if (empty($dsn) || (false === ($pos = strpos($dsn, ":")))) {
             throw new Exception("Empty DSN string");
@@ -327,7 +316,7 @@ class Mysqldump
     /**
      * Connect with PDO.
      *
-     * @return null
+     * @throws Exception
      */
     private function connect()
     {
@@ -374,11 +363,10 @@ class Mysqldump
     /**
      * Primary function, triggers dumping.
      *
-     * @param string $filename  Name of file to write sql dump to
-     * @return null
-     * @throws \Exception
+     * @param string $filename Name of file to write sql dump to
+     * @throws Exception
      */
-    public function start($filename = '')
+    public function start(string $filename = '')
     {
         // Output file can be redefined here
         if (!empty($filename)) {
@@ -410,8 +398,7 @@ class Mysqldump
             }
         }
 
-        // Get table, view, trigger, procedures, functions and events structures from
-        // database.
+        // Get table, view, trigger, procedures, functions and events structures from database.
         $this->getDatabaseStructureTables();
         $this->getDatabaseStructureViews();
         $this->getDatabaseStructureTriggers();
@@ -449,16 +436,12 @@ class Mysqldump
         $this->compressManager->write($this->getDumpFileFooter());
         // Close output file.
         $this->compressManager->close();
-
-        return;
     }
 
     /**
      * Returns header for dump file.
-     *
-     * @return string
      */
-    private function getDumpFileHeader()
+    private function getDumpFileHeader(): string
     {
         $header = '';
         if (!$this->dumpSettings['skip-comments']) {
@@ -481,10 +464,8 @@ class Mysqldump
 
     /**
      * Returns footer for dump file.
-     *
-     * @return string
      */
-    private function getDumpFileFooter()
+    private function getDumpFileFooter(): string
     {
         $footer = '';
         if (!$this->dumpSettings['skip-comments']) {
@@ -501,8 +482,6 @@ class Mysqldump
     /**
      * Reads table names from database.
      * Fills $this->tables array so they will be dumped later.
-     *
-     * @return null
      */
     private function getDatabaseStructureTables()
     {
@@ -525,14 +504,11 @@ class Mysqldump
                 }
             }
         }
-        return;
     }
 
     /**
      * Reads view names from database.
      * Fills $this->tables array so they will be dumped later.
-     *
-     * @return null
      */
     private function getDatabaseStructureViews()
     {
@@ -555,14 +531,11 @@ class Mysqldump
                 }
             }
         }
-        return;
     }
 
     /**
      * Reads trigger names from database.
      * Fills $this->tables array so they will be dumped later.
-     *
-     * @return null
      */
     private function getDatabaseStructureTriggers()
     {
@@ -572,14 +545,11 @@ class Mysqldump
                 array_push($this->triggers, $row['Trigger']);
             }
         }
-        return;
     }
 
     /**
      * Reads procedure names from database.
      * Fills $this->tables array so they will be dumped later.
-     *
-     * @return null
      */
     private function getDatabaseStructureProcedures()
     {
@@ -589,14 +559,11 @@ class Mysqldump
                 array_push($this->procedures, $row['procedure_name']);
             }
         }
-        return;
     }
 
     /**
      * Reads functions names from database.
      * Fills $this->tables array so they will be dumped later.
-     *
-     * @return null
      */
     private function getDatabaseStructureFunctions()
     {
@@ -606,14 +573,11 @@ class Mysqldump
                 array_push($this->functions, $row['function_name']);
             }
         }
-        return;
     }
 
     /**
      * Reads event names from database.
      * Fills $this->tables array so they will be dumped later.
-     *
-     * @return null
      */
     private function getDatabaseStructureEvents()
     {
@@ -623,7 +587,6 @@ class Mysqldump
                 array_push($this->events, $row['event_name']);
             }
         }
-        return;
     }
 
     /**
@@ -632,7 +595,7 @@ class Mysqldump
      * @param $arr array with strings or patterns
      * @return boolean
      */
-    private function matches($table, $arr)
+    private function matches(string $table, array $arr): bool
     {
         $match = false;
 
@@ -650,8 +613,6 @@ class Mysqldump
 
     /**
      * Exports all the tables selected from database
-     *
-     * @return null
      */
     private function exportTables()
     {
@@ -674,8 +635,6 @@ class Mysqldump
 
     /**
      * Exports all the views found in database
-     *
-     * @return null
      */
     private function exportViews()
     {
@@ -699,8 +658,6 @@ class Mysqldump
 
     /**
      * Exports all the triggers found in database
-     *
-     * @return null
      */
     private function exportTriggers()
     {
@@ -708,13 +665,10 @@ class Mysqldump
         foreach ($this->triggers as $trigger) {
             $this->getTriggerStructure($trigger);
         }
-
     }
 
     /**
-     * Exports all the procedures found in database
-     *
-     * @return null
+     * Exports all the procedures found in database.
      */
     private function exportProcedures()
     {
@@ -725,9 +679,7 @@ class Mysqldump
     }
 
     /**
-     * Exports all the functions found in database
-     *
-     * @return null
+     * Exports all the functions found in database.
      */
     private function exportFunctions()
     {
@@ -738,9 +690,7 @@ class Mysqldump
     }
 
     /**
-     * Exports all the events found in database
-     *
-     * @return null
+     * Exports all the events found in database.
      */
     private function exportEvents()
     {
@@ -751,13 +701,13 @@ class Mysqldump
     }
 
     /**
-     * Table structure extractor
+     * Table structure extractor.
      *
-     * @todo move specific mysql code to typeAdapter
-     * @param string $tableName  Name of table to export
+     * @param string $tableName Name of table to export
      * @return null
+     * @TODO move specific mysql code to typeAdapter
      */
-    private function getTableStructure($tableName)
+    private function getTableStructure(string $tableName)
     {
         if (!$this->dumpSettings['no-create-info']) {
             $ret = '';
@@ -780,20 +730,20 @@ class Mysqldump
                 break;
             }
         }
+
         $this->tableColumnTypes[$tableName] = $this->getTableColumnTypes($tableName);
-        return;
     }
 
     /**
-     * Store column types to create data dumps and for Stand-In tables
+     * Store column types to create data dumps and for Stand-In tables.
      *
-     * @param string $tableName  Name of table to export
+     * @param string $tableName Name of table to export
      * @return array type column types detailed
      */
 
-    private function getTableColumnTypes($tableName)
+    private function getTableColumnTypes(string $tableName): array
     {
-        $columnTypes = array();
+        $columnTypes = [];
         $columns = $this->dbHandler->query(
             $this->typeAdapter->show_columns($tableName)
         );
@@ -801,26 +751,26 @@ class Mysqldump
 
         foreach ($columns as $key => $col) {
             $types = $this->typeAdapter->parseColumnType($col);
-            $columnTypes[$col['Field']] = array(
+            $columnTypes[$col['Field']] = [
                 'is_numeric'=> $types['is_numeric'],
                 'is_blob' => $types['is_blob'],
                 'type' => $types['type'],
                 'type_sql' => $col['Type'],
                 'is_virtual' => $types['is_virtual']
-            );
+            ];
         }
 
         return $columnTypes;
     }
 
     /**
-     * View structure extractor, create table (avoids cyclic references)
+     * View structure extractor, create table (avoids cyclic references).
      *
-     * @todo move mysql specific code to typeAdapter
-     * @param string $viewName  Name of view to export
+     * @param string $viewName Name of view to export
      * @return null
+     * @TODO move mysql specific code to typeAdapter
      */
-    private function getViewStructureTable($viewName)
+    private function getViewStructureTable(string $viewName)
     {
         if (!$this->dumpSettings['skip-comments']) {
             $ret = "--".PHP_EOL.
@@ -847,33 +797,30 @@ class Mysqldump
 
     /**
      * Write a create table statement for the table Stand-In, show create
-     * table would return a create algorithm when used on a view
+     * table would return a create algorithm when used on a view.
      *
-     * @param string $viewName  Name of view to export
+     * @param string $viewName Name of view to export
      * @return string create statement
      */
-    public function createStandInTable($viewName)
+    public function createStandInTable(string $viewName): string
     {
-        $ret = array();
+        $ret = [];
         foreach ($this->tableColumnTypes[$viewName] as $k => $v) {
             $ret[] = "`${k}` ${v['type_sql']}";
         }
         $ret = implode(PHP_EOL.",", $ret);
 
-        $ret = "CREATE TABLE IF NOT EXISTS `$viewName` (".
+        return "CREATE TABLE IF NOT EXISTS `$viewName` (".
             PHP_EOL.$ret.PHP_EOL.");".PHP_EOL;
-
-        return $ret;
     }
 
     /**
-     * View structure extractor, create view
+     * View structure extractor, create view.
      *
-     * @todo move mysql specific code to typeAdapter
-     * @param string $viewName  Name of view to export
-     * @return null
+     * @TODO move mysql specific code to typeAdapter
+     * @param string $viewName Name of view to export
      */
-    private function getViewStructureView($viewName)
+    private function getViewStructureView(string $viewName)
     {
         if (!$this->dumpSettings['skip-comments']) {
             $ret = "--".PHP_EOL.
@@ -898,12 +845,11 @@ class Mysqldump
     }
 
     /**
-     * Trigger structure extractor
+     * Trigger structure extractor.
      *
-     * @param string $triggerName  Name of trigger to export
-     * @return null
+     * @param string $triggerName Name of trigger to export
      */
-    private function getTriggerStructure($triggerName)
+    private function getTriggerStructure(string $triggerName)
     {
         $stmt = $this->typeAdapter->show_create_trigger($triggerName);
         foreach ($this->dbHandler->query($stmt) as $r) {
@@ -920,12 +866,11 @@ class Mysqldump
     }
 
     /**
-     * Procedure structure extractor
+     * Procedure structure extractor.
      *
-     * @param string $procedureName  Name of procedure to export
-     * @return null
+     * @param string $procedureName Name of procedure to export
      */
-    private function getProcedureStructure($procedureName)
+    private function getProcedureStructure(string $procedureName)
     {
         if (!$this->dumpSettings['skip-comments']) {
             $ret = "--".PHP_EOL.
@@ -943,12 +888,11 @@ class Mysqldump
     }
 
     /**
-     * Function structure extractor
+     * Function structure extractor.
      *
-     * @param string $functionName  Name of function to export
-     * @return null
+     * @param string $functionName Name of function to export
      */
-    private function getFunctionStructure($functionName)
+    private function getFunctionStructure(string $functionName)
     {
         if (!$this->dumpSettings['skip-comments']) {
             $ret = "--".PHP_EOL.
@@ -966,12 +910,11 @@ class Mysqldump
     }
 
     /**
-     * Event structure extractor
+     * Event structure extractor.
      *
-     * @param string $eventName  Name of event to export
-     * @return null
+     * @param string $eventName Name of event to export
      */
-    private function getEventStructure($eventName)
+    private function getEventStructure(string $eventName)
     {
         if (!$this->dumpSettings['skip-comments']) {
             $ret = "--".PHP_EOL.
@@ -992,14 +935,11 @@ class Mysqldump
      * Prepare values for output
      *
      * @param string $tableName Name of table which contains rows
-     * @param array $row Associative array of column names and values to be
-     *   quoted
-     *
-     * @return array
+     * @param array $row Associative array of column names and values to be quoted
      */
-    private function prepareColumnValues($tableName, array $row)
+    private function prepareColumnValues(string $tableName, array $row): array
     {
-        $ret = array();
+        $ret = [];
         $columnTypes = $this->tableColumnTypes[$tableName];
 
         if ($this->transformTableRowCallable) {
@@ -1043,51 +983,37 @@ class Mysqldump
     }
 
     /**
-     * Set a callable that will be used to transform table rows
-     *
-     * @param callable $callable
-     *
-     * @return void
+     * Set a callable that will be used to transform table rows.
      */
-    public function setTransformTableRowHook($callable)
+    public function setTransformTableRowHook(callable $callable)
     {
         $this->transformTableRowCallable = $callable;
     }
 
     /**
-     * Set a callable that will be used to transform column values
-     *
-     * @param callable $callable
-     *
-     * @return void
+     * Set a callable that will be used to transform column values.
      *
      * @deprecated Use setTransformTableRowHook instead for better performance
      */
-    public function setTransformColumnValueHook($callable)
+    public function setTransformColumnValueHook(callable $callable)
     {
         $this->transformColumnValueCallable = $callable;
     }
 
     /**
-     * Set a callable that will be used to report dump information
-     *
-     * @param callable $callable
-     *
-     * @return void
+     * Set a callable that will be used to report dump information.
      */
-    public function setInfoHook($callable)
+    public function setInfoHook(callable $callable)
     {
         $this->infoCallable = $callable;
     }
 
     /**
-     * Table rows extractor
+     * Table rows extractor.
      *
-     * @param string $tableName  Name of table to export
-     *
-     * @return null
+     * @param string $tableName Name of table to export
      */
-    private function listValues($tableName)
+    private function listValues(string $tableName)
     {
         $this->prepareListValues($tableName);
 
@@ -1156,18 +1082,16 @@ class Mysqldump
         $this->endListValues($tableName, $count);
 
         if ($this->infoCallable) {
-            call_user_func($this->infoCallable, 'table', array('name' => $tableName, 'rowCount' => $count));
+            call_user_func($this->infoCallable, 'table', ['name' => $tableName, 'rowCount' => $count]);
         }
     }
 
     /**
-     * Table rows extractor, append information prior to dump
+     * Table rows extractor, append information prior to dump.
      *
-     * @param string $tableName  Name of table to export
-     *
-     * @return null
+     * @param string $tableName Name of table to export
      */
-    public function prepareListValues($tableName)
+    public function prepareListValues(string $tableName)
     {
         if (!$this->dumpSettings['skip-comments']) {
             $this->compressManager->write(
@@ -1204,19 +1128,15 @@ class Mysqldump
                 $this->typeAdapter->start_disable_autocommit()
             );
         }
-
-        return;
     }
 
     /**
-     * Table rows extractor, close locks and commits after dump
+     * Table rows extractor, close locks and commits after dump.
      *
      * @param string $tableName Name of table to export.
-     * @param integer    $count     Number of rows inserted.
-     *
-     * @return void
+     * @param integer $count Number of rows inserted.
      */
-    public function endListValues($tableName, $count = 0)
+    public function endListValues(string $tableName, int $count = 0)
     {
         if ($this->dumpSettings['disable-keys']) {
             $this->compressManager->write(
@@ -1253,20 +1173,18 @@ class Mysqldump
                 '--'.PHP_EOL.PHP_EOL
             );
         }
-
-        return;
     }
 
     /**
-     * Build SQL List of all columns on current table which will be used for selecting
+     * Build SQL List of all columns on current table which will be used for selecting.
      *
-     * @param string $tableName  Name of table to get columns
+     * @param string $tableName Name of table to get columns
      *
      * @return array SQL sentence with columns for select
      */
-    public function getColumnStmt($tableName)
+    public function getColumnStmt(string $tableName): array
     {
-        $colStmt = array();
+        $colStmt = [];
         foreach ($this->tableColumnTypes[$tableName] as $colName => $colType) {
             if ($colType['type'] == 'bit' && $this->dumpSettings['hex-blob']) {
                 $colStmt[] = "LPAD(HEX(`${colName}`),2,'0') AS `${colName}`";
@@ -1284,15 +1202,15 @@ class Mysqldump
     }
 
     /**
-     * Build SQL List of all columns on current table which will be used for inserting
+     * Build SQL List of all columns on current table which will be used for inserting.
      *
-     * @param string $tableName  Name of table to get columns
+     * @param string $tableName Name of table to get columns
      *
      * @return array columns for sql sentence for insert
      */
-    public function getColumnNames($tableName)
+    public function getColumnNames(string $tableName): array
     {
-        $colNames = array();
+        $colNames = [];
         foreach ($this->tableColumnTypes[$tableName] as $colName => $colType) {
             if ($colType['is_virtual']) {
                 $this->dumpSettings['complete-insert'] = true;
