@@ -212,6 +212,14 @@ class Mysqldump
     }
 
     /**
+     * Get table column types.
+     */
+    protected function tableColumnTypes(): array
+    {
+        return $this->tableColumnTypes;
+    }
+
+    /**
      * Keyed by table name, with the value as the conditions:
      * e.g. 'users' => 'date_registered > NOW() - INTERVAL 6 MONTH AND deleted=0'
      *
