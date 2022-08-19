@@ -1,0 +1,15 @@
+services:
+
+  db:
+    container_name: "mysqldump-php-db"
+    image: druidfi/mysql:5.7-drupal
+
+  php:
+    container_name: "mysqldump-php"
+    image: tester:latest
+    build:
+      context: .
+    volumes:
+      - .:/app
+    depends_on:
+      - db
