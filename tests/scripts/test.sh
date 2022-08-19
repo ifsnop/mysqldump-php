@@ -1,26 +1,31 @@
 #!/bin/bash
 
-major=`mysql -u travis -e "SELECT @@version\G" | grep version |awk '{print $2}' | awk -F"." '{print $1}'`
-medium=`mysql -u travis -e "SELECT @@version\G" | grep version |awk '{print $2}' | awk -F"." '{print $2}'`
-minor=`mysql -u travis -e "SELECT @@version\G" | grep version |awk '{print $2}' | awk -F"." '{print $3}'`
+HOST=${1:-db}
+USER=travis
+MYSQL_CMD="mysql -h $HOST -u $USER"
+MYSQLDUMP_CMD="mysqldump -h $HOST -u $USER"
 
-echo Testing against mysql server version $major.$medium.$minor
+major=`$MYSQL_CMD -e "SELECT @@version\G" | grep version |awk '{print $2}' | awk -F"." '{print $1}'`
+medium=`$MYSQL_CMD -e "SELECT @@version\G" | grep version |awk '{print $2}' | awk -F"." '{print $2}'`
+minor=`$MYSQL_CMD -e "SELECT @@version\G" | grep version |awk '{print $2}' | awk -F"." '{print $3}'`
+
+echo "Testing against MySQL server version $major.$medium.$minor on host '$HOST' with user '$USER'"
 
 function checksum_test001() {
 for i in 000 001 002 003 010 011 015 027 029 033 200; do
-    mysql -utravis -B -e "CHECKSUM TABLE test${i}" test001 | grep -v -i checksum
+    $MYSQL_CMD -B -e "CHECKSUM TABLE test${i}" test001 | grep -v -i checksum
 done
 }
 
 function checksum_test002() {
 for i in 201; do
-    mysql -utravis --default-character-set=utf8mb4 -B -e "CHECKSUM TABLE test${i}" test002 | grep -v -i checksum
+    $MYSQL_CMD --default-character-set=utf8mb4 -B -e "CHECKSUM TABLE test${i}" test002 | grep -v -i checksum
 done
 }
 
 function checksum_test005() {
 for i in 000; do
-    mysql -utravis -B -e "CHECKSUM TABLE test${i}" test001 | grep -v -i checksum
+    $MYSQL_CMD -B -e "CHECKSUM TABLE test${i}" test001 | grep -v -i checksum
 done
 }
 
@@ -30,40 +35,40 @@ done
 
 index=0
 
-mysql -utravis < test001.src.sql; errCode=$?; ret[((index++))]=$errCode
+$MYSQL_CMD < test001.src.sql; errCode=$?; ret[((index++))]=$errCode
 if [[ $errCode -ne 0 ]]; then echo "error test001.src.sql"; fi
 
-mysql -utravis --default-character-set=utf8mb4 < test002.src.sql; errCode=$?; ret[((index++))]=$errCode
+$MYSQL_CMD --default-character-set=utf8mb4 < test002.src.sql; errCode=$?; ret[((index++))]=$errCode
 if [[ $errCode -ne 0 ]]; then echo "error test002.src.sql"; fi
 
-mysql -utravis < test005.src.sql; errCode=$?; ret[((index++))]=$errCode
+$MYSQL_CMD < test005.src.sql; errCode=$?; ret[((index++))]=$errCode
 if [[ $errCode -ne 0 ]]; then echo "error test005.src.sql"; fi
 
-mysql -utravis < test006.src.sql; errCode=$?; ret[((index++))]=$errCode
+$MYSQL_CMD < test006.src.sql; errCode=$?; ret[((index++))]=$errCode
 if [[ $errCode -ne 0 ]]; then echo "error test006.src.sql"; fi
 
-mysql -utravis < test008.src.sql; errCode=$?; ret[((index++))]=$errCode
+$MYSQL_CMD < test008.src.sql; errCode=$?; ret[((index++))]=$errCode
 if [[ $errCode -ne 0 ]]; then echo "error test008.src.sql"; fi
 
-mysql -utravis < test009.src.sql; errCode=$?; ret[((index++))]=$errCode
+$MYSQL_CMD < test009.src.sql; errCode=$?; ret[((index++))]=$errCode
 if [[ $errCode -ne 0 ]]; then echo "error test001.src.sql"; fi
 
-mysql -utravis < test010.src.sql; errCode=$?; ret[((index++))]=$errCode
+$MYSQL_CMD < test010.src.sql; errCode=$?; ret[((index++))]=$errCode
 if [[ $errCode -ne 0 ]]; then echo "error test010.src.sql"; fi
 
 if [[ $major -eq 5 && $medium -ge 7 ]]; then
     # test virtual column support, with simple inserts forced to complete (a) and complete inserts (b)
-    mysql -utravis < test011.src.sql; errCode=$?; ret[((index++))]=$errCode
+    $MYSQL_CMD < test011.src.sql; errCode=$?; ret[((index++))]=$errCode
 else
     echo "test011 disabled, only valid for mysql server version > 5.7.0"
 fi
-mysql -utravis < test012.src.sql; errCode=$?; ret[((index++))]=$errCode
-#mysql -utravis < test013.src.sql; errCode=$?; ret[((index++))]=$errCode
+$MYSQL_CMD < test012.src.sql; errCode=$?; ret[((index++))]=$errCode
+#$MYSQL_CMD < test013.src.sql; errCode=$?; ret[((index++))]=$errCode
 
 checksum_test001 > test001.src.checksum
 checksum_test002 > test002.src.checksum
 checksum_test005 > test005.src.checksum
-mysqldump -utravis test001 \
+$MYSQLDUMP_CMD test001 \
     --no-autocommit \
     --skip-extended-insert \
     --hex-blob \
@@ -71,7 +76,7 @@ mysqldump -utravis test001 \
     > mysqldump_test001.sql
 errCode=$?; ret[((index++))]=$errCode
 
-mysqldump -utravis test001 \
+$MYSQLDUMP_CMD test001 \
     --no-autocommit \
     --skip-extended-insert \
     --complete-insert=true \
@@ -80,7 +85,7 @@ mysqldump -utravis test001 \
     > mysqldump_test001_complete.sql
 errCode=$?; ret[((index++))]=$errCode
 
-mysqldump -utravis test002 \
+$MYSQLDUMP_CMD test002 \
     --no-autocommit \
     --skip-extended-insert \
     --complete-insert \
@@ -89,14 +94,14 @@ mysqldump -utravis test002 \
     > mysqldump_test002.sql
 errCode=$?; ret[((index++))]=$errCode
 
-mysqldump -utravis test005 \
+$MYSQLDUMP_CMD test005 \
     --no-autocommit \
     --skip-extended-insert \
     --hex-blob \
     > mysqldump_test005.sql
 errCode=$?; ret[((index++))]=$errCode
 
-mysqldump -utravis test012 \
+$MYSQLDUMP_CMD test012 \
     --no-autocommit \
     --skip-extended-insert \
     --hex-blob \
@@ -105,7 +110,7 @@ mysqldump -utravis test012 \
     > mysqldump_test012.sql
 errCode=$?; ret[((index++))]=$errCode
 
-mysqldump -utravis test001 \
+$MYSQLDUMP_CMD test001 \
     --no-autocommit \
     --skip-extended-insert \
     --hex-blob \
@@ -116,15 +121,15 @@ errCode=$?; ret[((index++))]=$errCode
 php test.php || { echo "ERROR running test.php" && exit -1; }
 errCode=$?; ret[((index++))]=$errCode
 
-mysql -utravis test001 < mysqldump-php_test001.sql
+$MYSQL_CMD test001 < mysqldump-php_test001.sql
 errCode=$?; ret[((index++))]=$errCode
-mysql -utravis test002 < mysqldump-php_test002.sql
+$MYSQL_CMD test002 < mysqldump-php_test002.sql
 errCode=$?; ret[((index++))]=$errCode
-mysql -utravis test005 < mysqldump-php_test005.sql
+$MYSQL_CMD test005 < mysqldump-php_test005.sql
 errCode=$?; ret[((index++))]=$errCode
-mysql -utravis test006b < mysqldump-php_test006.sql
+$MYSQL_CMD test006b < mysqldump-php_test006.sql
 errCode=$?; ret[((index++))]=$errCode
-mysql -utravis test009 < mysqldump-php_test009.sql
+$MYSQL_CMD test009 < mysqldump-php_test009.sql
 errCode=$?; ret[((index++))]=$errCode
 
 checksum_test001 > mysqldump-php_test001.checksum

@@ -17,6 +17,7 @@ namespace Ifsnop\Mysqldump;
 
 use Exception;
 use Ifsnop\Mysqldump\Compress\CompressManagerFactory;
+use Ifsnop\Mysqldump\TypeAdapter\TypeAdapterFactory;
 use PDO;
 use PDOException;
 
