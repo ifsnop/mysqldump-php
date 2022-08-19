@@ -292,6 +292,14 @@ Some tests are skipped if mysql server doesn't support them.
 A couple of tests are only comparing between original sql code and mysqldump-php generated sql, because some options
 are not available in mysqldump.
 
+Local setup for tests:
+
+```
+docker-compose up -d --build
+docker-compose exec php /app/tests/scripts/create_users.sh
+docker-compose exec -w /app/tests/scripts php ./test.sh
+```
+
 ## Bugs (from mysqldump, not from mysqldump-php)
 
 After [this](https://bugs.mysql.com/bug.php?id=80150) bug report, a new one has been introduced. _binary is appended
