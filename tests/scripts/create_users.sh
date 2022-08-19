@@ -5,6 +5,10 @@ MYSQL_ROOT_PASSWORD=drupal
 MYSQL_CMD="mysql -h $HOST -u root -p$MYSQL_ROOT_PASSWORD"
 USER=travis
 
+major=`$MYSQL_CMD -e "SELECT @@version\G" | grep version |awk '{print $2}' | awk -F"." '{print $1}'`
+medium=`$MYSQL_CMD -e "SELECT @@version\G" | grep version |awk '{print $2}' | awk -F"." '{print $2}'`
+minor=`$MYSQL_CMD -e "SELECT @@version\G" | grep version |awk '{print $2}' | awk -F"." '{print $3}'`
+
 $MYSQL_CMD -e "CREATE USER IF NOT EXISTS '$USER'@'%';"
 $MYSQL_CMD -e "CREATE DATABASE IF NOT EXISTS test001;"
 $MYSQL_CMD -e "CREATE DATABASE IF NOT EXISTS test002;"
@@ -27,9 +31,18 @@ $MYSQL_CMD -e "GRANT ALL PRIVILEGES ON test010.* TO '$USER'@'%' WITH GRANT OPTIO
 $MYSQL_CMD -e "GRANT ALL PRIVILEGES ON test011.* TO '$USER'@'%' WITH GRANT OPTION;"
 $MYSQL_CMD -e "GRANT ALL PRIVILEGES ON test012.* TO '$USER'@'%' WITH GRANT OPTION;"
 $MYSQL_CMD -e "GRANT SUPER,LOCK TABLES ON *.* TO '$USER'@'%';"
-$MYSQL_CMD -e "GRANT SELECT ON mysql.proc to '$USER'@'%';"
+
+if [[ $major -eq 5 && $medium -ge 7 ]]; then
+  $MYSQL_CMD -e "GRANT SELECT ON mysql.proc to '$USER'@'%';"
+fi
+
+if [[ $major -eq 5 && $medium -ge 7 ]]; then
+  $MYSQL_CMD -e "use mysql; update user set authentication_string=PASSWORD('') where User='$USER'; update user set plugin='mysql_native_password';"
+else if [[ $major -eq 8 ]]; then
+  $MYSQL_CMD -e "ALTER USER '$USER'@'localhost' IDENTIFIED WITH caching_sha2_password BY '';"
+fi
+
 $MYSQL_CMD -e "FLUSH PRIVILEGES;"
-$MYSQL_CMD -e "use mysql; update user set authentication_string=PASSWORD('') where User='$USER'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
 
 echo "Listing created databases with user '$USER'"
 mysql -h $HOST -u $USER -e "SHOW databases;"

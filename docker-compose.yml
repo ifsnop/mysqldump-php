@@ -4,6 +4,10 @@ services:
     container_name: "mysqldump-php-db"
     image: druidfi/mysql:5.7-drupal
 
+  db2:
+    container_name: "mysqldump-php-db2"
+    image: druidfi/mysql:8.0-drupal
+
   php:
     container_name: "mysqldump-php"
     image: tester:latest
