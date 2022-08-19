@@ -41,7 +41,6 @@ abstract class TypeAdapterFactory
 
     /**
      * function databases Add sql to create and use database
-     * @todo make it do something with sqlite
      */
     public function databases(): string
     {
@@ -57,7 +56,6 @@ abstract class TypeAdapterFactory
 
     /**
      * function create_table Get table creation code from database
-     * @todo make it do something with sqlite
      */
     public function create_table($row): string
     {
@@ -73,7 +71,6 @@ abstract class TypeAdapterFactory
 
     /**
      * function create_view Get view creation code from database
-     * @todo make it do something with sqlite
      */
     public function create_view($row): string
     {
@@ -82,7 +79,6 @@ abstract class TypeAdapterFactory
 
     /**
      * function show_create_trigger Get trigger creation code from database
-     * @todo make it do something with sqlite
      */
     public function show_create_trigger($triggerName): string
     {
@@ -91,7 +87,6 @@ abstract class TypeAdapterFactory
 
     /**
      * function create_trigger Modify trigger code, add delimiters, etc
-     * @todo make it do something with sqlite
      */
     public function create_trigger($triggerName): string
     {
@@ -100,7 +95,6 @@ abstract class TypeAdapterFactory
 
     /**
      * function create_procedure Modify procedure code, add delimiters, etc
-     * @todo make it do something with sqlite
      */
     public function create_procedure($procedureName): string
     {
@@ -109,7 +103,6 @@ abstract class TypeAdapterFactory
 
     /**
      * function create_function Modify function code, add delimiters, etc
-     * @todo make it do something with sqlite
      */
     public function create_function($functionName): string
     {
