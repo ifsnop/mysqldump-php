@@ -1,7 +1,8 @@
 #!/bin/bash
 
-MYSQL_ROOT_PASSWORD=${1:-drupal}
-MYSQL_CMD="mysql -h db -u root -p$MYSQL_ROOT_PASSWORD"
+HOST=${1:-db}
+MYSQL_ROOT_PASSWORD=drupal
+MYSQL_CMD="mysql -h $HOST -u root -p$MYSQL_ROOT_PASSWORD"
 USER=tester
 
 $MYSQL_CMD -e "CREATE USER IF NOT EXISTS '$USER'@'%';"
@@ -31,4 +32,4 @@ $MYSQL_CMD -e "FLUSH PRIVILEGES;"
 $MYSQL_CMD -e "use mysql; update user set authentication_string=PASSWORD('') where User='$USER'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
 
 echo "Listing created databases with user '$USER'"
-mysql -h db -u $USER -e "SHOW databases;"
+mysql -h $HOST -u $USER -e "SHOW databases;"

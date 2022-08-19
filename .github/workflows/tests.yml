@@ -50,4 +50,4 @@ jobs:
         run: vendor/bin/phpunit
 
       - name: Create user and databases for testing
-        run: ./tests/scripts/create_users.sh
+        run: ./tests/scripts/create_users.sh 127.0.0.1
