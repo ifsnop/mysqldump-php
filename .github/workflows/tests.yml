@@ -17,8 +17,7 @@ jobs:
       matrix:
         #mysql-versions: ['5.7', '8.0']
         mysql-versions: ['5.7']
-        #php-versions: ['7.4', '8.0', '8.1']
-        php-versions: ['8.1']
+        php-versions: ['7.4', '8.0', '8.1']
 
     services:
       db:
@@ -49,8 +48,8 @@ jobs:
       - name: Run PHPunit tests
         run: vendor/bin/phpunit
 
-      - name: Create user and databases for testing
-        run: ./tests/scripts/create_users.sh 127.0.0.1
-
-      - name: Run test script
-        run: ./tests/scripts/test.sh 127.0.0.1
+#      - name: Create user and databases for testing
+#        run: ./tests/scripts/create_users.sh 127.0.0.1
+#
+#      - name: Run test script
+#        run: ./tests/scripts/test.sh 127.0.0.1
