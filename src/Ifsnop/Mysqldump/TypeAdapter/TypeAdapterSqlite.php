@@ -2,6 +2,6 @@
 
 namespace Ifsnop\Mysqldump\TypeAdapter;
 
-class TypeAdapterSqlite extends TypeAdapterFactory implements TypeAdapterInterface
+class TypeAdapterSqlite extends AbstractTypeAdapter implements TypeAdapterInterface
 {
 }

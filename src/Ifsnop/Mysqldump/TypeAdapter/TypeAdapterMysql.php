@@ -4,7 +4,7 @@ namespace Ifsnop\Mysqldump\TypeAdapter;
 
 use Exception;
 
-class TypeAdapterMysql extends TypeAdapterFactory implements TypeAdapterInterface
+class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterface
 {
     const DEFINER_RE = 'DEFINER=`(?:[^`]|``)*`@`(?:[^`]|``)*`';
 
