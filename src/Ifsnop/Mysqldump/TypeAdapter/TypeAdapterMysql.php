@@ -43,12 +43,8 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
         ]
     ];
 
-    public function databases(): string
+    public function databases(string $databaseName): string
     {
-        $this->check_parameters(func_num_args(), 1, __METHOD__);
-        $args = func_get_args();
-        $databaseName = $args[0];
-
         $resultSet = $this->dbHandler->query("SHOW VARIABLES LIKE 'character_set_database';");
         $characterSet = $resultSet->fetchColumn(1);
         $resultSet->closeCursor();
@@ -63,17 +59,17 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
             "USE `${databaseName}`;" . PHP_EOL . PHP_EOL;
     }
 
-    public function show_create_table($tableName): string
+    public function showCreateTable($tableName): string
     {
         return "SHOW CREATE TABLE `$tableName`";
     }
 
-    public function show_create_view($viewName): string
+    public function showCreateView($viewName): string
     {
         return "SHOW CREATE VIEW `$viewName`";
     }
 
-    public function show_create_trigger($triggerName): string
+    public function showCreateTrigger($triggerName): string
     {
         return "SHOW CREATE TRIGGER `$triggerName`";
     }
@@ -93,7 +89,7 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
         return "SHOW CREATE EVENT `$eventName`";
     }
 
-    public function create_table($row): string
+    public function createTable($row): string
     {
         if (!isset($row['Create Table'])) {
             throw new Exception("Error getting table code, unknown output");
@@ -117,7 +113,7 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
             PHP_EOL;
     }
 
-    public function create_view($row): string
+    public function createView($row): string
     {
         $ret = "";
         if (!isset($row['Create View'])) {
@@ -142,7 +138,7 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
         return $ret;
     }
 
-    public function create_trigger($row): string
+    public function createTrigger($row): string
     {
         $ret = "";
         if (!isset($row['SQL Original Statement'])) {
@@ -166,7 +162,7 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
         return $ret;
     }
 
-    public function create_procedure($row): string
+    public function createProcedure($row): string
     {
         $ret = "";
         if (!isset($row['Create Procedure'])) {
@@ -197,7 +193,7 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
         return $ret;
     }
 
-    public function create_function($row): string
+    public function createFunction($row): string
     {
         $ret = "";
         if (!isset($row['Create Function'])) {
@@ -292,170 +288,158 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
         return $ret;
     }
 
-    public function show_tables(): string
+    public function showTables(string $databaseName): string
     {
-        $this->check_parameters(func_num_args(), 1, __METHOD__);
-        $args = func_get_args();
-        return "SELECT TABLE_NAME AS tbl_name ".
+        return sprintf(
+            "SELECT TABLE_NAME AS tbl_name ".
             "FROM INFORMATION_SCHEMA.TABLES ".
-            "WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='${args[0]}'";
+            "WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='%s'",
+            $databaseName
+        );
     }
 
-    public function show_views(): string
+    public function showViews(string $databaseName): string
     {
-        $this->check_parameters(func_num_args(), 1, __METHOD__);
-        $args = func_get_args();
-        return "SELECT TABLE_NAME AS tbl_name ".
+        return sprintf(
+            "SELECT TABLE_NAME AS tbl_name ".
             "FROM INFORMATION_SCHEMA.TABLES ".
-            "WHERE TABLE_TYPE='VIEW' AND TABLE_SCHEMA='${args[0]}'";
+            "WHERE TABLE_TYPE='VIEW' AND TABLE_SCHEMA='%s'",
+            $databaseName
+        );
     }
 
-    public function show_triggers(): string
+    public function showTriggers(string $databaseName): string
     {
-        $this->check_parameters(func_num_args(), 1, __METHOD__);
-        $args = func_get_args();
-        return "SHOW TRIGGERS FROM `${args[0]}`;";
+        return sprintf("SHOW TRIGGERS FROM `%s`;", $databaseName);
     }
 
-    public function show_columns(): string
+    public function showColumns(string $tableName): string
     {
-        $this->check_parameters(func_num_args(), 1, __METHOD__);
-        $args = func_get_args();
-        return "SHOW COLUMNS FROM `${args[0]}`;";
+        return sprintf("SHOW COLUMNS FROM `%s`;", $tableName);
     }
 
-    public function show_procedures(): string
+    public function showProcedures(string $databaseName): string
     {
-        $this->check_parameters(func_num_args(), 1, __METHOD__);
-        $args = func_get_args();
-        return "SELECT SPECIFIC_NAME AS procedure_name ".
+        return sprintf(
+            "SELECT SPECIFIC_NAME AS procedure_name ".
             "FROM INFORMATION_SCHEMA.ROUTINES ".
-            "WHERE ROUTINE_TYPE='PROCEDURE' AND ROUTINE_SCHEMA='${args[0]}'";
+            "WHERE ROUTINE_TYPE='PROCEDURE' AND ROUTINE_SCHEMA='%s'",
+            $databaseName
+        );
     }
 
-    public function show_functions(): string
+    public function showFunctions(string $databaseName): string
     {
-        $this->check_parameters(func_num_args(), 1, __METHOD__);
-        $args = func_get_args();
-        return "SELECT SPECIFIC_NAME AS function_name ".
+        return sprintf(
+            "SELECT SPECIFIC_NAME AS function_name ".
             "FROM INFORMATION_SCHEMA.ROUTINES ".
-            "WHERE ROUTINE_TYPE='FUNCTION' AND ROUTINE_SCHEMA='${args[0]}'";
+            "WHERE ROUTINE_TYPE='FUNCTION' AND ROUTINE_SCHEMA='%s'",
+            $databaseName
+        );
     }
 
     /**
      * Get query string to ask for names of events from current database.
-     *
-     * @return string
      */
-    public function show_events(): string
+    public function showEvents(string $databaseName): string
     {
-        $this->check_parameters(func_num_args(), 1, __METHOD__);
-        $args = func_get_args();
-        return "SELECT EVENT_NAME AS event_name ".
+        return sprintf(
+            "SELECT EVENT_NAME AS event_name ".
             "FROM INFORMATION_SCHEMA.EVENTS ".
-            "WHERE EVENT_SCHEMA='${args[0]}'";
+            "WHERE EVENT_SCHEMA='%s'",
+            $databaseName
+        );
     }
 
-    public function setup_transaction(): string
+    public function setupTransaction(): string
     {
         return "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ";
     }
 
-    public function start_transaction(): string
+    public function startTransaction(): string
     {
         return "START TRANSACTION ".
             "/*!40100 WITH CONSISTENT SNAPSHOT */";
     }
 
-    public function commit_transaction(): string
+    public function commitTransaction(): string
     {
         return "COMMIT";
     }
 
-    public function lock_table(): string
+    public function lockTable(string $tableName): string
     {
-        $this->check_parameters(func_num_args(), 1, __METHOD__);
-        $args = func_get_args();
-        return $this->dbHandler->exec("LOCK TABLES `${args[0]}` READ LOCAL");
+        return $this->dbHandler->exec(sprintf("LOCK TABLES `%s` READ LOCAL", $tableName));
     }
 
-    public function unlock_table(): string
+    public function unlockTable(): string
     {
         return $this->dbHandler->exec("UNLOCK TABLES");
     }
 
-    public function start_add_lock_table(): string
+    public function startAddLockTable(string $tableName): string
     {
-        $this->check_parameters(func_num_args(), 1, __METHOD__);
-        $args = func_get_args();
-        return "LOCK TABLES `${args[0]}` WRITE;".PHP_EOL;
+        return sprintf("LOCK TABLES `%s` WRITE;" . PHP_EOL, $tableName);
     }
 
-    public function end_add_lock_table(): string
+    public function endAddLockTable(): string
     {
         return "UNLOCK TABLES;".PHP_EOL;
     }
 
-    public function start_add_disable_keys(): string
+    public function startAddDisableKeys(string $tableName): string
     {
-        $this->check_parameters(func_num_args(), 1, __METHOD__);
-        $args = func_get_args();
-        return "/*!40000 ALTER TABLE `${args[0]}` DISABLE KEYS */;". PHP_EOL;
+        return sprintf("/*!40000 ALTER TABLE `%s` DISABLE KEYS */;". PHP_EOL, $tableName);
     }
 
-    public function end_add_disable_keys(): string
+    public function endAddDisableKeys(string $tableName): string
     {
-        $this->check_parameters(func_num_args(), 1, __METHOD__);
-        $args = func_get_args();
-        return "/*!40000 ALTER TABLE `${args[0]}` ENABLE KEYS */;". PHP_EOL;
+        return sprintf("/*!40000 ALTER TABLE `%s` ENABLE KEYS */;". PHP_EOL, $tableName);
     }
 
-    public function start_disable_autocommit(): string
+    public function startDisableAutocommit(): string
     {
         return "SET autocommit=0;".PHP_EOL;
     }
 
-    public function end_disable_autocommit(): string
+    public function endDisableAutocommit(): string
     {
         return "COMMIT;".PHP_EOL;
     }
 
-    public function add_drop_database(): string
+    public function addDropDatabase(string $databaseName): string
     {
-        $this->check_parameters(func_num_args(), 1, __METHOD__);
-        $args = func_get_args();
-        return "/*!40000 DROP DATABASE IF EXISTS `${args[0]}`*/;". PHP_EOL.PHP_EOL;
+        return sprintf("/*!40000 DROP DATABASE IF EXISTS `%s`*/;". PHP_EOL.PHP_EOL, $databaseName);
     }
 
-    public function add_drop_trigger(): string
+    public function addDropTrigger(string $triggerName): string
     {
-        $this->check_parameters(func_num_args(), 1, __METHOD__);
-        $args = func_get_args();
-        return "DROP TRIGGER IF EXISTS `${args[0]}`;".PHP_EOL;
+        return sprintf("DROP TRIGGER IF EXISTS `%s`;".PHP_EOL, $triggerName);
     }
 
-    public function drop_table(): string
+    public function dropTable(string $tableName): string
     {
-        $this->check_parameters(func_num_args(), 1, __METHOD__);
-        $args = func_get_args();
-        return "DROP TABLE IF EXISTS `${args[0]}`;".PHP_EOL;
+        return sprintf("DROP TABLE IF EXISTS `%s`;".PHP_EOL, $tableName);
     }
 
-    public function drop_view(): string
+    public function dropView(string $viewName): string
     {
-        $this->check_parameters(func_num_args(), 1, __METHOD__);
-        $args = func_get_args();
-        return "DROP TABLE IF EXISTS `${args[0]}`;".PHP_EOL.
-            "/*!50001 DROP VIEW IF EXISTS `${args[0]}`*/;".PHP_EOL;
+        return sprintf(
+            "DROP TABLE IF EXISTS `%s`;".PHP_EOL.
+            "/*!50001 DROP VIEW IF EXISTS `%s`*/;".PHP_EOL,
+            $viewName,
+            $viewName
+        );
     }
 
-    public function getDatabaseHeader(): string
+    public function getDatabaseHeader(string $databaseName): string
     {
-        $this->check_parameters(func_num_args(), 1, __METHOD__);
-        $args = func_get_args();
-        return "--".PHP_EOL.
-            "-- Current Database: `${args[0]}`".PHP_EOL.
-            "--".PHP_EOL.PHP_EOL;
+        return sprintf(
+            "--".PHP_EOL.
+            "-- Current Database: `%s`".PHP_EOL.
+            "--".PHP_EOL.PHP_EOL,
+            $databaseName
+        );
     }
 
     /**
@@ -487,7 +471,7 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
         return $colInfo;
     }
 
-    public function backup_parameters(): string
+    public function backupParameters(): string
     {
         $ret = "/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;".PHP_EOL.
             "/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;".PHP_EOL.
@@ -511,7 +495,7 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
         return $ret;
     }
 
-    public function restore_parameters(): string
+    public function restoreParameters(): string
     {
         $ret = "";
 
@@ -532,16 +516,5 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
             "/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;".PHP_EOL.PHP_EOL;
 
         return $ret;
-    }
-
-    /**
-     * Check number of parameters passed to function, useful when inheriting.
-     * Raise exception if unexpected.
-     */
-    private function check_parameters(int $num_args, int $expected_num_args, string $method_name)
-    {
-        if ($num_args != $expected_num_args) {
-            throw new Exception("Unexpected parameter passed to $method_name");
-        }
     }
 }

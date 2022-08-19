@@ -19,7 +19,7 @@ Out of the box, `mysqldump-php` supports backing up table structures, the data i
 ## Requirements
 
 - PHP 7.4 or 8.x
-- MySQL 4.1.0 or newer
+- MySQL 5.7 or newer (and compatible MariaDB)
 - [PDO](https://secure.php.net/pdo)
 - Connections to database are made using the standard DSN, documented in
   [PDO connection string](https://secure.php.net/manual/en/ref.pdo-mysql.connection.php).
