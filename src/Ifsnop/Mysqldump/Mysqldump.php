@@ -329,8 +329,6 @@ class Mysqldump
                     break;
 
                 case 'mysql':
-                case 'pgsql':
-                case 'dblib':
                     $this->dbHandler = new PDO(
                         $this->dsn,
                         $this->user,
