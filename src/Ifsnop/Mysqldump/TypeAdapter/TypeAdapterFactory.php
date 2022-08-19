@@ -10,25 +10,30 @@ use PDO;
  */
 abstract class TypeAdapterFactory
 {
-    protected $dbHandler = null;
-    protected $dumpSettings = [];
+    protected ?PDO $dbHandler = null;
+    protected array $dumpSettings = [];
 
     /**
      * @param string $c Type of database factory to create (Mysql, Sqlite,...)
-     * @param PDO $dbHandler
+     * @param ?PDO $dbHandler
+     * @param array $dumpSettings
+     * @return mixed
      * @throws Exception
      */
-    public static function create($c, $dbHandler = null, $dumpSettings = [])
+    public static function create(string $c, ?PDO $dbHandler = null, array $dumpSettings = []): TypeAdapterInterface
     {
         $c = ucfirst(strtolower($c));
+
         if (!TypeAdapter::isValid($c)) {
             throw new Exception("Database type support for ($c) not yet available");
         }
-        $method = __NAMESPACE__."\\"."TypeAdapter".$c;
-        return new $method($dbHandler, $dumpSettings);
+
+        $adapterClass = __NAMESPACE__."\\"."TypeAdapter".$c;
+
+        return new $adapterClass($dbHandler, $dumpSettings);
     }
 
-    public function __construct($dbHandler = null, $dumpSettings = [])
+    public function __construct(?PDO $dbHandler = null, array $dumpSettings = [])
     {
         $this->dbHandler = $dbHandler;
         $this->dumpSettings = $dumpSettings;

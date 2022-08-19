@@ -16,8 +16,10 @@
 namespace Ifsnop\Mysqldump;
 
 use Exception;
+use Ifsnop\Mysqldump\Compress\CompressInterface;
 use Ifsnop\Mysqldump\Compress\CompressManagerFactory;
 use Ifsnop\Mysqldump\TypeAdapter\TypeAdapterFactory;
+use Ifsnop\Mysqldump\TypeAdapter\TypeAdapterInterface;
 use PDO;
 use PDOException;
 
@@ -65,8 +67,8 @@ class Mysqldump
     private array $events = [];
     private ?PDO $dbHandler = null;
     private string $dbType = '';
-    private Compress\CompressInterface $compressManager;
-    private $typeAdapter;
+    private CompressInterface $compressManager;
+    private TypeAdapterInterface $typeAdapter;
     private array $dumpSettings;
     private array $pdoSettings;
     private string $version;
@@ -431,10 +433,14 @@ class Mysqldump
 
         if (!$this->dumpSettings['skip-comments']) {
             // Some info about software, source and time
-            $header = "-- mysqldump-php https://github.com/druidfi/mysqldump-php".PHP_EOL.
-                    "--".PHP_EOL.
-                    "-- Host: {$this->host}\tDatabase: {$this->dbName}".PHP_EOL.
-                    "-- ------------------------------------------------------".PHP_EOL;
+            $header = sprintf(
+                "-- mysqldump-php https://github.com/druidfi/mysqldump-php".PHP_EOL.
+                "--".PHP_EOL.
+                "-- Host: %s\tDatabase: %s".PHP_EOL.
+                "-- ------------------------------------------------------".PHP_EOL,
+                $this->host,
+                $this->dbName
+            );
 
             if (!empty($this->version)) {
                 $header .= "-- Server version \t".$this->version.PHP_EOL;
@@ -684,7 +690,6 @@ class Mysqldump
      * Table structure extractor.
      *
      * @param string $tableName Name of table to export
-     * @return null
      * @TODO move specific mysql code to typeAdapter
      */
     private function getTableStructure(string $tableName)
@@ -748,7 +753,6 @@ class Mysqldump
      * View structure extractor, create table (avoids cyclic references).
      *
      * @param string $viewName Name of view to export
-     * @return null
      * @TODO move mysql specific code to typeAdapter
      */
     private function getViewStructureTable(string $viewName)
@@ -791,7 +795,11 @@ class Mysqldump
 
         $ret = implode(PHP_EOL.",", $ret);
 
-        return "CREATE TABLE IF NOT EXISTS `$viewName` (".PHP_EOL.$ret.PHP_EOL.");".PHP_EOL;
+        return sprintf(
+            "CREATE TABLE IF NOT EXISTS `%s` (".PHP_EOL."%s".PHP_EOL.");".PHP_EOL,
+            $viewName,
+            $ret
+        );
     }
 
     /**
@@ -967,17 +975,6 @@ class Mysqldump
     }
 
     /**
-     * Set a callable that will be used to transform column values.
-     *
-     * @deprecated Use setTransformTableRowHook instead for better performance
-     */
-    public function setTransformColumnValueHook(callable $callable)
-    {
-        die('setTransformColumnValueHook is deprecated. Use setTransformTableRowHook instead for better performance');
-        $this->transformColumnValueCallable = $callable;
-    }
-
-    /**
      * Set a callable that will be used to report dump information.
      */
     public function setInfoHook(callable $callable)
@@ -996,6 +993,7 @@ class Mysqldump
 
         $onlyOnce = true;
         $lineSize = 0;
+        $colNames = [];
 
         // colStmt is used to form a query to obtain row values
         $colStmt = $this->getColumnStmt($tableName);
@@ -1030,7 +1028,7 @@ class Mysqldump
             $count++;
             $vals = $this->prepareColumnValues($tableName, $row);
             if ($onlyOnce || !$this->dumpSettings['extended-insert']) {
-                if ($this->dumpSettings['complete-insert']) {
+                if ($this->dumpSettings['complete-insert'] && count($colNames)) {
                     $lineSize += $this->compressManager->write(
                         "INSERT$ignore INTO `$tableName` (".
                         implode(", ", $colNames).

@@ -5,7 +5,7 @@ namespace Ifsnop\Mysqldump\TypeAdapter;
 /**
  * Enum with all available TypeAdapter implementations.
  */
-abstract class TypeAdapter
+abstract class TypeAdapter implements TypeAdapterInterface
 {
     public static array $enums = [
         "Sqlite",

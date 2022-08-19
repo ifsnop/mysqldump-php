@@ -2,6 +2,6 @@
 
 namespace Ifsnop\Mysqldump\TypeAdapter;
 
-class TypeAdapterDblib extends TypeAdapterFactory
+class TypeAdapterDblib extends TypeAdapterFactory implements TypeAdapterInterface
 {
 }
