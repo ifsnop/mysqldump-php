@@ -1,0 +1,19 @@
+{
+  "baseBranches": [
+    "main"
+  ],
+  "extends": [
+    "config:base",
+    ":preserveSemverRanges",
+    ":disableRateLimiting"
+  ],
+  "dependencyDashboard": true,
+  "rangeStrategy": "replace",
+  "separateMajorMinor": true,
+  "separateMinorPatch": true,
+  "separateMultipleMajor": true,
+  "timezone": "Europe/Helsinki",
+  "vulnerabilityAlerts": {
+    "labels": ["security"]
+  }
+}
