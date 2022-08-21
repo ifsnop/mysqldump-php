@@ -27,6 +27,13 @@
         "phpunit/phpunit": "^8.5.15 || ^9"
     },
     "autoload": {
-        "psr-4": {"Ifsnop\\": "src/Ifsnop/"}
+        "psr-4": {
+            "Druidfi\\Mysqldump\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Druidfi\\Mysqldump\\Tests\\": "tests/"
+        }
     }
 }

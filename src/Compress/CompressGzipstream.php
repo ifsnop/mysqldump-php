@@ -1,6 +1,6 @@
 <?php
 
-namespace Ifsnop\Mysqldump\Compress;
+namespace Druidfi\Mysqldump\Compress;
 
 use Exception;
 

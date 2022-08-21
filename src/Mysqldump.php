@@ -6,22 +6,21 @@
  * Tags: mysql mysqldump pdo php7 php5 database php sql mariadb mysql-backup.
  *
  * @category Library
- * @package  Ifsnop\Mysqldump
+ * @package  Druidfi\Mysqldump
  * @author   Marko Korhonen <marko.korhonen@druid.fi>
  * @license  http://www.gnu.org/copyleft/gpl.html GNU General Public License
  * @link     https://github.com/druidfi/mysqldump-php
  * @see      https://github.com/ifsnop/mysqldump-php
  */
 
-namespace Ifsnop\Mysqldump;
+namespace Druidfi\Mysqldump;
 
+use Druidfi\Mysqldump\Compress\CompressInterface;
+use Druidfi\Mysqldump\Compress\CompressManagerFactory;
+use Druidfi\Mysqldump\TypeAdapter\TypeAdapterFactory;
+use Druidfi\Mysqldump\TypeAdapter\TypeAdapterInterface;
 use Exception;
-use Ifsnop\Mysqldump\Compress\CompressInterface;
-use Ifsnop\Mysqldump\Compress\CompressManagerFactory;
-use Ifsnop\Mysqldump\TypeAdapter\TypeAdapterFactory;
-use Ifsnop\Mysqldump\TypeAdapter\TypeAdapterInterface;
 use PDO;
-use PDOException;
 
 class Mysqldump
 {

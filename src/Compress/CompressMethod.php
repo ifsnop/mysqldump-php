@@ -1,8 +1,8 @@
 <?php
 
-namespace Ifsnop\Mysqldump\Compress;
+namespace Druidfi\Mysqldump\Compress;
 
-use Ifsnop\Mysqldump\Mysqldump;
+use Druidfi\Mysqldump\Mysqldump;
 
 /**
  * Enum with all available compression methods.

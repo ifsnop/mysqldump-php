@@ -1,6 +1,6 @@
 <?php
 
-namespace Ifsnop\Mysqldump\TypeAdapter;
+namespace Druidfi\Mysqldump\TypeAdapter;
 
 class TypeAdapterSqlite extends AbstractTypeAdapter implements TypeAdapterInterface
 {

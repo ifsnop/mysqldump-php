@@ -1,6 +1,6 @@
 <?php
 
-namespace Ifsnop\Mysqldump\TypeAdapter;
+namespace Druidfi\Mysqldump\TypeAdapter;
 
 /**
  * Enum with all available TypeAdapter implementations.
