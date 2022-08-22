@@ -275,6 +275,9 @@ class TypeAdapterMysql implements TypeAdapterInterface
         return $ret;
     }
 
+    /**
+     * @throws Exception
+     */
     public function createEvent(array $row): string
     {
         $ret = "";

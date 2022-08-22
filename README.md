@@ -112,8 +112,7 @@ $dumper->setTableLimits([
 
 ```php
 /**
- * Constructor of Mysqldump. Note that in the case of an SQLite database
- * connection, the filename must be in the $db parameter.
+ * Constructor of Mysqldump.
  *
  * @param string $dsn        PDO DSN connection string
  * @param string $user       SQL account username
@@ -123,8 +122,8 @@ $dumper->setTableLimits([
  */
 public function __construct(
     string $dsn = '',
-    string $user = '',
-    string $pass = '',
+    string ?$user = '',
+    string ?$pass = '',
     array $dumpSettings = [],
     array $pdoSettings = []
 )
