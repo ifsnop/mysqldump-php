@@ -3,10 +3,14 @@
 namespace Druidfi\Mysqldump\TypeAdapter;
 
 use Exception;
+use PDO;
 
-class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterface
+class TypeAdapterMysql implements TypeAdapterInterface
 {
     const DEFINER_RE = 'DEFINER=`(?:[^`]|``)*`@`(?:[^`]|``)*`';
+
+    protected ?PDO $db = null;
+    protected array $dumpSettings = [];
 
     // Numerical Mysql types
     public array $mysqlTypes = [
@@ -42,6 +46,13 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
             'geometrycollection',
         ]
     ];
+
+    public function __construct(?PDO $db = null, array $dumpSettings = [])
+    {
+        $this->db = $db;
+        $this->dumpSettings = $dumpSettings;
+        $this->init();
+    }
 
     protected function init()
     {

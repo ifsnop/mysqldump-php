@@ -2,8 +2,19 @@
 
 namespace Druidfi\Mysqldump\TypeAdapter;
 
-class TypeAdapterSqlite extends AbstractTypeAdapter implements TypeAdapterInterface
+use PDO;
+
+class TypeAdapterSqlite implements TypeAdapterInterface
 {
+    protected ?PDO $db = null;
+    protected array $dumpSettings = [];
+
+    public function __construct(?PDO $db = null, array $dumpSettings = [])
+    {
+        $this->db = $db;
+        $this->dumpSettings = $dumpSettings;
+    }
+
     /**
      * Add sql to create and use database
      */
