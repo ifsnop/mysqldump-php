@@ -2,16 +2,21 @@
 
 namespace Druidfi\Mysqldump\Compress;
 
-use Druidfi\Mysqldump\Mysqldump;
 use Exception;
 
 abstract class CompressManagerFactory
 {
+    // List of available compression methods as constants.
+    const GZIP  = 'Gzip';
+    const BZIP2 = 'Bzip2';
+    const NONE  = 'None';
+    const GZIPSTREAM = 'Gzipstream';
+
     public static array $methods = [
-        Mysqldump::NONE,
-        Mysqldump::GZIP,
-        Mysqldump::BZIP2,
-        Mysqldump::GZIPSTREAM,
+        self::NONE,
+        self::GZIP,
+        self::BZIP2,
+        self::GZIPSTREAM,
     ];
 
     /**
