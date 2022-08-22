@@ -3,7 +3,7 @@
 /**
  * PHP version of mysqldump cli that comes with MySQL.
  *
- * Tags: mysql mysqldump pdo php7 php5 database php sql mariadb mysql-backup.
+ * Tags: mysql mysqldump pdo php7 php8 database php sql mariadb mysql-backup.
  *
  * @category Library
  * @package  Druidfi\Mysqldump
@@ -25,13 +25,6 @@ use PDOException;
 
 class Mysqldump
 {
-    // Same as mysqldump.
-    const MAXLINESIZE = 1000000;
-
-    // List of available connection strings.
-    const UTF8    = 'utf8';
-    const UTF8MB4 = 'utf8mb4';
-
     // Database
     private string $dsn;
     private ?string $user;
@@ -48,7 +41,7 @@ class Mysqldump
         'mysql' => TypeAdapterMysql::class,
     ];
 
-    private array $dumpSettings;
+    private DumpSettings $settings;
     private array $tableColumnTypes = [];
     private $transformTableRowCallable;
     private $transformColumnValueCallable;
@@ -70,13 +63,12 @@ class Mysqldump
     private array $tableLimits = [];
 
     /**
-     * Constructor of Mysqldump. Note that in the case of an SQLite database
-     * connection, the filename must be in the $db parameter.
+     * Constructor of Mysqldump.
      *
      * @param string $dsn PDO DSN connection string
      * @param string|null $user SQL account username
      * @param string|null $pass SQL account password
-     * @param array $dumpSettings SQL database settings
+     * @param array $settings SQL database settings
      * @param array $pdoOptions PDO configured attributes
      * @throws Exception
      */
@@ -84,54 +76,19 @@ class Mysqldump
         string $dsn = '',
         ?string $user = null,
         ?string $pass = null,
-        array $dumpSettings = [],
+        array $settings = [],
         array $pdoOptions = []
     ) {
-        $dumpSettingsDefault = [
-            'include-tables' => [],
-            'exclude-tables' => [],
-            'include-views' => [],
-            'compress' => CompressManagerFactory::NONE,
-            'init_commands' => [],
-            'no-data' => [],
-            'if-not-exists' => false,
-            'reset-auto-increment' => false,
-            'add-drop-database' => false,
-            'add-drop-table' => false,
-            'add-drop-trigger' => true,
-            'add-locks' => true,
-            'complete-insert' => false,
-            'databases' => false,
-            'default-character-set' => self::UTF8,
-            'disable-keys' => true,
-            'extended-insert' => true,
-            'events' => false,
-            'hex-blob' => true, /* faster than escaped content */
-            'insert-ignore' => false,
-            'net_buffer_length' => self::MAXLINESIZE,
-            'no-autocommit' => true,
-            'no-create-info' => false,
-            'lock-tables' => true,
-            'routines' => false,
-            'single-transaction' => true,
-            'skip-triggers' => false,
-            'skip-tz-utc' => false,
-            'skip-comments' => false,
-            'skip-dump-date' => false,
-            'skip-definer' => false,
-            'where' => '',
-            /* deprecated */
-            'disable-foreign-keys-check' => true
-        ];
+        $this->parseDsn($dsn);
+
+        $this->user = $user;
+        $this->pass = $pass;
+        $this->settings = new DumpSettings($settings);
 
         $pdoOptionsDefault = [
             PDO::ATTR_PERSISTENT => true,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         ];
-
-        $this->user = $user;
-        $this->pass = $pass;
-        $this->parseDsn($dsn);
 
         // This drops MYSQL dependency, only use the constant if it's defined.
         if ('mysql' === $this->dbType) {
@@ -139,30 +96,9 @@ class Mysqldump
         }
 
         $this->pdoOptions = array_replace_recursive($pdoOptionsDefault, $pdoOptions);
-        $this->dumpSettings = array_replace_recursive($dumpSettingsDefault, $dumpSettings);
-        $this->dumpSettings['init_commands'][] = "SET NAMES ".$this->dumpSettings['default-character-set'];
-
-        if (false === $this->dumpSettings['skip-tz-utc']) {
-            $this->dumpSettings['init_commands'][] = "SET TIME_ZONE='+00:00'";
-        }
-
-        $diff = array_diff(array_keys($this->dumpSettings), array_keys($dumpSettingsDefault));
-
-        if (count($diff) > 0) {
-            throw new Exception("Unexpected value in dumpSettings: (".implode(",", $diff).")");
-        }
-
-        if (!is_array($this->dumpSettings['include-tables']) || !is_array($this->dumpSettings['exclude-tables'])) {
-            throw new Exception('Include-tables and exclude-tables should be arrays');
-        }
-
-        // If no include-views is passed in, dump the same views as tables, mimic mysqldump behaviour.
-        if (!isset($dumpSettings['include-views'])) {
-            $this->dumpSettings['include-views'] = $this->dumpSettings['include-tables'];
-        }
 
         // Create a new compressManager to manage compressed output
-        $this->io = CompressManagerFactory::create($this->dumpSettings['compress']);
+        $this->io = CompressManagerFactory::create($this->settings->getCompressMethod());
     }
 
     /**
@@ -186,8 +122,8 @@ class Mysqldump
     {
         if (!empty($this->tableWheres[$tableName])) {
             return $this->tableWheres[$tableName];
-        } elseif ($this->dumpSettings['where']) {
-            return $this->dumpSettings['where'];
+        } elseif ($this->settings->get('where')) {
+            return $this->settings->get('where');
         }
 
         return false;
@@ -286,7 +222,7 @@ class Mysqldump
 
         /** @var TypeAdapterInterface $typeAdapterClass */
         $typeAdapterClass = $this->typeAdapters[$this->dbType];
-        $this->db = new $typeAdapterClass($this->conn, $this->dumpSettings);
+        $this->db = new $typeAdapterClass($this->conn, $this->settings);
     }
 
     /**
@@ -311,17 +247,17 @@ class Mysqldump
         $this->io->open($destination);
 
         // Write some basic info to output file
-        if (!$this->dumpSettings['skip-comments']) {
+        if (!$this->settings->skipComments()) {
             $this->io->write($this->getDumpFileHeader());
         }
 
         // Store server settings and use saner defaults to dump
         $this->io->write($this->db->backupParameters());
 
-        if ($this->dumpSettings['databases']) {
+        if ($this->settings->isEnabled('databases')) {
             $this->io->write($this->db->getDatabaseHeader($this->dbName));
 
-            if ($this->dumpSettings['add-drop-database']) {
+            if ($this->settings->isEnabled('add-drop-database')) {
                 $this->io->write($this->db->addDropDatabase($this->dbName));
             }
         }
@@ -334,14 +270,14 @@ class Mysqldump
         $this->getDatabaseStructureFunctions();
         $this->getDatabaseStructureEvents();
 
-        if ($this->dumpSettings['databases']) {
+        if ($this->settings->isEnabled('databases')) {
             $this->io->write($this->db->databases($this->dbName));
         }
 
         // If there still are some tables/views in include-tables array, that means that some tables or views weren't
         // found. Give proper error and exit. This check will be removed once include-tables supports regexps.
-        if (0 < count($this->dumpSettings['include-tables'])) {
-            $name = implode(',', $this->dumpSettings['include-tables']);
+        if (0 < count($this->settings->getIncludedTables())) {
+            $name = implode(',', $this->settings->getIncludedTables());
             $message = sprintf("Table '%s' not found in database", $name);
             throw new Exception($message);
         }
@@ -357,7 +293,7 @@ class Mysqldump
         $this->io->write($this->db->restoreParameters());
 
         // Write some stats to output file.
-        if (!$this->dumpSettings['skip-comments']) {
+        if (!$this->settings->skipComments()) {
             $this->io->write($this->getDumpFileFooter());
         }
 
@@ -384,7 +320,7 @@ class Mysqldump
             $header .= "-- Server version \t". $version . PHP_EOL;
         }
 
-        if (!$this->dumpSettings['skip-dump-date']) {
+        if (!$this->settings->skipDumpDate()) {
             $header .= "-- Date: ".date('r'). PHP_EOL . PHP_EOL;
         }
 
@@ -398,7 +334,7 @@ class Mysqldump
     {
         $footer = '-- Dump completed';
 
-        if (!$this->dumpSettings['skip-dump-date']) {
+        if (!$this->settings->skipDumpDate()) {
             $footer .= ' on: '.date('r');
         }
 
@@ -412,8 +348,10 @@ class Mysqldump
      */
     private function getDatabaseStructureTables()
     {
+        $includedTables = $this->settings->getIncludedTables();
+
         // Listing all tables from database
-        if (empty($this->dumpSettings['include-tables'])) {
+        if (empty($includedTables)) {
             // include all tables for now, blacklisting happens later
             foreach ($this->conn->query($this->db->showTables($this->dbName)) as $row) {
                 $this->tables[] = current($row);
@@ -421,10 +359,10 @@ class Mysqldump
         } else {
             // include only the tables mentioned in include-tables
             foreach ($this->conn->query($this->db->showTables($this->dbName)) as $row) {
-                if (in_array(current($row), $this->dumpSettings['include-tables'], true)) {
+                if (in_array(current($row), $includedTables, true)) {
                     $this->tables[] = current($row);
-                    $elem = array_search(current($row), $this->dumpSettings['include-tables']);
-                    unset($this->dumpSettings['include-tables'][$elem]);
+                    $elem = array_search(current($row), $includedTables);
+                    unset($includedTables[$elem]);
                 }
             }
         }
@@ -435,8 +373,10 @@ class Mysqldump
      */
     private function getDatabaseStructureViews()
     {
+        $includedViews = $this->settings->getIncludedViews();
+
         // Listing all views from database
-        if (empty($this->dumpSettings['include-views'])) {
+        if (empty($includedViews)) {
             // include all views for now, blacklisting happens later
             foreach ($this->conn->query($this->db->showViews($this->dbName)) as $row) {
                 $this->views[] = current($row);
@@ -444,10 +384,10 @@ class Mysqldump
         } else {
             // include only the tables mentioned in include-tables
             foreach ($this->conn->query($this->db->showViews($this->dbName)) as $row) {
-                if (in_array(current($row), $this->dumpSettings['include-views'], true)) {
+                if (in_array(current($row), $includedViews, true)) {
                     $this->views[] = current($row);
-                    $elem = array_search(current($row), $this->dumpSettings['include-views']);
-                    unset($this->dumpSettings['include-views'][$elem]);
+                    $elem = array_search(current($row), $includedViews);
+                    unset($includedViews[$elem]);
                 }
             }
         }
@@ -459,7 +399,7 @@ class Mysqldump
     private function getDatabaseStructureTriggers()
     {
         // Listing all triggers from database
-        if (false === $this->dumpSettings['skip-triggers']) {
+        if (!$this->settings->skipTriggers()) {
             foreach ($this->conn->query($this->db->showTriggers($this->dbName)) as $row) {
                 $this->triggers[] = $row['Trigger'];
             }
@@ -472,7 +412,7 @@ class Mysqldump
     private function getDatabaseStructureProcedures()
     {
         // Listing all procedures from database
-        if ($this->dumpSettings['routines']) {
+        if ($this->settings->isEnabled('routines')) {
             foreach ($this->conn->query($this->db->showProcedures($this->dbName)) as $row) {
                 $this->procedures[] = $row['procedure_name'];
             }
@@ -485,7 +425,7 @@ class Mysqldump
     private function getDatabaseStructureFunctions()
     {
         // Listing all functions from database
-        if ($this->dumpSettings['routines']) {
+        if ($this->settings->isEnabled('routines')) {
             foreach ($this->conn->query($this->db->showFunctions($this->dbName)) as $row) {
                 $this->functions[] = $row['function_name'];
             }
@@ -498,7 +438,7 @@ class Mysqldump
     private function getDatabaseStructureEvents()
     {
         // Listing all events from database
-        if ($this->dumpSettings['events']) {
+        if ($this->settings->isEnabled('events')) {
             foreach ($this->conn->query($this->db->showEvents($this->dbName)) as $row) {
                 $this->events[] = $row['event_name'];
             }
@@ -532,16 +472,16 @@ class Mysqldump
     {
         // Exporting tables one by one
         foreach ($this->tables as $table) {
-            if ($this->matches($table, $this->dumpSettings['exclude-tables'])) {
+            if ($this->matches($table, $this->settings->getExcludedTables())) {
                 continue;
             }
 
             $this->getTableStructure($table);
+            $no_data = $this->settings->isEnabled('no-data');
 
-            if (false === $this->dumpSettings['no-data']) { // don't break compatibility with old trigger
+            if (!$no_data) { // don't break compatibility with old trigger
                 $this->listValues($table);
-            } elseif (true === $this->dumpSettings['no-data']
-                || $this->matches($table, $this->dumpSettings['no-data'])) {
+            } elseif ($no_data || $this->matches($table, $this->settings->getNoData())) {
                 continue;
             } else {
                 $this->listValues($table);
@@ -554,10 +494,10 @@ class Mysqldump
      */
     private function exportViews()
     {
-        if (false === $this->dumpSettings['no-create-info']) {
+        if (false === $this->settings->isEnabled('no-create-info')) {
             // Exporting views one by one
             foreach ($this->views as $view) {
-                if ($this->matches($view, $this->dumpSettings['exclude-tables'])) {
+                if ($this->matches($view, $this->settings->getExcludedTables())) {
                     continue;
                 }
 
@@ -566,7 +506,7 @@ class Mysqldump
             }
 
             foreach ($this->views as $view) {
-                if ($this->matches($view, $this->dumpSettings['exclude-tables'])) {
+                if ($this->matches($view, $this->settings->getExcludedTables())) {
                     continue;
                 }
 
@@ -619,17 +559,19 @@ class Mysqldump
      * Table structure extractor.
      *
      * @param string $tableName Name of table to export
-     * @TODO move specific mysql code to typeAdapter
      */
     private function getTableStructure(string $tableName)
     {
-        if (!$this->dumpSettings['no-create-info']) {
+        if (!$this->settings->isEnabled('no-create-info')) {
             $ret = '';
 
-            if (!$this->dumpSettings['skip-comments']) {
-                $ret = "--".PHP_EOL.
-                    "-- Table structure for table `$tableName`".PHP_EOL.
-                    "--".PHP_EOL.PHP_EOL;
+            if (!$this->settings->skipComments()) {
+                $ret = sprintf(
+                    "--".PHP_EOL.
+                    "-- Table structure for table `%s`".PHP_EOL.
+                    "--".PHP_EOL.PHP_EOL,
+                    $tableName
+                );
             }
 
             $stmt = $this->db->showCreateTable($tableName);
@@ -637,10 +579,8 @@ class Mysqldump
             foreach ($this->conn->query($stmt) as $r) {
                 $this->io->write($ret);
 
-                if ($this->dumpSettings['add-drop-table']) {
-                    $this->io->write(
-                        $this->db->dropTable($tableName)
-                    );
+                if ($this->settings->isEnabled('add-drop-table')) {
+                    $this->io->write($this->db->dropTable($tableName));
                 }
 
                 $this->io->write($this->db->createTable($r));
@@ -686,7 +626,7 @@ class Mysqldump
      */
     private function getViewStructureTable(string $viewName)
     {
-        if (!$this->dumpSettings['skip-comments']) {
+        if (!$this->settings->skipComments()) {
             $ret = (
                 '--' . PHP_EOL .
                 sprintf('-- Stand-In structure for view `%s`', $viewName) . PHP_EOL .
@@ -700,7 +640,7 @@ class Mysqldump
 
         // create views as tables, to resolve dependencies
         foreach ($this->conn->query($stmt) as $r) {
-            if ($this->dumpSettings['add-drop-table']) {
+            if ($this->settings->isEnabled('add-drop-table')) {
                 $this->io->write($this->db->dropView($viewName));
             }
 
@@ -742,7 +682,7 @@ class Mysqldump
      */
     private function getViewStructureView(string $viewName)
     {
-        if (!$this->dumpSettings['skip-comments']) {
+        if (!$this->settings->skipComments()) {
             $ret = sprintf(
                 "--". PHP_EOL.
                 "-- View structure for view `%s`". PHP_EOL.
@@ -775,7 +715,7 @@ class Mysqldump
         $stmt = $this->db->showCreateTrigger($triggerName);
 
         foreach ($this->conn->query($stmt) as $r) {
-            if ($this->dumpSettings['add-drop-trigger']) {
+            if ($this->settings->isEnabled('add-drop-trigger')) {
                 $this->io->write($this->db->addDropTrigger($triggerName));
             }
 
@@ -792,7 +732,7 @@ class Mysqldump
      */
     private function getProcedureStructure(string $procedureName)
     {
-        if (!$this->dumpSettings['skip-comments']) {
+        if (!$this->settings->skipComments()) {
             $ret = "--".PHP_EOL.
                 "-- Dumping routines for database '".$this->dbName."'".PHP_EOL.
                 "--".PHP_EOL.PHP_EOL;
@@ -815,7 +755,7 @@ class Mysqldump
      */
     private function getFunctionStructure(string $functionName)
     {
-        if (!$this->dumpSettings['skip-comments']) {
+        if (!$this->settings->skipComments()) {
             $ret = "--".PHP_EOL.
                 "-- Dumping routines for database '".$this->dbName."'".PHP_EOL.
                 "--".PHP_EOL.PHP_EOL;
@@ -839,7 +779,7 @@ class Mysqldump
      */
     private function getEventStructure(string $eventName)
     {
-        if (!$this->dumpSettings['skip-comments']) {
+        if (!$this->settings->skipComments()) {
             $ret = "--".PHP_EOL.
                 "-- Dumping events for database '".$this->dbName."'".PHP_EOL.
                 "--".PHP_EOL.PHP_EOL;
@@ -888,7 +828,7 @@ class Mysqldump
     {
         if (is_null($colValue)) {
             return 'NULL';
-        } elseif ($this->dumpSettings['hex-blob'] && $colType['is_blob']) {
+        } elseif ($this->settings->isEnabled('hex-blob') && $colType['is_blob']) {
             if ($colType['type'] == 'bit' || !empty($colValue)) {
                 return sprintf('0x%s', $colValue);
             } else {
@@ -934,7 +874,7 @@ class Mysqldump
         $colStmt = $this->getColumnStmt($tableName);
 
         // colNames is used to get the name of the columns when using complete-insert
-        if ($this->dumpSettings['complete-insert']) {
+        if ($this->settings->isEnabled('complete-insert')) {
             $colNames = $this->getColumnNames($tableName);
         }
 
@@ -956,14 +896,15 @@ class Mysqldump
         $resultSet = $this->conn->query($stmt);
         $resultSet->setFetchMode(PDO::FETCH_ASSOC);
 
-        $ignore = $this->dumpSettings['insert-ignore'] ? '  IGNORE' : '';
-
+        $ignore = $this->settings->isEnabled('insert-ignore') ? '  IGNORE' : '';
         $count = 0;
+
         foreach ($resultSet as $row) {
             $count++;
             $values = $this->prepareColumnValues($tableName, $row);
-            if ($onlyOnce || !$this->dumpSettings['extended-insert']) {
-                if ($this->dumpSettings['complete-insert'] && count($colNames)) {
+
+            if ($onlyOnce || !$this->settings->isEnabled('extended-insert')) {
+                if ($this->settings->isEnabled('complete-insert') && count($colNames)) {
                     $lineSize += $this->io->write(
                         "INSERT$ignore INTO `$tableName` (".
                         implode(", ", $colNames).
@@ -978,7 +919,8 @@ class Mysqldump
             } else {
                 $lineSize += $this->io->write(",(".implode(",", $values).")");
             }
-            if (($lineSize > $this->dumpSettings['net_buffer_length']) || !$this->dumpSettings['extended-insert']) {
+            if (($lineSize > $this->settings->getNetBufferLength())
+                || !$this->settings->isEnabled('extended-insert')) {
                 $onlyOnce = true;
                 $lineSize = $this->io->write(";".PHP_EOL);
             }
@@ -1004,7 +946,7 @@ class Mysqldump
      */
     public function prepareListValues(string $tableName)
     {
-        if (!$this->dumpSettings['skip-comments']) {
+        if (!$this->settings->skipComments()) {
             $this->io->write(
                 "--".PHP_EOL.
                 "-- Dumping data for table `$tableName`".PHP_EOL.
@@ -1012,25 +954,25 @@ class Mysqldump
             );
         }
 
-        if ($this->dumpSettings['single-transaction']) {
+        if ($this->settings->isEnabled('single-transaction')) {
             $this->conn->exec($this->db->setupTransaction());
             $this->conn->exec($this->db->startTransaction());
         }
 
-        if ($this->dumpSettings['lock-tables'] && !$this->dumpSettings['single-transaction']) {
+        if ($this->settings->isEnabled('lock-tables') && !$this->settings->isEnabled('single-transaction')) {
             $this->db->lockTable($tableName);
         }
 
-        if ($this->dumpSettings['add-locks']) {
+        if ($this->settings->isEnabled('add-locks')) {
             $this->io->write($this->db->startAddLockTable($tableName));
         }
 
-        if ($this->dumpSettings['disable-keys']) {
+        if ($this->settings->isEnabled('disable-keys')) {
             $this->io->write($this->db->startAddDisableKeys($tableName));
         }
 
         // Disable autocommit for faster reload
-        if ($this->dumpSettings['no-autocommit']) {
+        if ($this->settings->isEnabled('no-autocommit')) {
             $this->io->write($this->db->startDisableAutocommit());
         }
     }
@@ -1043,30 +985,31 @@ class Mysqldump
      */
     public function endListValues(string $tableName, int $count = 0)
     {
-        if ($this->dumpSettings['disable-keys']) {
+        if ($this->settings->isEnabled('disable-keys')) {
             $this->io->write($this->db->endAddDisableKeys($tableName));
         }
 
-        if ($this->dumpSettings['add-locks']) {
+        if ($this->settings->isEnabled('add-locks')) {
             $this->io->write($this->db->endAddLockTable($tableName));
         }
 
-        if ($this->dumpSettings['single-transaction']) {
+        if ($this->settings->isEnabled('single-transaction')) {
             $this->conn->exec($this->db->commitTransaction());
         }
 
-        if ($this->dumpSettings['lock-tables'] && !$this->dumpSettings['single-transaction']) {
+        if ($this->settings->isEnabled('lock-tables')
+            && !$this->settings->isEnabled('single-transaction')) {
             $this->db->unlockTable($tableName);
         }
 
         // Commit to enable autocommit
-        if ($this->dumpSettings['no-autocommit']) {
+        if ($this->settings->isEnabled('no-autocommit')) {
             $this->io->write($this->db->endDisableAutocommit());
         }
 
         $this->io->write(PHP_EOL);
 
-        if (!$this->dumpSettings['skip-comments']) {
+        if (!$this->settings->skipComments()) {
             $this->io->write(
                 "-- Dumped table `".$tableName."` with $count row(s)".PHP_EOL.
                 '--'.PHP_EOL.PHP_EOL
@@ -1086,12 +1029,12 @@ class Mysqldump
         $colStmt = [];
 
         foreach ($this->tableColumnTypes[$tableName] as $colName => $colType) {
-            if ($colType['type'] == 'bit' && $this->dumpSettings['hex-blob']) {
+            if ($colType['type'] == 'bit' && $this->settings->isEnabled('hex-blob')) {
                 $colStmt[] = sprintf("LPAD(HEX(`%s`),2,'0') AS `%s`", $colName, $colName);
-            } elseif ($colType['is_blob'] && $this->dumpSettings['hex-blob']) {
+            } elseif ($colType['is_blob'] && $this->settings->isEnabled('hex-blob')) {
                 $colStmt[] = sprintf("HEX(`%s`) AS `%s`", $colName, $colName);
             } elseif ($colType['is_virtual']) {
-                $this->dumpSettings['complete-insert'] = true;
+                $this->settings->setCompleteInsert();
             } else {
                 $colStmt[] = sprintf("`%s`", $colName);
             }
@@ -1113,7 +1056,7 @@ class Mysqldump
 
         foreach ($this->tableColumnTypes[$tableName] as $colName => $colType) {
             if ($colType['is_virtual']) {
-                $this->dumpSettings['complete-insert'] = true;
+                $this->settings->setCompleteInsert();
             } else {
                 $colNames[] = sprintf('`%s`', $colName);
             }

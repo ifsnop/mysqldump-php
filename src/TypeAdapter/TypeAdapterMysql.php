@@ -2,6 +2,7 @@
 
 namespace Druidfi\Mysqldump\TypeAdapter;
 
+use Druidfi\Mysqldump\DumpSettings;
 use Exception;
 use PDO;
 
@@ -10,7 +11,7 @@ class TypeAdapterMysql implements TypeAdapterInterface
     const DEFINER_RE = 'DEFINER=`(?:[^`]|``)*`@`(?:[^`]|``)*`';
 
     protected PDO $db;
-    protected array $dumpSettings = [];
+    protected DumpSettings $settings;
 
     // Numerical Mysql types
     public array $mysqlTypes = [
@@ -47,13 +48,13 @@ class TypeAdapterMysql implements TypeAdapterInterface
         ]
     ];
 
-    public function __construct(PDO $conn, array $dumpSettings = [])
+    public function __construct(PDO $conn, DumpSettings $settings)
     {
         $this->db = $conn;
-        $this->dumpSettings = $dumpSettings;
+        $this->settings = $settings;
 
         // Execute init commands once connected
-        foreach ($this->dumpSettings['init_commands'] as $stmt) {
+        foreach ($this->settings->getInitCommands() as $stmt) {
             $this->db->exec($stmt);
         }
     }
@@ -120,18 +121,18 @@ class TypeAdapterMysql implements TypeAdapterInterface
         }
 
         $createTable = $row['Create Table'];
-        if ($this->dumpSettings['reset-auto-increment']) {
+        if ($this->settings->isEnabled('reset-auto-increment')) {
             $match = "/AUTO_INCREMENT=[0-9]+/s";
             $replace = "";
             $createTable = preg_replace($match, $replace, $createTable);
         }
 
-        if ($this->dumpSettings['if-not-exists']) {
+        if ($this->settings->isEnabled('if-not-exists')) {
             $createTable = preg_replace('/^CREATE TABLE/', 'CREATE TABLE IF NOT EXISTS', $createTable);
         }
 
         return "/*!40101 SET @saved_cs_client     = @@character_set_client */;".PHP_EOL.
-            "/*!40101 SET character_set_client = ".$this->dumpSettings['default-character-set']." */;".PHP_EOL.
+            "/*!40101 SET character_set_client = ".$this->settings->get('default-character-set')." */;".PHP_EOL.
             $createTable.";".PHP_EOL.
             "/*!40101 SET character_set_client = @saved_cs_client */;".PHP_EOL.
             PHP_EOL;
@@ -150,7 +151,7 @@ class TypeAdapterMysql implements TypeAdapterInterface
 
         $viewStmt = $row['Create View'];
 
-        $definerStr = $this->dumpSettings['skip-definer'] ? '' : '/*!50013 \2 */'.PHP_EOL;
+        $definerStr = $this->settings->skipDefiner() ? '' : '/*!50013 \2 */' . PHP_EOL;
 
         if ($viewStmtReplaced = preg_replace(
             '/^(CREATE(?:\s+ALGORITHM=(?:UNDEFINED|MERGE|TEMPTABLE))?)\s+('
@@ -178,7 +179,7 @@ class TypeAdapterMysql implements TypeAdapterInterface
         }
 
         $triggerStmt = $row['SQL Original Statement'];
-        $definerStr = $this->dumpSettings['skip-definer'] ? '' : '/*!50017 \2*/ ';
+        $definerStr = $this->settings->skipDefiner() ? '' : '/*!50017 \2*/ ';
         if ($triggerStmtReplaced = preg_replace(
             '/^(CREATE)\s+('.self::DEFINER_RE.')?\s+(TRIGGER\s.*)$/s',
             '/*!50003 \1*/ '.$definerStr.'/*!50003 \3 */',
@@ -191,6 +192,7 @@ class TypeAdapterMysql implements TypeAdapterInterface
         $ret .= "DELIMITER ;;".PHP_EOL.
             $triggerStmt.";;".PHP_EOL.
             "DELIMITER ;".PHP_EOL.PHP_EOL;
+
         return $ret;
     }
 
@@ -200,12 +202,15 @@ class TypeAdapterMysql implements TypeAdapterInterface
     public function createProcedure(array $row): string
     {
         $ret = "";
+
         if (!isset($row['Create Procedure'])) {
             throw new Exception("Error getting procedure code, unknown output. ".
                 "Please check 'https://bugs.mysql.com/bug.php?id=14564'");
         }
+
         $procedureStmt = $row['Create Procedure'];
-        if ($this->dumpSettings['skip-definer']) {
+
+        if ($this->settings->skipDefiner()) {
             if ($procedureStmtReplaced = preg_replace(
                 '/^(CREATE)\s+('.self::DEFINER_RE.')?\s+(PROCEDURE\s.*)$/s',
                 '\1 \3',
@@ -219,7 +224,7 @@ class TypeAdapterMysql implements TypeAdapterInterface
         $ret .= "/*!50003 DROP PROCEDURE IF EXISTS `".
             $row['Procedure']."` */;".PHP_EOL.
             "/*!40101 SET @saved_cs_client     = @@character_set_client */;".PHP_EOL.
-            "/*!40101 SET character_set_client = ".$this->dumpSettings['default-character-set']." */;".PHP_EOL.
+            "/*!40101 SET character_set_client = ".$this->settings->get('default-character-set')." */;".PHP_EOL.
             "DELIMITER ;;".PHP_EOL.
             $procedureStmt." ;;".PHP_EOL.
             "DELIMITER ;".PHP_EOL.
@@ -244,7 +249,7 @@ class TypeAdapterMysql implements TypeAdapterInterface
         $collationConnection = $row['collation_connection'];
         $sqlMode = $row['sql_mode'];
 
-        if ($this->dumpSettings['skip-definer']) {
+        if ($this->settings->skipDefiner()) {
             if ($functionStmtReplaced = preg_replace(
                 '/^(CREATE)\s+('.self::DEFINER_RE.')?\s+(FUNCTION\s.*)$/s',
                 '\1 \3',
@@ -286,14 +291,16 @@ class TypeAdapterMysql implements TypeAdapterInterface
     public function createEvent(array $row): string
     {
         $ret = "";
+
         if (!isset($row['Create Event'])) {
             throw new Exception("Error getting event code, unknown output. ".
                 "Please check 'https://stackoverflow.com/questions/10853826/mysql-5-5-create-event-gives-syntax-error'");
         }
+
         $eventName = $row['Event'];
         $eventStmt = $row['Create Event'];
         $sqlMode = $row['sql_mode'];
-        $definerStr = $this->dumpSettings['skip-definer'] ? '' : '/*!50117 \2*/ ';
+        $definerStr = $this->settings->skipDefiner() ? '' : '/*!50117 \2*/ ';
 
         if ($eventStmtReplaced = preg_replace(
             '/^(CREATE)\s+('.self::DEFINER_RE.')?\s+(EVENT .*)$/',
@@ -520,14 +527,14 @@ class TypeAdapterMysql implements TypeAdapterInterface
         $ret = "/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;".PHP_EOL.
             "/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;".PHP_EOL.
             "/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;".PHP_EOL.
-            "/*!40101 SET NAMES ".$this->dumpSettings['default-character-set']." */;".PHP_EOL;
+            "/*!40101 SET NAMES ".$this->settings->get('default-character-set')." */;".PHP_EOL;
 
-        if (false === $this->dumpSettings['skip-tz-utc']) {
+        if (false === $this->settings->skipTzUtc()) {
             $ret .= "/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;".PHP_EOL.
                 "/*!40103 SET TIME_ZONE='+00:00' */;".PHP_EOL;
         }
 
-        if ($this->dumpSettings['no-autocommit']) {
+        if ($this->settings->isEnabled('no-autocommit')) {
             $ret .= "/*!40101 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT */;".PHP_EOL;
         }
 
@@ -543,11 +550,11 @@ class TypeAdapterMysql implements TypeAdapterInterface
     {
         $ret = "";
 
-        if (false === $this->dumpSettings['skip-tz-utc']) {
+        if (!$this->settings->skipTzUtc()) {
             $ret .= "/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;".PHP_EOL;
         }
 
-        if ($this->dumpSettings['no-autocommit']) {
+        if ($this->settings->isEnabled('no-autocommit')) {
             $ret .= "/*!40101 SET AUTOCOMMIT=@OLD_AUTOCOMMIT */;".PHP_EOL;
         }
 
