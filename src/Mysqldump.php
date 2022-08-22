@@ -31,7 +31,7 @@ class Mysqldump
     private ?string $pass;
     private string $host;
     private string $dbName;
-    private ?PDO $conn = null;
+    private PDO $conn;
     private array $pdoOptions;
     private string $dbType = '';
     private CompressInterface $io;
@@ -99,54 +99,6 @@ class Mysqldump
 
         // Create a new compressManager to manage compressed output
         $this->io = CompressManagerFactory::create($this->settings->getCompressMethod());
-    }
-
-    /**
-     * Get table column types.
-     */
-    protected function tableColumnTypes(): array
-    {
-        return $this->tableColumnTypes;
-    }
-
-    /**
-     * Keyed by table name, with the value as the conditions:
-     * e.g. 'users' => 'date_registered > NOW() - INTERVAL 6 MONTH AND deleted=0'
-     */
-    public function setTableWheres(array $tableWheres)
-    {
-        $this->tableWheres = $tableWheres;
-    }
-
-    public function getTableWhere(string $tableName)
-    {
-        if (!empty($this->tableWheres[$tableName])) {
-            return $this->tableWheres[$tableName];
-        } elseif ($this->settings->get('where')) {
-            return $this->settings->get('where');
-        }
-
-        return false;
-    }
-
-    /**
-     * Keyed by table name, with the value as the numeric limit: e.g. 'users' => 3000
-     */
-    public function setTableLimits(array $tableLimits)
-    {
-        $this->tableLimits = $tableLimits;
-    }
-
-    /**
-     * Returns the LIMIT for the table. Must be numeric to be returned.
-     */
-    public function getTableLimit(string $tableName)
-    {
-        if (!isset($this->tableLimits[$tableName])) {
-            return false;
-        }
-
-        return is_numeric($this->tableLimits[$tableName]) ? $this->tableLimits[$tableName] : false;
     }
 
     /**
@@ -356,6 +308,7 @@ class Mysqldump
                 if (in_array(current($row), $includedTables, true)) {
                     $this->tables[] = current($row);
                     $elem = array_search(current($row), $includedTables);
+                    // TODO should this be done in DumpSettings?
                     unset($includedTables[$elem]);
                 }
             }
@@ -651,7 +604,7 @@ class Mysqldump
      * @param string $viewName Name of view to export
      * @return string create statement
      */
-    public function createStandInTable(string $viewName): string
+    private function createStandInTable(string $viewName): string
     {
         $ret = [];
 
@@ -917,7 +870,7 @@ class Mysqldump
      *
      * @param string $tableName Name of table to export
      */
-    public function prepareListValues(string $tableName)
+    private function prepareListValues(string $tableName)
     {
         if (!$this->settings->skipComments()) {
             $this->io->write(
@@ -956,7 +909,7 @@ class Mysqldump
      * @param string $tableName Name of table to export.
      * @param integer $count Number of rows inserted.
      */
-    public function endListValues(string $tableName, int $count = 0)
+    private function endListValues(string $tableName, int $count = 0)
     {
         if ($this->settings->isEnabled('disable-keys')) {
             $this->io->write($this->db->endAddDisableKeys($tableName));
@@ -997,7 +950,7 @@ class Mysqldump
      *
      * @return array SQL sentence with columns for select
      */
-    public function getColumnStmt(string $tableName): array
+    protected function getColumnStmt(string $tableName): array
     {
         $colStmt = [];
 
@@ -1023,7 +976,7 @@ class Mysqldump
      *
      * @return array columns for sql sentence for insert
      */
-    public function getColumnNames(string $tableName): array
+    private function getColumnNames(string $tableName): array
     {
         $colNames = [];
 
@@ -1036,6 +989,54 @@ class Mysqldump
         }
 
         return $colNames;
+    }
+
+    /**
+     * Get table column types.
+     */
+    protected function tableColumnTypes(): array
+    {
+        return $this->tableColumnTypes;
+    }
+
+    /**
+     * Keyed by table name, with the value as the conditions:
+     * e.g. 'users' => 'date_registered > NOW() - INTERVAL 6 MONTH AND deleted=0'
+     */
+    public function setTableWheres(array $tableWheres)
+    {
+        $this->tableWheres = $tableWheres;
+    }
+
+    public function getTableWhere(string $tableName)
+    {
+        if (!empty($this->tableWheres[$tableName])) {
+            return $this->tableWheres[$tableName];
+        } elseif ($this->settings->get('where')) {
+            return $this->settings->get('where');
+        }
+
+        return false;
+    }
+
+    /**
+     * Keyed by table name, with the value as the numeric limit: e.g. 'users' => 3000
+     */
+    public function setTableLimits(array $tableLimits)
+    {
+        $this->tableLimits = $tableLimits;
+    }
+
+    /**
+     * Returns the LIMIT for the table. Must be numeric to be returned.
+     */
+    public function getTableLimit(string $tableName)
+    {
+        if (!isset($this->tableLimits[$tableName])) {
+            return false;
+        }
+
+        return is_numeric($this->tableLimits[$tableName]) ? $this->tableLimits[$tableName] : false;
     }
 
     /**
