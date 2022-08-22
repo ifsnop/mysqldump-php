@@ -17,8 +17,8 @@ namespace Druidfi\Mysqldump;
 
 use Druidfi\Mysqldump\Compress\CompressInterface;
 use Druidfi\Mysqldump\Compress\CompressManagerFactory;
-use Druidfi\Mysqldump\TypeAdapter\TypeAdapterFactory;
 use Druidfi\Mysqldump\TypeAdapter\TypeAdapterInterface;
+use Druidfi\Mysqldump\TypeAdapter\TypeAdapterMysql;
 use Exception;
 use PDO;
 use PDOException;
@@ -39,13 +39,16 @@ class Mysqldump
     private string $host;
     private string $dbName;
     private ?PDO $conn = null;
+    private array $pdoOptions;
     private string $dbType = '';
     private CompressInterface $io;
     private TypeAdapterInterface $db;
 
-    private array $dumpSettings;
-    private array $pdoSettings;
+    private array $typeAdapters = [
+        'mysql' => TypeAdapterMysql::class,
+    ];
 
+    private array $dumpSettings;
     private array $tableColumnTypes = [];
     private $transformTableRowCallable;
     private $transformColumnValueCallable;
@@ -74,7 +77,7 @@ class Mysqldump
      * @param string|null $user SQL account username
      * @param string|null $pass SQL account password
      * @param array $dumpSettings SQL database settings
-     * @param array $pdoSettings PDO configured attributes
+     * @param array $pdoOptions PDO configured attributes
      * @throws Exception
      */
     public function __construct(
@@ -82,7 +85,7 @@ class Mysqldump
         ?string $user = null,
         ?string $pass = null,
         array $dumpSettings = [],
-        array $pdoSettings = []
+        array $pdoOptions = []
     ) {
         $dumpSettingsDefault = [
             'include-tables' => [],
@@ -121,7 +124,7 @@ class Mysqldump
             'disable-foreign-keys-check' => true
         ];
 
-        $pdoSettingsDefault = [
+        $pdoOptionsDefault = [
             PDO::ATTR_PERSISTENT => true,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         ];
@@ -132,10 +135,10 @@ class Mysqldump
 
         // This drops MYSQL dependency, only use the constant if it's defined.
         if ('mysql' === $this->dbType) {
-            $pdoSettingsDefault[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = false;
+            $pdoOptionsDefault[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = false;
         }
 
-        $this->pdoSettings = array_replace_recursive($pdoSettingsDefault, $pdoSettings);
+        $this->pdoOptions = array_replace_recursive($pdoOptionsDefault, $pdoOptions);
         $this->dumpSettings = array_replace_recursive($dumpSettingsDefault, $dumpSettings);
         $this->dumpSettings['init_commands'][] = "SET NAMES ".$this->dumpSettings['default-character-set'];
 
@@ -239,6 +242,11 @@ class Mysqldump
             throw new Exception('Missing database type from DSN string');
         }
 
+        if (!isset($this->typeAdapters[$this->dbType])) {
+            $message = sprintf("There is no adapter for type '%s'", $this->dbType);
+            throw new Exception($message);
+        }
+
         $dsn = substr($dsn, $pos + 1);
         $dsnArray = [];
 
@@ -268,14 +276,17 @@ class Mysqldump
     private function connect()
     {
         try {
-            $this->conn = new PDO($this->dsn, $this->user, $this->pass, $this->pdoSettings);
+            $this->conn = new PDO($this->dsn, $this->user, $this->pass, $this->pdoOptions);
         } catch (PDOException $e) {
             $message = sprintf("Connection to %s failed with message: %s", $this->host, $e->getMessage());
             throw new Exception($message);
         }
 
         $this->conn->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
-        $this->db = TypeAdapterFactory::create($this->dbType, $this->conn, $this->dumpSettings);
+
+        /** @var TypeAdapterInterface $typeAdapterClass */
+        $typeAdapterClass = $this->typeAdapters[$this->dbType];
+        $this->db = new $typeAdapterClass($this->conn, $this->dumpSettings);
     }
 
     /**
@@ -824,6 +835,7 @@ class Mysqldump
      * Event structure extractor.
      *
      * @param string $eventName Name of event to export
+     * @throws Exception
      */
     private function getEventStructure(string $eventName)
     {
@@ -1108,5 +1120,13 @@ class Mysqldump
         }
 
         return $colNames;
+    }
+
+    /**
+     * Add TypeAdapter
+     */
+    public function addTypeAdapter(string $type, string $className)
+    {
+        $this->typeAdapters[$type] = $className;
     }
 }
