@@ -9,7 +9,7 @@ class TypeAdapterMysql implements TypeAdapterInterface
 {
     const DEFINER_RE = 'DEFINER=`(?:[^`]|``)*`@`(?:[^`]|``)*`';
 
-    protected ?PDO $conn = null;
+    protected PDO $db;
     protected array $dumpSettings = [];
 
     // Numerical Mysql types
@@ -36,7 +36,7 @@ class TypeAdapterMysql implements TypeAdapterInterface
             'binary',
             'varbinary',
             'bit',
-            'geometry', /* http://bugs.mysql.com/bug.php?id=43544 */
+            'geometry', /* https://bugs.mysql.com/bug.php?id=43544 */
             'point',
             'linestring',
             'polygon',
@@ -47,35 +47,37 @@ class TypeAdapterMysql implements TypeAdapterInterface
         ]
     ];
 
-    public function __construct(?PDO $conn = null, array $dumpSettings = [])
+    public function __construct(PDO $conn, array $dumpSettings = [])
     {
-        $this->conn = $conn;
+        $this->db = $conn;
         $this->dumpSettings = $dumpSettings;
-        $this->init();
-    }
 
-    protected function init()
-    {
         // Execute init commands once connected
         foreach ($this->dumpSettings['init_commands'] as $stmt) {
-            $this->conn->exec($stmt);
+            $this->db->exec($stmt);
         }
     }
 
     public function databases(string $databaseName): string
     {
-        $resultSet = $this->conn->query("SHOW VARIABLES LIKE 'character_set_database';");
-        $characterSet = $resultSet->fetchColumn(1);
-        $resultSet->closeCursor();
+        $stmt = $this->db->query("SHOW VARIABLES LIKE 'character_set_database';");
+        $characterSet = $stmt->fetchColumn(1);
+        $stmt->closeCursor();
 
-        $resultSet = $this->conn->query("SHOW VARIABLES LIKE 'collation_database';");
-        $collationDb = $resultSet->fetchColumn(1);
-        $resultSet->closeCursor();
+        $stmt = $this->db->query("SHOW VARIABLES LIKE 'collation_database';");
+        $collation = $stmt->fetchColumn(1);
+        $stmt->closeCursor();
 
-        return "CREATE DATABASE /*!32312 IF NOT EXISTS*/ `${databaseName}`" .
-            " /*!40100 DEFAULT CHARACTER SET ${characterSet} " .
-            " COLLATE ${collationDb} */;" . PHP_EOL . PHP_EOL .
-            "USE `${databaseName}`;" . PHP_EOL . PHP_EOL;
+        return sprintf(
+            "CREATE DATABASE /*!32312 IF NOT EXISTS*/ `%s`" .
+            " /*!40100 DEFAULT CHARACTER SET %s " .
+            " COLLATE %s */;" . PHP_EOL . PHP_EOL .
+            "USE `%s`;" . PHP_EOL . PHP_EOL,
+            $databaseName,
+            $characterSet,
+            $collation,
+            $databaseName
+        );
     }
 
     public function showCreateTable(string $tableName): string
@@ -108,7 +110,10 @@ class TypeAdapterMysql implements TypeAdapterInterface
         return "SHOW CREATE EVENT `$eventName`";
     }
 
-    public function createTable($row): string
+    /**
+     * @throws Exception
+     */
+    public function createTable(array $row): string
     {
         if (!isset($row['Create Table'])) {
             throw new Exception("Error getting table code, unknown output");
@@ -283,7 +288,7 @@ class TypeAdapterMysql implements TypeAdapterInterface
         $ret = "";
         if (!isset($row['Create Event'])) {
             throw new Exception("Error getting event code, unknown output. ".
-                "Please check 'http://stackoverflow.com/questions/10853826/mysql-5-5-create-event-gives-syntax-error'");
+                "Please check 'https://stackoverflow.com/questions/10853826/mysql-5-5-create-event-gives-syntax-error'");
         }
         $eventName = $row['Event'];
         $eventStmt = $row['Create Event'];
@@ -407,12 +412,12 @@ class TypeAdapterMysql implements TypeAdapterInterface
 
     public function lockTable(string $tableName): string
     {
-        return $this->conn->exec(sprintf("LOCK TABLES `%s` READ LOCAL", $tableName));
+        return $this->db->exec(sprintf("LOCK TABLES `%s` READ LOCAL", $tableName));
     }
 
     public function unlockTable(string $tableName): string
     {
-        return $this->conn->exec("UNLOCK TABLES");
+        return $this->db->exec("UNLOCK TABLES");
     }
 
     public function startAddLockTable(string $tableName): string
@@ -559,6 +564,6 @@ class TypeAdapterMysql implements TypeAdapterInterface
 
     public function getVersion(): string
     {
-        return $this->conn->getAttribute(PDO::ATTR_SERVER_VERSION);
+        return $this->db->getAttribute(PDO::ATTR_SERVER_VERSION);
     }
 }
