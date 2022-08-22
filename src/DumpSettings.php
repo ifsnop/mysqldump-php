@@ -83,6 +83,11 @@ class DumpSettings
         return $this->settings['compress'] ?? CompressManagerFactory::NONE;
     }
 
+    public function getDefaultCharacterSet(): string
+    {
+        return $this->settings['default-character-set'];
+    }
+
     public function getDefaults(): array
     {
         return self::$defaults;

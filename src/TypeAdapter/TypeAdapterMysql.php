@@ -132,7 +132,7 @@ class TypeAdapterMysql implements TypeAdapterInterface
         }
 
         return "/*!40101 SET @saved_cs_client     = @@character_set_client */;".PHP_EOL.
-            "/*!40101 SET character_set_client = ".$this->settings->get('default-character-set')." */;".PHP_EOL.
+            "/*!40101 SET character_set_client = ". $this->settings->getDefaultCharacterSet() ." */;".PHP_EOL.
             $createTable.";".PHP_EOL.
             "/*!40101 SET character_set_client = @saved_cs_client */;".PHP_EOL.
             PHP_EOL;
@@ -224,7 +224,7 @@ class TypeAdapterMysql implements TypeAdapterInterface
         $ret .= "/*!50003 DROP PROCEDURE IF EXISTS `".
             $row['Procedure']."` */;".PHP_EOL.
             "/*!40101 SET @saved_cs_client     = @@character_set_client */;".PHP_EOL.
-            "/*!40101 SET character_set_client = ".$this->settings->get('default-character-set')." */;".PHP_EOL.
+            "/*!40101 SET character_set_client = ".$this->settings->getDefaultCharacterSet()." */;".PHP_EOL.
             "DELIMITER ;;".PHP_EOL.
             $procedureStmt." ;;".PHP_EOL.
             "DELIMITER ;".PHP_EOL.
@@ -527,7 +527,7 @@ class TypeAdapterMysql implements TypeAdapterInterface
         $ret = "/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;".PHP_EOL.
             "/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;".PHP_EOL.
             "/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;".PHP_EOL.
-            "/*!40101 SET NAMES ".$this->settings->get('default-character-set')." */;".PHP_EOL;
+            "/*!40101 SET NAMES ". $this->settings->getDefaultCharacterSet() ." */;".PHP_EOL;
 
         if (false === $this->settings->skipTzUtc()) {
             $ret .= "/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;".PHP_EOL.
