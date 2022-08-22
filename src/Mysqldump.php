@@ -47,11 +47,6 @@ class Mysqldump
      */
     public string $dsn;
 
-    /**
-     * Destination filename, defaults to stdout.
-     */
-    public string $fileName = 'php://stdout';
-
     // Internal stuff.
     private array $tables = [];
     private array $views = [];
@@ -80,11 +75,6 @@ class Mysqldump
      * Host name, parsed from dsn.
      */
     private string $host;
-
-    /**
-     * Dsn string parsed as an array.
-     */
-    private array $dsnArray = [];
 
     /**
      * Keyed on table name, with the value as the conditions.
@@ -267,23 +257,24 @@ class Mysqldump
         }
 
         $dsn = substr($dsn, $pos + 1);
+        $dsnArray = [];
 
         foreach (explode(';', $dsn) as $kvp) {
             $kvpArr = explode('=', $kvp);
-            $this->dsnArray[strtolower($kvpArr[0])] = $kvpArr[1];
+            $dsnArray[strtolower($kvpArr[0])] = $kvpArr[1];
         }
 
-        if (empty($this->dsnArray['host']) &&
-            empty($this->dsnArray['unix_socket'])) {
+        if (empty($dsnArray['host']) &&
+            empty($dsnArray['unix_socket'])) {
             throw new Exception('Missing host from DSN string');
         }
-        $this->host = (!empty($this->dsnArray['host'])) ? $this->dsnArray['host'] : $this->dsnArray['unix_socket'];
+        $this->host = (!empty($dsnArray['host'])) ? $dsnArray['host'] : $dsnArray['unix_socket'];
 
-        if (empty($this->dsnArray['dbname'])) {
+        if (empty($dsnArray['dbname'])) {
             throw new Exception('Missing database name from DSN string');
         }
 
-        $this->dbName = $this->dsnArray['dbname'];
+        $this->dbName = $dsnArray['dbname'];
     }
 
     /**
@@ -321,16 +312,18 @@ class Mysqldump
      */
     public function start(?string $filename = '')
     {
+        $destination = 'php://stdout';
+
         // Output file can be redefined here
         if (!empty($filename)) {
-            $this->fileName = $filename;
+            $destination = $filename;
         }
 
         // Connect to database
         $this->connect();
 
         // Create output file
-        $this->compressManager->open($this->fileName);
+        $this->compressManager->open($destination);
 
         // Write some basic info to output file
         if (!$this->dumpSettings['skip-comments']) {
