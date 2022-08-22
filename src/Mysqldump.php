@@ -138,7 +138,7 @@ class Mysqldump
     }
 
     /**
-     * Returns the LIMIT for the table.  Must be numeric to be returned.
+     * Returns the LIMIT for the table. Must be numeric to be returned.
      */
     public function getTableLimit(string $tableName)
     {
@@ -146,13 +146,7 @@ class Mysqldump
             return false;
         }
 
-        $limit = $this->tableLimits[$tableName];
-
-        if (!is_numeric($limit)) {
-            return false;
-        }
-
-        return $limit;
+        return is_numeric($this->tableLimits[$tableName]) ? $this->tableLimits[$tableName] : false;
     }
 
     /**
@@ -547,6 +541,7 @@ class Mysqldump
 
     /**
      * Exports all the events found in database.
+     * @throws Exception
      */
     private function exportEvents()
     {
@@ -622,7 +617,6 @@ class Mysqldump
      * View structure extractor, create table (avoids cyclic references).
      *
      * @param string $viewName Name of view to export
-     * @TODO move mysql specific code to typeAdapter
      */
     private function getViewStructureTable(string $viewName)
     {
@@ -676,9 +670,6 @@ class Mysqldump
 
     /**
      * View structure extractor, create view.
-     *
-     * @TODO move mysql specific code to typeAdapter
-     * @param string $viewName Name of view to export
      */
     private function getViewStructureView(string $viewName)
     {
@@ -842,22 +833,6 @@ class Mysqldump
     }
 
     /**
-     * Set a callable that will be used to transform table rows.
-     */
-    public function setTransformTableRowHook(callable $callable)
-    {
-        $this->transformTableRowCallable = $callable;
-    }
-
-    /**
-     * Set a callable that will be used to report dump information.
-     */
-    public function setInfoHook(callable $callable)
-    {
-        $this->infoCallable = $callable;
-    }
-
-    /**
      * Table rows extractor.
      *
      * @param string $tableName Name of table to export
@@ -884,13 +859,11 @@ class Mysqldump
         $condition = $this->getTableWhere($tableName);
 
         if ($condition) {
-            $stmt .= " WHERE {$condition}";
+            $stmt .= sprintf(' WHERE %s', $condition);
         }
 
-        $limit = $this->getTableLimit($tableName);
-
-        if ($limit !== false) {
-            $stmt .= " LIMIT {$limit}";
+        if ($limit = $this->getTableLimit($tableName)) {
+            $stmt .= sprintf(' LIMIT %d', $limit);
         }
 
         $resultSet = $this->conn->query($stmt);
@@ -1071,5 +1044,21 @@ class Mysqldump
     public function addTypeAdapter(string $type, string $className)
     {
         $this->typeAdapters[$type] = $className;
+    }
+
+    /**
+     * Set a callable that will be used to transform table rows.
+     */
+    public function setTransformTableRowHook(callable $callable)
+    {
+        $this->transformTableRowCallable = $callable;
+    }
+
+    /**
+     * Set a callable that will be used to report dump information.
+     */
+    public function setInfoHook(callable $callable)
+    {
+        $this->infoCallable = $callable;
     }
 }
