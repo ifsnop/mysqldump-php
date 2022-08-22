@@ -43,13 +43,21 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
         ]
     ];
 
+    protected function init()
+    {
+        // Execute init commands once connected
+        foreach ($this->dumpSettings['init_commands'] as $stmt) {
+            $this->db->exec($stmt);
+        }
+    }
+
     public function databases(string $databaseName): string
     {
-        $resultSet = $this->dbHandler->query("SHOW VARIABLES LIKE 'character_set_database';");
+        $resultSet = $this->db->query("SHOW VARIABLES LIKE 'character_set_database';");
         $characterSet = $resultSet->fetchColumn(1);
         $resultSet->closeCursor();
 
-        $resultSet = $this->dbHandler->query("SHOW VARIABLES LIKE 'collation_database';");
+        $resultSet = $this->db->query("SHOW VARIABLES LIKE 'collation_database';");
         $collationDb = $resultSet->fetchColumn(1);
         $resultSet->closeCursor();
 
@@ -59,32 +67,32 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
             "USE `${databaseName}`;" . PHP_EOL . PHP_EOL;
     }
 
-    public function showCreateTable($tableName): string
+    public function showCreateTable(string $tableName): string
     {
         return "SHOW CREATE TABLE `$tableName`";
     }
 
-    public function showCreateView($viewName): string
+    public function showCreateView(string $viewName): string
     {
         return "SHOW CREATE VIEW `$viewName`";
     }
 
-    public function showCreateTrigger($triggerName): string
+    public function showCreateTrigger(string $triggerName): string
     {
         return "SHOW CREATE TRIGGER `$triggerName`";
     }
 
-    public function show_create_procedure($procedureName): string
+    public function showCreateProcedure(string $procedureName): string
     {
         return "SHOW CREATE PROCEDURE `$procedureName`";
     }
 
-    public function show_create_function($functionName): string
+    public function showCreateFunction(string $functionName): string
     {
         return "SHOW CREATE FUNCTION `$functionName`";
     }
 
-    public function show_create_event($eventName): string
+    public function showCreateEvent(string $eventName): string
     {
         return "SHOW CREATE EVENT `$eventName`";
     }
@@ -102,7 +110,7 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
             $createTable = preg_replace($match, $replace, $createTable);
         }
 
-        if ($this->dumpSettings['if-not-exists'] ) {
+        if ($this->dumpSettings['if-not-exists']) {
             $createTable = preg_replace('/^CREATE TABLE/', 'CREATE TABLE IF NOT EXISTS', $createTable);
         }
 
@@ -113,9 +121,13 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
             PHP_EOL;
     }
 
-    public function createView($row): string
+    /**
+     * @throws Exception
+     */
+    public function createView(array $row): string
     {
         $ret = "";
+
         if (!isset($row['Create View'])) {
             throw new Exception("Error getting view structure, unknown output");
         }
@@ -135,10 +147,14 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
         };
 
         $ret .= $viewStmt.';'.PHP_EOL.PHP_EOL;
+
         return $ret;
     }
 
-    public function createTrigger($row): string
+    /**
+     * @throws Exception
+     */
+    public function createTrigger(array $row): string
     {
         $ret = "";
         if (!isset($row['SQL Original Statement'])) {
@@ -162,7 +178,10 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
         return $ret;
     }
 
-    public function createProcedure($row): string
+    /**
+     * @throws Exception
+     */
+    public function createProcedure(array $row): string
     {
         $ret = "";
         if (!isset($row['Create Procedure'])) {
@@ -193,9 +212,13 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
         return $ret;
     }
 
-    public function createFunction($row): string
+    /**
+     * @throws Exception
+     */
+    public function createFunction(array $row): string
     {
         $ret = "";
+
         if (!isset($row['Create Function'])) {
             throw new Exception("Error getting function code, unknown output. ".
                 "Please check 'https://bugs.mysql.com/bug.php?id=14564'");
@@ -204,7 +227,8 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
         $characterSetClient = $row['character_set_client'];
         $collationConnection = $row['collation_connection'];
         $sqlMode = $row['sql_mode'];
-        if ( $this->dumpSettings['skip-definer'] ) {
+
+        if ($this->dumpSettings['skip-definer']) {
             if ($functionStmtReplaced = preg_replace(
                 '/^(CREATE)\s+('.self::DEFINER_RE.')?\s+(FUNCTION\s.*)$/s',
                 '\1 \3',
@@ -240,7 +264,7 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
         return $ret;
     }
 
-    public function create_event($row): string
+    public function createEvent(array $row): string
     {
         $ret = "";
         if (!isset($row['Create Event'])) {
@@ -369,12 +393,12 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
 
     public function lockTable(string $tableName): string
     {
-        return $this->dbHandler->exec(sprintf("LOCK TABLES `%s` READ LOCAL", $tableName));
+        return $this->db->exec(sprintf("LOCK TABLES `%s` READ LOCAL", $tableName));
     }
 
     public function unlockTable(string $tableName): string
     {
-        return $this->dbHandler->exec("UNLOCK TABLES");
+        return $this->db->exec("UNLOCK TABLES");
     }
 
     public function startAddLockTable(string $tableName): string
@@ -466,7 +490,8 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
         // for virtual columns that are of type 'Extra', column type
         // could by "STORED GENERATED" or "VIRTUAL GENERATED"
         // MySQL reference: https://dev.mysql.com/doc/refman/5.7/en/create-table-generated-columns.html
-        $colInfo['is_virtual'] = strpos($colType['Extra'], "VIRTUAL GENERATED") !== false || strpos($colType['Extra'], "STORED GENERATED") !== false;
+        $colInfo['is_virtual'] = strpos($colType['Extra'], "VIRTUAL GENERATED") !== false
+            || strpos($colType['Extra'], "STORED GENERATED") !== false;
 
         return $colInfo;
     }

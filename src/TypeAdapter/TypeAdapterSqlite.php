@@ -59,7 +59,7 @@ class TypeAdapterSqlite extends AbstractTypeAdapter implements TypeAdapterInterf
     /**
      * Modify trigger code, add delimiters, etc
      */
-    public function createTrigger(string $triggerName): string
+    public function createTrigger(array $row): string
     {
         return "";
     }
@@ -67,7 +67,7 @@ class TypeAdapterSqlite extends AbstractTypeAdapter implements TypeAdapterInterf
     /**
      * Modify procedure code, add delimiters, etc
      */
-    public function createProcedure(string $procedureName): string
+    public function createProcedure(array $row): string
     {
         return "";
     }
@@ -75,7 +75,7 @@ class TypeAdapterSqlite extends AbstractTypeAdapter implements TypeAdapterInterf
     /**
      * Modify function code, add delimiters, etc
      */
-    public function createFunction(string $functionName): string
+    public function createFunction(array $row): string
     {
         return "";
     }
@@ -97,11 +97,6 @@ class TypeAdapterSqlite extends AbstractTypeAdapter implements TypeAdapterInterf
 
     public function showColumns(string $tableName): string
     {
-        // TODO check if this is correct
-        if (func_num_args() != 1) {
-            return "";
-        }
-
         return "pragma table_info($tableName)";
     }
 
