@@ -16,7 +16,7 @@ interface TypeAdapterInterface
     public function dropTable(string $tableName): string;
     public function dropView(string $viewName): string;
     public function endAddDisableKeys(string $tableName): string;
-    public function endAddLockTable(): string;
+    public function endAddLockTable(string $tableName): string;
     public function getDatabaseHeader(string $databaseName): string;
     public function lockTable(string $tableName): string;
     public function parseColumnType(array $colType): array;
@@ -35,5 +35,5 @@ interface TypeAdapterInterface
     public function startAddDisableKeys(string $tableName): string;
     public function startAddLockTable(string $tableName): string;
     public function startTransaction(): string;
-    public function unlockTable(): string;
+    public function unlockTable(string $tableName): string;
 }

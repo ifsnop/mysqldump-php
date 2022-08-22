@@ -21,6 +21,7 @@ use Druidfi\Mysqldump\TypeAdapter\TypeAdapterFactory;
 use Druidfi\Mysqldump\TypeAdapter\TypeAdapterInterface;
 use Exception;
 use PDO;
+use PDOException;
 
 class Mysqldump
 {
@@ -181,9 +182,8 @@ class Mysqldump
             throw new Exception("Unexpected value in dumpSettings: (".implode(",", $diff).")");
         }
 
-        if (!is_array($this->dumpSettings['include-tables']) ||
-            !is_array($this->dumpSettings['exclude-tables'])) {
-            throw new Exception("Include-tables and exclude-tables should be arrays");
+        if (!is_array($this->dumpSettings['include-tables']) || !is_array($this->dumpSettings['exclude-tables'])) {
+            throw new Exception('Include-tables and exclude-tables should be arrays');
         }
 
         // If no include-views is passed in, dump the same views as tables, mimic mysqldump behaviour.
@@ -214,8 +214,6 @@ class Mysqldump
     /**
      * Keyed by table name, with the value as the conditions:
      * e.g. 'users' => 'date_registered > NOW() - INTERVAL 6 MONTH AND deleted=0'
-     *
-     * @param array $tableWheres
      */
     public function setTableWheres(array $tableWheres)
     {
@@ -227,7 +225,7 @@ class Mysqldump
      *
      * @return boolean|mixed
      */
-    public function getTableWhere($tableName)
+    public function getTableWhere(string $tableName)
     {
         if (!empty($this->tableWheres[$tableName])) {
             return $this->tableWheres[$tableName];
@@ -376,7 +374,9 @@ class Mysqldump
         $this->compressManager->open($this->fileName);
 
         // Write some basic info to output file
-        $this->compressManager->write($this->getDumpFileHeader());
+        if (!$this->dumpSettings['skip-comments']) {
+            $this->compressManager->write($this->getDumpFileHeader());
+        }
 
         // Store server settings and use saner defaults to dump
         $this->compressManager->write($this->typeAdapter->backupParameters());
@@ -419,7 +419,9 @@ class Mysqldump
         $this->compressManager->write($this->typeAdapter->restoreParameters());
 
         // Write some stats to output file.
-        $this->compressManager->write($this->getDumpFileFooter());
+        if (!$this->dumpSettings['skip-comments']) {
+            $this->compressManager->write($this->getDumpFileFooter());
+        }
 
         // Close output file.
         $this->compressManager->close();
@@ -430,26 +432,22 @@ class Mysqldump
      */
     private function getDumpFileHeader(): string
     {
-        $header = '';
+        // Some info about software, source and time
+        $header = sprintf(
+            "-- mysqldump-php https://github.com/druidfi/mysqldump-php". PHP_EOL.
+            "--". PHP_EOL.
+            "-- Host: %s\tDatabase: %s". PHP_EOL.
+            "-- ------------------------------------------------------". PHP_EOL,
+            $this->host,
+            $this->dbName
+        );
 
-        if (!$this->dumpSettings['skip-comments']) {
-            // Some info about software, source and time
-            $header = sprintf(
-                "-- mysqldump-php https://github.com/druidfi/mysqldump-php".PHP_EOL.
-                "--".PHP_EOL.
-                "-- Host: %s\tDatabase: %s".PHP_EOL.
-                "-- ------------------------------------------------------".PHP_EOL,
-                $this->host,
-                $this->dbName
-            );
+        if (!empty($this->version)) {
+            $header .= "-- Server version \t". $this->version . PHP_EOL;
+        }
 
-            if (!empty($this->version)) {
-                $header .= "-- Server version \t".$this->version.PHP_EOL;
-            }
-
-            if (!$this->dumpSettings['skip-dump-date']) {
-                $header .= "-- Date: ".date('r').PHP_EOL.PHP_EOL;
-            }
+        if (!$this->dumpSettings['skip-dump-date']) {
+            $header .= "-- Date: ".date('r'). PHP_EOL . PHP_EOL;
         }
 
         return $header;
@@ -460,17 +458,13 @@ class Mysqldump
      */
     private function getDumpFileFooter(): string
     {
-        $footer = '';
+        $footer = '-- Dump completed';
 
-        if (!$this->dumpSettings['skip-comments']) {
-            $footer .= '-- Dump completed';
-
-            if (!$this->dumpSettings['skip-dump-date']) {
-                $footer .= ' on: '.date('r');
-            }
-
-            $footer .= PHP_EOL;
+        if (!$this->dumpSettings['skip-dump-date']) {
+            $footer .= ' on: '.date('r');
         }
+
+        $footer .= PHP_EOL;
 
         return $footer;
     }

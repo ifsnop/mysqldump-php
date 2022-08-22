@@ -372,7 +372,7 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
         return $this->dbHandler->exec(sprintf("LOCK TABLES `%s` READ LOCAL", $tableName));
     }
 
-    public function unlockTable(): string
+    public function unlockTable(string $tableName): string
     {
         return $this->dbHandler->exec("UNLOCK TABLES");
     }
@@ -382,7 +382,7 @@ class TypeAdapterMysql extends AbstractTypeAdapter implements TypeAdapterInterfa
         return sprintf("LOCK TABLES `%s` WRITE;" . PHP_EOL, $tableName);
     }
 
-    public function endAddLockTable(): string
+    public function endAddLockTable(string $tableName): string
     {
         return "UNLOCK TABLES;".PHP_EOL;
     }

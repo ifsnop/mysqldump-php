@@ -140,7 +140,7 @@ class TypeAdapterSqlite extends AbstractTypeAdapter implements TypeAdapterInterf
         return "";
     }
 
-    public function unlockTable(): string
+    public function unlockTable(string $tableName): string
     {
         return "";
     }
@@ -150,7 +150,7 @@ class TypeAdapterSqlite extends AbstractTypeAdapter implements TypeAdapterInterf
         return PHP_EOL;
     }
 
-    public function endAddLockTable(): string
+    public function endAddLockTable(string $tableName): string
     {
         return PHP_EOL;
     }
