@@ -1,10 +1,10 @@
 <?php
 
-namespace Ifsnop\Mysqldump\Compress;
+namespace Druidfi\Mysqldump\Compress;
 
 interface CompressInterface
 {
-    public function open(string $filename);
+    public function open(string $filename): bool;
 
     public function write(string $str): int;
 

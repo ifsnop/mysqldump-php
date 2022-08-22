@@ -1,6 +1,6 @@
 <?php
 
-namespace Ifsnop\Mysqldump\Compress;
+namespace Druidfi\Mysqldump\Compress;
 
 use Exception;
 
@@ -8,23 +8,29 @@ class CompressNone implements CompressInterface
 {
     private $fileHandler;
 
-    public function open(string $filename)
+    /**
+     * @throws Exception
+     */
+    public function open(string $filename): bool
     {
-        $this->fileHandler = fopen($filename, "wb");
+        $this->fileHandler = fopen($filename, 'wb');
 
         if (false === $this->fileHandler) {
-            throw new Exception("Output file is not writable");
+            throw new Exception('Output file is not writable');
         }
 
         return true;
     }
 
+    /**
+     * @throws Exception
+     */
     public function write(string $str): int
     {
         $bytesWritten = fwrite($this->fileHandler, $str);
 
         if (false === $bytesWritten) {
-            throw new Exception("Writing to file failed! Probably, there is no more free space left?");
+            throw new Exception('Writing to file failed! Probably, there is no more free space left?');
         }
 
         return $bytesWritten;

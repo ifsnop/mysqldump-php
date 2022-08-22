@@ -1,6 +1,8 @@
 <?php
 
-use Ifsnop\Mysqldump\Mysqldump;
+namespace Druidfi\Mysqldump\Tests;
+
+use Druidfi\Mysqldump\Mysqldump;
 use PHPUnit\Framework\TestCase;
 
 class MysqldumpTest extends TestCase

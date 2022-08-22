@@ -1,32 +1,33 @@
 # mysqldump-php
 
-This is a PHP version of mysqldump cli that comes with MySQL, without dependencies, output compression and sane defaults.
+This is a PHP version of `mysqldump` cli that comes with MySQL, without dependencies, output compression and sane defaults.
 
 Out of the box, `mysqldump-php` supports backing up table structures, the data itself, views, triggers and events.
 
 `mysqldump-php` is the only library that supports:
-* output binary blobs as hex.
-* resolves view dependencies (using Stand-In tables).
-* output compared against original mysqldump.
-* dumps stored routines (functions and procedures).
-* dumps events.
-* does extended-insert and/or complete-insert.
-* supports virtual columns from MySQL 5.7.
-* does insert-ignore, like a REPLACE but ignoring errors if a duplicate key exists.
-* modifying data from database on-the-fly when dumping, using hooks.
-* can save directly to google cloud storage over a compressed stream wrapper (GZIPSTREAM).
+
+- output binary blobs as hex
+- resolves view dependencies (using Stand-In tables)
+- output compared against original mysqldump
+- dumps stored routines (functions and procedures)
+- dumps events
+- does extended-insert and/or complete-insert
+- supports virtual columns from MySQL 5.7
+- does insert-ignore, like a REPLACE but ignoring errors if a duplicate key exists
+- modifying data from database on-the-fly when dumping, using hooks
+- can save directly to Google Cloud storage over a compressed stream wrapper (GZIPSTREAM)
 
 ## Requirements
 
-- PHP 7.4 or 8.x
+- PHP 7.4 or 8.x - [see supported versions](https://www.php.net/supported-versions.php)
 - MySQL 5.7 or newer (and compatible MariaDB)
-- [PDO](https://secure.php.net/pdo)
+- [PDO](https://www.php.net/pdo)
 - Connections to database are made using the standard DSN, documented in
-  [PDO connection string](https://secure.php.net/manual/en/ref.pdo-mysql.connection.php).
+  [PDO connection string](https://www.php.net/manual/en/ref.pdo-mysql.connection.php).
 
 ## Installing
 
-Using [Composer](https://getcomposer.org/):
+Install using [Composer](https://getcomposer.org/):
 
 ```
 composer require druidfi/mysqldump-php
@@ -37,18 +38,16 @@ composer require druidfi/mysqldump-php
 ```php
 <?php
 
-use Ifsnop\Mysqldump as IMysqldump;
-
 try {
-    $dump = new IMysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
+    $dump = new \Druidfi\Mysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
     $dump->start('storage/work/dump.sql');
 } catch (\Exception $e) {
     echo 'mysqldump-php error: ' . $e->getMessage();
 }
 ```
 
-Refer to the [wiki](https://github.com/ifsnop/mysqldump-php/wiki/Full-usage-example) for some examples and a comparison
-between mysqldump and mysqldump-php dumps.
+Refer to the [ifsnop/mysqldump-php Wiki](https://github.com/ifsnop/mysqldump-php/wiki/Full-usage-example) for some
+examples and a comparison between mysqldump and mysqldump-php dumps.
 
 ## Changing values when exporting
 
@@ -56,7 +55,7 @@ You can register a callable that will be used to transform values during the exp
 removing sensitive data from database dumps:
 
 ```php
-$dumper = new IMysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
+$dumper = new \Druidfi\Mysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
 
 $dumper->setTransformTableRowHook(function ($tableName, array $row) {
     if ($tableName === 'customers') {
@@ -86,13 +85,13 @@ You can register table specific 'where' clauses to limit data on a per table bas
 dump setting:
 
 ```php
-$dumper = new IMysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
+$dumper = new \Druidfi\Mysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
 
-$dumper->setTableWheres(array(
+$dumper->setTableWheres([
     'users' => 'date_registered > NOW() - INTERVAL 3 MONTH AND deleted=0',
     'logs' => 'date_logged > NOW() - INTERVAL 1 DAY',
     'posts' => 'isLive=1'
-));
+]);
 ```
 
 ## Table specific export limits
@@ -100,13 +99,13 @@ $dumper->setTableWheres(array(
 You can register table specific 'limits' to limit the returned rows on a per table basis:
 
 ```php
-$dumper = new IMysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
+$dumper = new \Druidfi\Mysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
 
-$dumper->setTableLimits(array(
+$dumper->setTableLimits([
     'users' => 300,
     'logs' => 50,
     'posts' => 10
-));
+]);
 ```
 
 ## Constructor and default parameters
@@ -123,19 +122,19 @@ $dumper->setTableLimits(array(
  * @param array  $pdoSettings  PDO configured attributes
  */
 public function __construct(
-    $dsn = '',
-    $user = '',
-    $pass = '',
-    $dumpSettings = array(),
-    $pdoSettings = array()
+    string $dsn = '',
+    string $user = '',
+    string $pass = '',
+    array $dumpSettings = [],
+    array $pdoSettings = []
 )
 
-$dumpSettingsDefault = array(
-    'include-tables' => array(),
-    'exclude-tables' => array(),
+$dumpSettingsDefault = [
+    'include-tables' => [],
+    'exclude-tables' => [],
     'compress' => Mysqldump::NONE,
-    'init_commands' => array(),
-    'no-data' => array(),
+    'init_commands' => [],
+    'no-data' => [],
     'if-not-exists' => false,
     'reset-auto-increment' => false,
     'add-drop-database' => false,
@@ -150,7 +149,7 @@ $dumpSettingsDefault = array(
     'events' => false,
     'hex-blob' => true, /* faster than escaped content */
     'insert-ignore' => false,
-    'net_buffer_length' => self::MAXLINESIZE,
+    'net_buffer_length' => Mysqldump::MAXLINESIZE,
     'no-autocommit' => true,
     'no-create-info' => false,
     'lock-tables' => true,
@@ -164,17 +163,17 @@ $dumpSettingsDefault = array(
     'where' => '',
     /* deprecated */
     'disable-foreign-keys-check' => true
-);
+];
 
-$pdoSettingsDefaults = array(
+$pdoSettingsDefaults = [
     PDO::ATTR_PERSISTENT => true,
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false
-);
+];
 
 // missing settings in constructor will be replaced by default options
-$this->_pdoSettings = self::array_replace_recursive($pdoSettingsDefault, $pdoSettings);
-$this->_dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dumpSettings);
+$this->_pdoSettings = array_replace_recursive($pdoSettingsDefault, $pdoSettings);
+$this->_dumpSettings = array_replace_recursive($dumpSettingsDefault, $dumpSettings);
 ```
 
 ## Dump Settings
@@ -189,7 +188,7 @@ $this->_dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dump
   - Only create a new table when a table of the same name does not already exist. No error message is thrown if the table already exists. 
 - **compress**
   - Gzip, Bzip2, None.
-  - Could be specified using the declared consts: IMysqldump\Mysqldump::GZIP, IMysqldump\Mysqldump::BZIP2 or IMysqldump\Mysqldump::NONE
+  - Could be specified using the declared consts: Mysqldump::GZIP, Mysqldump::BZIP2 or Mysqldump::NONE
 - **reset-auto-increment**
   - Removes the AUTO_INCREMENT option from the database definition
   - Useful when used with no-data, so when db is recreated, it will start from 1 instead of using an old value
@@ -207,7 +206,7 @@ $this->_dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dump
   - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_databases
 - **default-character-set**
   - utf8 (default, compatible option), utf8mb4 (for full utf8 compliance)
-  - Could be specified using the declared consts: IMysqldump\Mysqldump::UTF8 or IMysqldump\Mysqldump::UTF8MB4BZIP2
+  - Could be specified using the declared consts: Mysqldump::UTF8 or Mysqldump::UTF8MB4
   - https://dev.mysql.com/doc/refman/5.5/en/charset-unicode-utf8mb4.html
   - https://mathiasbynens.be/notes/mysql-utf8mb4
 - **disable-keys**
@@ -277,10 +276,13 @@ To dump a database, you need the following privileges :
   - If any table has one or more triggers.
 - **LOCK TABLES**
   - If "lock tables" option was enabled.
-
+- **PROCESS**
+  - If you don’t use the --no-tablespaces option.
+    
 Use **SHOW GRANTS FOR user@host;** to know what privileges user has. See the following link for more information:
 
-[Which are the minimum privileges required to get a backup of a MySQL database schema?](https://dba.stackexchange.com/questions/55546/which-are-the-minimum-privileges-required-to-get-a-backup-of-a-mysql-database-sc/55572#55572)
+- [Which are the minimum privileges required to get a backup of a MySQL database schema?](https://dba.stackexchange.com/questions/55546/which-are-the-minimum-privileges-required-to-get-a-backup-of-a-mysql-database-sc/55572#55572)
+- [PROCESS privilege from MySQL 5.7.31 and MySQL 8.0.21 in July 2020](https://anothercoffee.net/how-to-fix-the-mysqldump-access-denied-process-privilege-error/)
 
 ## Tests
 
@@ -307,9 +309,9 @@ also when hex-blob option is used, if the value is empty.
 
 ## TODO
 
-- Update PHP code with latest PHP codestyle changes like short array syntax.
-- Recreate Travis tests with Github Actions.
-- Write more tests, test with mariadb also.
+- Handle tablespaces issues
+- Update tests (test.sh and test.php) to pass
+- Update Mysql links in this README.md
 
 ## Contributing
 

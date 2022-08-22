@@ -30,7 +30,7 @@ $MYSQL_CMD -e "GRANT ALL PRIVILEGES ON test009.* TO '$USER'@'%' WITH GRANT OPTIO
 $MYSQL_CMD -e "GRANT ALL PRIVILEGES ON test010.* TO '$USER'@'%' WITH GRANT OPTION;"
 $MYSQL_CMD -e "GRANT ALL PRIVILEGES ON test011.* TO '$USER'@'%' WITH GRANT OPTION;"
 $MYSQL_CMD -e "GRANT ALL PRIVILEGES ON test012.* TO '$USER'@'%' WITH GRANT OPTION;"
-$MYSQL_CMD -e "GRANT SUPER,LOCK TABLES ON *.* TO '$USER'@'%';"
+$MYSQL_CMD -e "GRANT PROCESS,SUPER,LOCK TABLES ON *.* TO '$USER'@'%';"
 
 if [[ $major -eq 5 && $medium -ge 7 ]]; then
   $MYSQL_CMD -e "GRANT SELECT ON mysql.proc to '$USER'@'%';"
@@ -38,7 +38,7 @@ fi
 
 if [[ $major -eq 5 && $medium -ge 7 ]]; then
   $MYSQL_CMD -e "use mysql; update user set authentication_string=PASSWORD('') where User='$USER'; update user set plugin='mysql_native_password';"
-else if [[ $major -eq 8 ]]; then
+elif [[ $major -eq 8 ]]; then
   $MYSQL_CMD -e "ALTER USER '$USER'@'localhost' IDENTIFIED WITH caching_sha2_password BY '';"
 fi
 

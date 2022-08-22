@@ -1,6 +1,6 @@
 <?php
 
-namespace Ifsnop\Mysqldump\TypeAdapter;
+namespace Druidfi\Mysqldump\TypeAdapter;
 
 interface TypeAdapterInterface
 {
@@ -8,15 +8,15 @@ interface TypeAdapterInterface
     public function addDropTrigger(string $triggerName): string;
     public function backupParameters(): string;
     public function commitTransaction(): string;
-    public function createFunction(string $functionName): string;
-    public function createProcedure(string $procedureName): string;
-    public function createTrigger(string $triggerName): string;
-    public function createView($row): string;
+    public function createFunction(array $row): string;
+    public function createProcedure(array $row): string;
+    public function createTrigger(array $row): string;
+    public function createView(array $row): string;
     public function databases(string $databaseName): string;
     public function dropTable(string $tableName): string;
     public function dropView(string $viewName): string;
     public function endAddDisableKeys(string $tableName): string;
-    public function endAddLockTable(): string;
+    public function endAddLockTable(string $tableName): string;
     public function getDatabaseHeader(string $databaseName): string;
     public function lockTable(string $tableName): string;
     public function parseColumnType(array $colType): array;
@@ -35,5 +35,5 @@ interface TypeAdapterInterface
     public function startAddDisableKeys(string $tableName): string;
     public function startAddLockTable(string $tableName): string;
     public function startTransaction(): string;
-    public function unlockTable(): string;
+    public function unlockTable(string $tableName): string;
 }
