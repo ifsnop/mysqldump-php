@@ -2,19 +2,30 @@
 
 namespace Druidfi\Mysqldump\Compress;
 
+use Druidfi\Mysqldump\Mysqldump;
 use Exception;
 
 abstract class CompressManagerFactory
 {
-    public static function create(string $c): CompressInterface
-    {
-        $c = ucfirst(strtolower($c));
+    public static array $methods = [
+        Mysqldump::NONE,
+        Mysqldump::GZIP,
+        Mysqldump::BZIP2,
+        Mysqldump::GZIPSTREAM,
+    ];
 
-        if (!CompressMethod::isValid($c)) {
-            throw new Exception("Compression method ($c) is not defined yet");
+    /**
+     * @throws Exception
+     */
+    public static function create(string $method): CompressInterface
+    {
+        $method = ucfirst(strtolower($method));
+
+        if (!in_array($method, self::$methods)) {
+            throw new Exception("Compression method ($method) is not defined yet");
         }
 
-        $methodClass = __NAMESPACE__."\\"."Compress".$c;
+        $methodClass = __NAMESPACE__."\\"."Compress".$method;
 
         return new $methodClass;
     }
