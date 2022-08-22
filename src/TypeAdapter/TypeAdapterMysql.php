@@ -9,7 +9,7 @@ class TypeAdapterMysql implements TypeAdapterInterface
 {
     const DEFINER_RE = 'DEFINER=`(?:[^`]|``)*`@`(?:[^`]|``)*`';
 
-    protected ?PDO $db = null;
+    protected ?PDO $conn = null;
     protected array $dumpSettings = [];
 
     // Numerical Mysql types
@@ -47,9 +47,9 @@ class TypeAdapterMysql implements TypeAdapterInterface
         ]
     ];
 
-    public function __construct(?PDO $db = null, array $dumpSettings = [])
+    public function __construct(?PDO $conn = null, array $dumpSettings = [])
     {
-        $this->db = $db;
+        $this->conn = $conn;
         $this->dumpSettings = $dumpSettings;
         $this->init();
     }
@@ -58,17 +58,17 @@ class TypeAdapterMysql implements TypeAdapterInterface
     {
         // Execute init commands once connected
         foreach ($this->dumpSettings['init_commands'] as $stmt) {
-            $this->db->exec($stmt);
+            $this->conn->exec($stmt);
         }
     }
 
     public function databases(string $databaseName): string
     {
-        $resultSet = $this->db->query("SHOW VARIABLES LIKE 'character_set_database';");
+        $resultSet = $this->conn->query("SHOW VARIABLES LIKE 'character_set_database';");
         $characterSet = $resultSet->fetchColumn(1);
         $resultSet->closeCursor();
 
-        $resultSet = $this->db->query("SHOW VARIABLES LIKE 'collation_database';");
+        $resultSet = $this->conn->query("SHOW VARIABLES LIKE 'collation_database';");
         $collationDb = $resultSet->fetchColumn(1);
         $resultSet->closeCursor();
 
@@ -404,12 +404,12 @@ class TypeAdapterMysql implements TypeAdapterInterface
 
     public function lockTable(string $tableName): string
     {
-        return $this->db->exec(sprintf("LOCK TABLES `%s` READ LOCAL", $tableName));
+        return $this->conn->exec(sprintf("LOCK TABLES `%s` READ LOCAL", $tableName));
     }
 
     public function unlockTable(string $tableName): string
     {
-        return $this->db->exec("UNLOCK TABLES");
+        return $this->conn->exec("UNLOCK TABLES");
     }
 
     public function startAddLockTable(string $tableName): string
@@ -552,5 +552,10 @@ class TypeAdapterMysql implements TypeAdapterInterface
             "/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;".PHP_EOL.PHP_EOL;
 
         return $ret;
+    }
+
+    public function getVersion(): string
+    {
+        return $this->conn->getAttribute(PDO::ATTR_SERVER_VERSION);
     }
 }

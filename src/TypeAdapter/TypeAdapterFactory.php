@@ -10,7 +10,7 @@ abstract class TypeAdapterFactory
     /**
      * @throws Exception
      */
-    public static function create(string $c, ?PDO $db = null, array $dumpSettings = []): TypeAdapterInterface
+    public static function create(string $c, ?PDO $conn = null, array $dumpSettings = []): TypeAdapterInterface
     {
         $c = ucfirst(strtolower($c));
 
@@ -20,6 +20,6 @@ abstract class TypeAdapterFactory
 
         $adapterClass = __NAMESPACE__."\\"."TypeAdapter".$c;
 
-        return new $adapterClass($db, $dumpSettings);
+        return new $adapterClass($conn, $dumpSettings);
     }
 }

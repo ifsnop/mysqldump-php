@@ -18,6 +18,7 @@ interface TypeAdapterInterface
     public function endAddDisableKeys(string $tableName): string;
     public function endAddLockTable(string $tableName): string;
     public function getDatabaseHeader(string $databaseName): string;
+    public function getVersion(): string;
     public function lockTable(string $tableName): string;
     public function parseColumnType(array $colType): array;
     public function restoreParameters(): string;

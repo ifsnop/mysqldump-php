@@ -34,8 +34,8 @@ class Mysqldump
 
     // Database
     private string $dsn;
-    private string $user;
-    private string $pass;
+    private ?string $user;
+    private ?string $pass;
     private string $host;
     private string $dbName;
     private ?PDO $conn = null;
@@ -46,7 +46,6 @@ class Mysqldump
     private array $dumpSettings;
     private array $pdoSettings;
 
-    private string $version;
     private array $tableColumnTypes = [];
     private $transformTableRowCallable;
     private $transformColumnValueCallable;
@@ -72,16 +71,16 @@ class Mysqldump
      * connection, the filename must be in the $db parameter.
      *
      * @param string $dsn PDO DSN connection string
-     * @param string $user SQL account username
-     * @param string $pass SQL account password
+     * @param string|null $user SQL account username
+     * @param string|null $pass SQL account password
      * @param array $dumpSettings SQL database settings
      * @param array $pdoSettings PDO configured attributes
      * @throws Exception
      */
     public function __construct(
         string $dsn = '',
-        string $user = '',
-        string $pass = '',
+        ?string $user = null,
+        ?string $pass = null,
         array $dumpSettings = [],
         array $pdoSettings = []
     ) {
@@ -248,8 +247,7 @@ class Mysqldump
             $dsnArray[strtolower($kvpArr[0])] = $kvpArr[1];
         }
 
-        if (empty($dsnArray['host']) &&
-            empty($dsnArray['unix_socket'])) {
+        if (empty($dsnArray['host']) && empty($dsnArray['unix_socket'])) {
             throw new Exception('Missing host from DSN string');
         }
 
@@ -269,20 +267,11 @@ class Mysqldump
      */
     private function connect()
     {
-        if ($this->dbType === 'sqlite') {
-            $this->dsn = sprintf('sqlite:%s', $this->dbName);
-            $this->user = null;
-            $this->pass = null;
-        }
-
         try {
             $this->conn = new PDO($this->dsn, $this->user, $this->pass, $this->pdoSettings);
         } catch (PDOException $e) {
-            throw new Exception("Connection to ".$this->dbType." failed with message: " . $e->getMessage());
-        }
-
-        if ($this->dbType === 'mysql') {
-            $this->version = $this->conn->getAttribute(PDO::ATTR_SERVER_VERSION);
+            $message = sprintf("Connection to %s failed with message: %s", $this->host, $e->getMessage());
+            throw new Exception($message);
         }
 
         $this->conn->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
@@ -342,7 +331,8 @@ class Mysqldump
         // found. Give proper error and exit. This check will be removed once include-tables supports regexps.
         if (0 < count($this->dumpSettings['include-tables'])) {
             $name = implode(',', $this->dumpSettings['include-tables']);
-            throw new Exception("Table (".$name.") not found in database");
+            $message = sprintf("Table '%s' not found in database", $name);
+            throw new Exception($message);
         }
 
         $this->exportTables();
@@ -379,8 +369,8 @@ class Mysqldump
             $this->dbName
         );
 
-        if (!empty($this->version)) {
-            $header .= "-- Server version \t". $this->version . PHP_EOL;
+        if (!empty($version = $this->db->getVersion())) {
+            $header .= "-- Server version \t". $version . PHP_EOL;
         }
 
         if (!$this->dumpSettings['skip-dump-date']) {
@@ -506,10 +496,6 @@ class Mysqldump
 
     /**
      * Compare if $table name matches with a definition inside $arr.
-     *
-     * @param $table string
-     * @param $arr array with strings or patterns
-     * @return bool
      */
     private function matches(string $table, array $arr): bool
     {
@@ -690,9 +676,12 @@ class Mysqldump
     private function getViewStructureTable(string $viewName)
     {
         if (!$this->dumpSettings['skip-comments']) {
-            $ret = "--".PHP_EOL.
-                "-- Stand-In structure for view `${viewName}`".PHP_EOL.
-                "--".PHP_EOL.PHP_EOL;
+            $ret = (
+                '--' . PHP_EOL .
+                sprintf('-- Stand-In structure for view `%s`', $viewName) . PHP_EOL .
+                '--' . PHP_EOL . PHP_EOL
+            );
+
             $this->io->write($ret);
         }
 
@@ -889,7 +878,7 @@ class Mysqldump
             return 'NULL';
         } elseif ($this->dumpSettings['hex-blob'] && $colType['is_blob']) {
             if ($colType['type'] == 'bit' || !empty($colValue)) {
-                return "0x${colValue}";
+                return sprintf('0x%s', $colValue);
             } else {
                 return "''";
             }
@@ -1086,13 +1075,13 @@ class Mysqldump
 
         foreach ($this->tableColumnTypes[$tableName] as $colName => $colType) {
             if ($colType['type'] == 'bit' && $this->dumpSettings['hex-blob']) {
-                $colStmt[] = "LPAD(HEX(`${colName}`),2,'0') AS `${colName}`";
+                $colStmt[] = sprintf("LPAD(HEX(`%s`),2,'0') AS `%s`", $colName, $colName);
             } elseif ($colType['is_blob'] && $this->dumpSettings['hex-blob']) {
-                $colStmt[] = "HEX(`${colName}`) AS `${colName}`";
+                $colStmt[] = sprintf("HEX(`%s`) AS `%s`", $colName, $colName);
             } elseif ($colType['is_virtual']) {
                 $this->dumpSettings['complete-insert'] = true;
             } else {
-                $colStmt[] = "`${colName}`";
+                $colStmt[] = sprintf("`%s`", $colName);
             }
         }
 
@@ -1114,7 +1103,7 @@ class Mysqldump
             if ($colType['is_virtual']) {
                 $this->dumpSettings['complete-insert'] = true;
             } else {
-                $colNames[] = "`${colName}`";
+                $colNames[] = sprintf('`%s`', $colName);
             }
         }
 
