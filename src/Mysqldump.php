@@ -164,6 +164,7 @@ class Mysqldump
             throw new Exception($message);
         }
 
+        // Don't convert empty strings to SQL NULL values on data fetches.
         $this->conn->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
 
         /** @var TypeAdapterInterface $typeAdapterClass */
