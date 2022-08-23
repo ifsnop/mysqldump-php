@@ -103,6 +103,11 @@ class DumpSettings
         return $this->settings['include-tables'] ?? [];
     }
 
+    public function setIncludedTables(array $tables): void
+    {
+        $this->settings['include-tables'] = $tables;
+    }
+
     public function getIncludedViews(): array
     {
         return $this->settings['include-views'] ?? [];

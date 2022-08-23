@@ -301,8 +301,8 @@ class Mysqldump
                 if (in_array(current($row), $includedTables, true)) {
                     $this->tables[] = current($row);
                     $elem = array_search(current($row), $includedTables);
-                    // TODO should this be done in DumpSettings?
                     unset($includedTables[$elem]);
+                    $this->settings->setIncludedTables($includedTables);
                 }
             }
         }
