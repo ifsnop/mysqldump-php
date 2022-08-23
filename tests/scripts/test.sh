@@ -331,7 +331,8 @@ if [[ $retvalue -eq 0 ]]; then
     rm output/mysqldump* 2> /dev/null
 
     echo -e "\nAll tests were successfully"
+else
+    echo -e "\nThere are errors. Exiting with code $retvalue"
 fi
 
-echo -e "\nExiting with code $retvalue"
 exit $retvalue
