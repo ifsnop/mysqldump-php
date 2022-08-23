@@ -32,8 +32,6 @@ $dumpSettings = [
     'where' => ''
 ];
 
-print "PHP version is ". phpversion() . PHP_EOL;
-
 try {
     // do nothing test
     print "Create dump with PHP: mysql-php_test000.sql" . PHP_EOL;
