@@ -76,8 +76,7 @@ class Mysqldump
         array   $settings = [],
         array   $pdoOptions = []
     ) {
-        $this->parseDsn($dsn);
-
+        $this->dsn = $this->parseDsn($dsn);
         $this->user = $user;
         $this->pass = $pass;
         $this->settings = new DumpSettings($settings);
@@ -94,38 +93,37 @@ class Mysqldump
      * @param string $dsn dsn string to parse
      * @throws Exception
      */
-    private function parseDsn(string $dsn): void
+    private function parseDsn(string $dsn): string
     {
         if (empty($dsn) || !($pos = strpos($dsn, ':'))) {
             throw new Exception('Empty DSN string');
         }
 
-        $this->dsn = $dsn;
         $dbType = strtolower(substr($dsn, 0, $pos));
 
         if (empty($dbType)) {
             throw new Exception('Missing database type from DSN string');
         }
 
-        $dsn = substr($dsn, $pos + 1);
-        $dsnArray = [];
+        $data = [];
 
-        foreach (explode(';', $dsn) as $kvp) {
-            $kvpArr = explode('=', $kvp);
-            $dsnArray[strtolower($kvpArr[0])] = $kvpArr[1];
+        foreach (explode(';', substr($dsn, $pos + 1)) as $kvp) {
+            list($param, $value) = explode('=', $kvp);
+            $data[strtolower($param)] = $value;
         }
 
-        if (empty($dsnArray['host']) && empty($dsnArray['unix_socket'])) {
+        if (empty($data['host']) && empty($data['unix_socket'])) {
             throw new Exception('Missing host from DSN string');
         }
 
-        $this->host = (!empty($dsnArray['host'])) ? $dsnArray['host'] : $dsnArray['unix_socket'];
-
-        if (empty($dsnArray['dbname'])) {
+        if (empty($data['dbname'])) {
             throw new Exception('Missing database name from DSN string');
         }
 
-        $this->dbName = $dsnArray['dbname'];
+        $this->host = (!empty($data['host'])) ? $data['host'] : $data['unix_socket'];
+        $this->dbName = $data['dbname'];
+
+        return $dsn;
     }
 
     /**
