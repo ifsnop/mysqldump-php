@@ -40,8 +40,6 @@ fi
 
 if [[ $major -eq 5 && $medium -ge 7 ]]; then
   $MYSQL_CMD -e "use mysql; update user set authentication_string=PASSWORD('') where User='$USER'; update user set plugin='mysql_native_password';"
-elif [[ $major -eq 8 ]]; then
-  $MYSQL_CMD -e "ALTER USER '$USER'@'localhost' IDENTIFIED WITH caching_sha2_password BY '';"
 fi
 
 $MYSQL_CMD -e "FLUSH PRIVILEGES;"
