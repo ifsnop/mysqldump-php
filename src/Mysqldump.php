@@ -104,7 +104,7 @@ class Mysqldump
      */
     private function parseDsn(string $dsn): void
     {
-        if (empty($dsn) || (false === ($pos = strpos($dsn, ':')))) {
+        if (empty($dsn) || !($pos = strpos($dsn, ':'))) {
             throw new Exception('Empty DSN string');
         }
 

@@ -11,17 +11,34 @@ jobs:
 
   tests:
 
-    runs-on: ubuntu-18.04
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        mysql-versions: ['5.7', '8.0']
-        php-versions: ['7.4', '8.0', '8.1']
+        include:
+          - os: ubuntu-18.04
+            mysql-version: 5.7
+            php-version: 7.4
+          - os: ubuntu-18.04
+            mysql-version: 5.7
+            php-version: 8.0
+          - os: ubuntu-18.04
+            mysql-version: 5.7
+            php-version: 8.1
+          - os: ubuntu-latest
+            mysql-version: 8.0
+            php-version: 7.4
+          - os: ubuntu-latest
+            mysql-version: 8.0
+            php-version: 8.0
+          - os: ubuntu-latest
+            mysql-version: 8.0
+            php-version: 8.1
 
     services:
       db:
-        image: druidfi/mysql:${{ matrix.mysql-versions }}-drupal
+        image: druidfi/mysql:${{ matrix.mysql-version }}-drupal
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
@@ -37,7 +54,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php-versions }}
+          php-version: ${{ matrix.php-version }}
 
       - name: Validate composer.json
         run: composer validate
