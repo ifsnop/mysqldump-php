@@ -1,4 +1,6 @@
-FROM php:8.1-alpine
+ARG PHP_VERSION
+
+FROM php:${PHP_VERSION}-alpine
 
 RUN apk --update add --no-cache \
     bash mysql-client \

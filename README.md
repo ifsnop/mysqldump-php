@@ -297,8 +297,11 @@ Local setup for tests:
 
 ```
 docker-compose up -d --build
-docker-compose exec php /app/tests/scripts/create_users.sh
-docker-compose exec -w /app/tests/scripts php ./test.sh
+docker-compose exec php74 /app/tests/scripts/create_users.sh
+docker-compose exec php74 /app/tests/scripts/create_users.sh db2
+docker-compose exec -w /app/tests/scripts php74 ./test.sh
+docker-compose exec -w /app/tests/scripts php80 ./test.sh
+docker-compose exec -w /app/tests/scripts php81 ./test.sh
 ```
 
 ## Bugs (from mysqldump, not from mysqldump-php)
