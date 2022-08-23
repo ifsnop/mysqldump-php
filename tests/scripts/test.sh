@@ -329,6 +329,8 @@ if [[ $retvalue -eq 0 ]]; then
     rm output/*.checksum 2> /dev/null
     rm output/*.filtered.sql 2> /dev/null
     rm output/mysqldump* 2> /dev/null
+
+    echo -e "\nAll tests were successfully"
 fi
 
 echo -e "\nExiting with code $retvalue"
