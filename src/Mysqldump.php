@@ -81,15 +81,7 @@ class Mysqldump
         $this->user = $user;
         $this->pass = $pass;
         $this->settings = new DumpSettings($settings);
-
-        $this->pdoOptions = array_replace_recursive([
-            PDO::ATTR_PERSISTENT => true,
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false,
-        ], $pdoOptions);
-
-        // Create a new compressManager to manage compressed output
-        $this->io = CompressManagerFactory::create($this->settings->getCompressMethod());
+        $this->pdoOptions = $pdoOptions;
     }
 
     /**
@@ -144,14 +136,19 @@ class Mysqldump
     private function connect()
     {
         try {
-            $this->conn = new PDO($this->dsn, $this->user, $this->pass, $this->pdoOptions);
+            $options = array_replace_recursive([
+                PDO::ATTR_PERSISTENT => true,
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                // Don't convert empty strings to SQL NULL values on data fetches.
+                PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
+                PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false,
+            ], $this->pdoOptions);
+
+            $this->conn = new PDO($this->dsn, $this->user, $this->pass, $options);
         } catch (PDOException $e) {
             $message = sprintf("Connection to %s failed with message: %s", $this->host, $e->getMessage());
             throw new Exception($message);
         }
-
-        // Don't convert empty strings to SQL NULL values on data fetches.
-        $this->conn->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
 
         $this->db = $this->getAdapter();
     }
@@ -183,6 +180,9 @@ class Mysqldump
 
         // Connect to database
         $this->connect();
+
+        // Create a new compressManager to manage compressed output
+        $this->io = CompressManagerFactory::create($this->settings->getCompressMethod());
 
         // Create output file
         $this->io->open($destination);

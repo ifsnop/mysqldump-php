@@ -12,6 +12,9 @@ print "PHP version is ". phpversion() . PHP_EOL;
 print "PDO check: double field" . PHP_EOL . PHP_EOL;
 
 $db = new \PDO("mysql:host=$host;dbname=test001", $user, null, [
+    \PDO::ATTR_PERSISTENT => true,
+    \PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    \PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false,
     \PDO::ATTR_STRINGIFY_FETCHES => true,
 ]);
 
