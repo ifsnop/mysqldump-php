@@ -7,5 +7,7 @@
 **/*.checksum
 /composer.lock
 /composer.phar
+/tests/scripts/output/*.checksum
+/tests/scripts/output/*.sql
 /vendor/
 /.phpunit.result.cache
