@@ -19,9 +19,22 @@ jobs:
         include:
           - os: ubuntu-18.04
             mysql-version: 5.7
+            php-version: 7.4
+          - os: ubuntu-18.04
+            mysql-version: 5.7
+            php-version: 8.0
+          - os: ubuntu-18.04
+            mysql-version: 5.7
+            php-version: 8.1
           - os: ubuntu-latest
             mysql-version: 8.0
-        php-versions: ['7.4', '8.0', '8.1']
+            php-version: 7.4
+          - os: ubuntu-latest
+            mysql-version: 8.0
+            php-version: 8.0
+          - os: ubuntu-latest
+            mysql-version: 8.0
+            php-version: 8.1
 
     services:
       db:
@@ -41,7 +54,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php-versions }}
+          php-version: ${{ matrix.php-version }}
 
       - name: Validate composer.json
         run: composer validate
