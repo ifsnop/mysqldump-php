@@ -161,9 +161,9 @@ class Mysqldump
         return new self::$adapterClass($this->conn, $this->settings);
     }
 
-    private function write(string $data): void
+    private function write(string $data): int
     {
-        $this->io->write($data);
+        return $this->io->write($data);
     }
 
     /**
