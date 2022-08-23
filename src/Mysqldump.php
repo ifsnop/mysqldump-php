@@ -33,7 +33,6 @@ class Mysqldump
     private string $dbName;
     private PDO $conn;
     private array $pdoOptions;
-    private string $dbType = '';
     private CompressInterface $io;
     private TypeAdapterInterface $db;
 
@@ -71,11 +70,11 @@ class Mysqldump
      * @throws Exception
      */
     public function __construct(
-        string $dsn = '',
+        string  $dsn = '',
         ?string $user = null,
         ?string $pass = null,
-        array $settings = [],
-        array $pdoOptions = []
+        array   $settings = [],
+        array   $pdoOptions = []
     ) {
         $this->parseDsn($dsn);
 
@@ -110,9 +109,9 @@ class Mysqldump
         }
 
         $this->dsn = $dsn;
-        $this->dbType = strtolower(substr($dsn, 0, $pos));
+        $dbType = strtolower(substr($dsn, 0, $pos));
 
-        if (empty($this->dbType)) {
+        if (empty($dbType)) {
             throw new Exception('Missing database type from DSN string');
         }
 
@@ -162,6 +161,11 @@ class Mysqldump
         return new self::$adapterClass($this->conn, $this->settings);
     }
 
+    private function write(string $data): void
+    {
+        $this->io->write($data);
+    }
+
     /**
      * Primary function, triggers dumping.
      *
@@ -185,17 +189,17 @@ class Mysqldump
 
         // Write some basic info to output file
         if (!$this->settings->skipComments()) {
-            $this->io->write($this->getDumpFileHeader());
+            $this->write($this->getDumpFileHeader());
         }
 
         // Store server settings and use saner defaults to dump
-        $this->io->write($this->db->backupParameters());
+        $this->write($this->db->backupParameters());
 
         if ($this->settings->isEnabled('databases')) {
-            $this->io->write($this->db->getDatabaseHeader($this->dbName));
+            $this->write($this->db->getDatabaseHeader($this->dbName));
 
             if ($this->settings->isEnabled('add-drop-database')) {
-                $this->io->write($this->db->addDropDatabase($this->dbName));
+                $this->write($this->db->addDropDatabase($this->dbName));
             }
         }
 
@@ -208,7 +212,7 @@ class Mysqldump
         $this->getDatabaseStructureEvents();
 
         if ($this->settings->isEnabled('databases')) {
-            $this->io->write($this->db->databases($this->dbName));
+            $this->write($this->db->databases($this->dbName));
         }
 
         // If there still are some tables/views in include-tables array, that means that some tables or views weren't
@@ -227,11 +231,11 @@ class Mysqldump
         $this->exportEvents();
 
         // Restore saved parameters.
-        $this->io->write($this->db->restoreParameters());
+        $this->write($this->db->restoreParameters());
 
         // Write some stats to output file.
         if (!$this->settings->skipComments()) {
-            $this->io->write($this->getDumpFileFooter());
+            $this->write($this->getDumpFileFooter());
         }
 
         // Close output file.
@@ -516,13 +520,13 @@ class Mysqldump
             $stmt = $this->db->showCreateTable($tableName);
 
             foreach ($this->conn->query($stmt) as $r) {
-                $this->io->write($ret);
+                $this->write($ret);
 
                 if ($this->settings->isEnabled('add-drop-table')) {
-                    $this->io->write($this->db->dropTable($tableName));
+                    $this->write($this->db->dropTable($tableName));
                 }
 
-                $this->io->write($this->db->createTable($r));
+                $this->write($this->db->createTable($r));
 
                 break;
             }
@@ -571,7 +575,7 @@ class Mysqldump
                 '--' . PHP_EOL . PHP_EOL
             );
 
-            $this->io->write($ret);
+            $this->write($ret);
         }
 
         $stmt = $this->db->showCreateView($viewName);
@@ -579,10 +583,10 @@ class Mysqldump
         // create views as tables, to resolve dependencies
         foreach ($this->conn->query($stmt) as $r) {
             if ($this->settings->isEnabled('add-drop-table')) {
-                $this->io->write($this->db->dropView($viewName));
+                $this->write($this->db->dropView($viewName));
             }
 
-            $this->io->write($this->createStandInTable($viewName));
+            $this->write($this->createStandInTable($viewName));
 
             break;
         }
@@ -625,7 +629,7 @@ class Mysqldump
                 $viewName
             );
 
-            $this->io->write($ret);
+            $this->write($ret);
         }
 
         $stmt = $this->db->showCreateView($viewName);
@@ -633,8 +637,8 @@ class Mysqldump
         // Create views, to resolve dependencies replacing tables with views
         foreach ($this->conn->query($stmt) as $r) {
             // Because we must replace table with view, we should delete it
-            $this->io->write($this->db->dropView($viewName));
-            $this->io->write($this->db->createView($r));
+            $this->write($this->db->dropView($viewName));
+            $this->write($this->db->createView($r));
 
             break;
         }
@@ -651,10 +655,10 @@ class Mysqldump
 
         foreach ($this->conn->query($stmt) as $r) {
             if ($this->settings->isEnabled('add-drop-trigger')) {
-                $this->io->write($this->db->addDropTrigger($triggerName));
+                $this->write($this->db->addDropTrigger($triggerName));
             }
 
-            $this->io->write($this->db->createTrigger($r));
+            $this->write($this->db->createTrigger($r));
 
             return;
         }
@@ -671,13 +675,13 @@ class Mysqldump
             $ret = "--".PHP_EOL.
                 "-- Dumping routines for database '".$this->dbName."'".PHP_EOL.
                 "--".PHP_EOL.PHP_EOL;
-            $this->io->write($ret);
+            $this->write($ret);
         }
 
         $stmt = $this->db->showCreateProcedure($procedureName);
 
         foreach ($this->conn->query($stmt) as $r) {
-            $this->io->write($this->db->createProcedure($r));
+            $this->write($this->db->createProcedure($r));
 
             return;
         }
@@ -694,13 +698,13 @@ class Mysqldump
             $ret = "--".PHP_EOL.
                 "-- Dumping routines for database '".$this->dbName."'".PHP_EOL.
                 "--".PHP_EOL.PHP_EOL;
-            $this->io->write($ret);
+            $this->write($ret);
         }
 
         $stmt = $this->db->showCreateFunction($functionName);
 
         foreach ($this->conn->query($stmt) as $r) {
-            $this->io->write($this->db->createFunction($r));
+            $this->write($this->db->createFunction($r));
 
             return;
         }
@@ -718,13 +722,13 @@ class Mysqldump
             $ret = "--".PHP_EOL.
                 "-- Dumping events for database '".$this->dbName."'".PHP_EOL.
                 "--".PHP_EOL.PHP_EOL;
-            $this->io->write($ret);
+            $this->write($ret);
         }
 
         $stmt = $this->db->showCreateEvent($eventName);
 
         foreach ($this->conn->query($stmt) as $r) {
-            $this->io->write($this->db->createEvent($r));
+            $this->write($this->db->createEvent($r));
 
             return;
         }
@@ -819,34 +823,38 @@ class Mysqldump
         foreach ($resultSet as $row) {
             $count++;
             $values = $this->prepareColumnValues($tableName, $row);
+            $valueList = implode(',', $values);
 
             if ($onlyOnce || !$this->settings->isEnabled('extended-insert')) {
                 if ($this->settings->isEnabled('complete-insert') && count($colNames)) {
-                    $lineSize += $this->io->write(
-                        "INSERT$ignore INTO `$tableName` (".
-                        implode(", ", $colNames).
-                        ") VALUES (".implode(",", $values).")"
-                    );
+                    $lineSize += $this->write(sprintf(
+                        'INSERT%s INTO `%s` (%s) VALUES (%s)',
+                        $ignore,
+                        $tableName,
+                        implode(', ', $colNames),
+                        $valueList
+                    ));
                 } else {
-                    $lineSize += $this->io->write(
-                        "INSERT$ignore INTO `$tableName` VALUES (".implode(",", $values).")"
+                    $lineSize += $this->write(
+                        sprintf('INSERT%s INTO `%s` VALUES (%s)', $ignore, $tableName, $valueList)
                     );
                 }
                 $onlyOnce = false;
             } else {
-                $lineSize += $this->io->write(",(".implode(",", $values).")");
+                $lineSize += $this->write(sprintf(',(%s)', $valueList));
             }
+
             if (($lineSize > $this->settings->getNetBufferLength())
                 || !$this->settings->isEnabled('extended-insert')) {
                 $onlyOnce = true;
-                $lineSize = $this->io->write(";".PHP_EOL);
+                $lineSize = $this->write(';' . PHP_EOL);
             }
         }
 
         $resultSet->closeCursor();
 
         if (!$onlyOnce) {
-            $this->io->write(";".PHP_EOL);
+            $this->write(';' . PHP_EOL);
         }
 
         $this->endListValues($tableName, $count);
@@ -864,7 +872,7 @@ class Mysqldump
     private function prepareListValues(string $tableName)
     {
         if (!$this->settings->skipComments()) {
-            $this->io->write(
+            $this->write(
                 "--".PHP_EOL.
                 "-- Dumping data for table `$tableName`".PHP_EOL.
                 "--".PHP_EOL.PHP_EOL
@@ -881,16 +889,16 @@ class Mysqldump
         }
 
         if ($this->settings->isEnabled('add-locks')) {
-            $this->io->write($this->db->startAddLockTable($tableName));
+            $this->write($this->db->startAddLockTable($tableName));
         }
 
         if ($this->settings->isEnabled('disable-keys')) {
-            $this->io->write($this->db->startAddDisableKeys($tableName));
+            $this->write($this->db->startAddDisableKeys($tableName));
         }
 
         // Disable autocommit for faster reload
         if ($this->settings->isEnabled('no-autocommit')) {
-            $this->io->write($this->db->startDisableAutocommit());
+            $this->write($this->db->startDisableAutocommit());
         }
     }
 
@@ -903,11 +911,11 @@ class Mysqldump
     private function endListValues(string $tableName, int $count = 0)
     {
         if ($this->settings->isEnabled('disable-keys')) {
-            $this->io->write($this->db->endAddDisableKeys($tableName));
+            $this->write($this->db->endAddDisableKeys($tableName));
         }
 
         if ($this->settings->isEnabled('add-locks')) {
-            $this->io->write($this->db->endAddLockTable($tableName));
+            $this->write($this->db->endAddLockTable($tableName));
         }
 
         if ($this->settings->isEnabled('single-transaction')) {
@@ -921,13 +929,13 @@ class Mysqldump
 
         // Commit to enable autocommit
         if ($this->settings->isEnabled('no-autocommit')) {
-            $this->io->write($this->db->endDisableAutocommit());
+            $this->write($this->db->endDisableAutocommit());
         }
 
-        $this->io->write(PHP_EOL);
+        $this->write(PHP_EOL);
 
         if (!$this->settings->skipComments()) {
-            $this->io->write(
+            $this->write(
                 "-- Dumped table `".$tableName."` with $count row(s)".PHP_EOL.
                 '--'.PHP_EOL.PHP_EOL
             );
