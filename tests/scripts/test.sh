@@ -61,16 +61,22 @@ printf "Import test009.src.sql"
 $MYSQL_CMD < test009.src.sql && echo " - done."; errCode=$?; ret[((index++))]=$errCode
 if [[ $errCode -ne 0 ]]; then echo "error test001.src.sql"; fi
 
-printf "Import test010.src.sql"
-$MYSQL_CMD < test010.src.sql && echo " - done."; errCode=$?; ret[((index++))]=$errCode
-if [[ $errCode -ne 0 ]]; then echo "error test010.src.sql"; fi
+if [[ $major -eq 5 && $medium -ge 7 ]]; then
+  printf "Import test010.src.sql"
+  $MYSQL_CMD < test010.src.sql && echo " - done."; errCode=$?; ret[((index++))]=$errCode
+  if [[ $errCode -ne 0 ]]; then echo "error test010.src.sql"; fi
+else
+  printf "Import test010.8.src.sql"
+  $MYSQL_CMD < test010.8.src.sql && echo " - done."; errCode=$?; ret[((index++))]=$errCode
+  if [[ $errCode -ne 0 ]]; then echo "error test010.8.src.sql"; fi
+fi
 
 if [[ $major -eq 5 && $medium -ge 7 ]]; then
     printf "Import test011.src.sql"
     # test virtual column support, with simple inserts forced to complete (a) and complete inserts (b)
     $MYSQL_CMD < test011.src.sql && echo " - done."; errCode=$?; ret[((index++))]=$errCode
 else
-    echo "test011 disabled, only valid for mysql server version > 5.7.0"
+    echo "test011 disabled, only valid for mysql server version 5.7.x"
 fi
 
 printf "Import test012.src.sql"
