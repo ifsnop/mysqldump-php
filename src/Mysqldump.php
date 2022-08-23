@@ -37,9 +37,7 @@ class Mysqldump
     private CompressInterface $io;
     private TypeAdapterInterface $db;
 
-    private array $typeAdapters = [
-        'mysql' => TypeAdapterMysql::class,
-    ];
+    private static string $adapterClass = TypeAdapterMysql::class;
 
     private DumpSettings $settings;
     private array $tableColumnTypes = [];
@@ -85,17 +83,11 @@ class Mysqldump
         $this->pass = $pass;
         $this->settings = new DumpSettings($settings);
 
-        $pdoOptionsDefault = [
+        $this->pdoOptions = array_replace_recursive([
             PDO::ATTR_PERSISTENT => true,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        ];
-
-        // This drops MYSQL dependency, only use the constant if it's defined.
-        if ('mysql' === $this->dbType) {
-            $pdoOptionsDefault[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = false;
-        }
-
-        $this->pdoOptions = array_replace_recursive($pdoOptionsDefault, $pdoOptions);
+            PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false,
+        ], $pdoOptions);
 
         // Create a new compressManager to manage compressed output
         $this->io = CompressManagerFactory::create($this->settings->getCompressMethod());
@@ -122,11 +114,6 @@ class Mysqldump
 
         if (empty($this->dbType)) {
             throw new Exception('Missing database type from DSN string');
-        }
-
-        if (!isset($this->typeAdapters[$this->dbType])) {
-            $message = sprintf("There is no adapter for type '%s'", $this->dbType);
-            throw new Exception($message);
         }
 
         $dsn = substr($dsn, $pos + 1);
@@ -167,9 +154,12 @@ class Mysqldump
         // Don't convert empty strings to SQL NULL values on data fetches.
         $this->conn->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_NATURAL);
 
-        /** @var TypeAdapterInterface $typeAdapterClass */
-        $typeAdapterClass = $this->typeAdapters[$this->dbType];
-        $this->db = new $typeAdapterClass($this->conn, $this->settings);
+        $this->db = $this->getAdapter();
+    }
+
+    public function getAdapter(): TypeAdapterInterface
+    {
+        return new self::$adapterClass($this->conn, $this->settings);
     }
 
     /**
@@ -1042,10 +1032,17 @@ class Mysqldump
 
     /**
      * Add TypeAdapter
+     *
+     * @throws Exception
      */
-    public function addTypeAdapter(string $type, string $className)
+    public function addTypeAdapter(string $adapterClassName)
     {
-        $this->typeAdapters[$type] = $className;
+        if (!is_a($adapterClassName, TypeAdapterInterface::class, true)) {
+            $message = sprintf('Adapter %s is not instance of %s', $adapterClassName, TypeAdapterInterface::class);
+            throw new Exception($message);
+        }
+
+        self::$adapterClass = $adapterClassName;
     }
 
     /**
