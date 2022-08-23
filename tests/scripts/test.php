@@ -5,10 +5,11 @@ error_reporting(E_ALL);
 
 require __DIR__ . '/../../vendor/autoload.php';
 
+use Druidfi\Mysqldump\DumpSettings;
 use Druidfi\Mysqldump\Mysqldump;
 use Druidfi\Mysqldump\Compress\CompressManagerFactory;
 
-$host = 'db';
+$host = $argv[1] ?? 'db'; // Get host name from test.sh
 $user = 'travis';
 
 $dumpSettings = [
@@ -47,7 +48,7 @@ try {
     $dump->start("output/mysqldump-php_test001_complete.sql");
 
     print "Create dump with PHP: mysql-php_test002.sql" . PHP_EOL;
-    $dumpSettings['default-character-set'] = Mysqldump::UTF8MB4;
+    $dumpSettings['default-character-set'] = DumpSettings::UTF8MB4;
     $dumpSettings['complete-insert'] = true;
     $dump = new Mysqldump("mysql:host=$host;dbname=test002", $user, "", $dumpSettings);
     $dump->start("output/mysqldump-php_test002.sql");

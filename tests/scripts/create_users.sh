@@ -9,6 +9,8 @@ major=`$MYSQL_CMD -e "SELECT @@version\G" | grep version |awk '{print $2}' | awk
 medium=`$MYSQL_CMD -e "SELECT @@version\G" | grep version |awk '{print $2}' | awk -F"." '{print $2}'`
 minor=`$MYSQL_CMD -e "SELECT @@version\G" | grep version |awk '{print $2}' | awk -F"." '{print $3}'`
 
+printf "\nCreating users in MySQL server version $major.$medium.$minor on host '$HOST' with user '$USER'\n\n"
+
 $MYSQL_CMD -e "CREATE USER IF NOT EXISTS '$USER'@'%';"
 $MYSQL_CMD -e "CREATE DATABASE IF NOT EXISTS test001;"
 $MYSQL_CMD -e "CREATE DATABASE IF NOT EXISTS test002;"
@@ -38,8 +40,6 @@ fi
 
 if [[ $major -eq 5 && $medium -ge 7 ]]; then
   $MYSQL_CMD -e "use mysql; update user set authentication_string=PASSWORD('') where User='$USER'; update user set plugin='mysql_native_password';"
-elif [[ $major -eq 8 ]]; then
-  $MYSQL_CMD -e "ALTER USER '$USER'@'localhost' IDENTIFIED WITH caching_sha2_password BY '';"
 fi
 
 $MYSQL_CMD -e "FLUSH PRIVILEGES;"

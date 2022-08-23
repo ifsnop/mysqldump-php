@@ -61,16 +61,22 @@ printf "Import test009.src.sql"
 $MYSQL_CMD < test009.src.sql && echo " - done."; errCode=$?; ret[((index++))]=$errCode
 if [[ $errCode -ne 0 ]]; then echo "error test001.src.sql"; fi
 
-printf "Import test010.src.sql"
-$MYSQL_CMD < test010.src.sql && echo " - done."; errCode=$?; ret[((index++))]=$errCode
-if [[ $errCode -ne 0 ]]; then echo "error test010.src.sql"; fi
+if [[ $major -eq 5 && $medium -ge 7 ]]; then
+  printf "Import test010.src.sql"
+  $MYSQL_CMD < test010.src.sql && echo " - done."; errCode=$?; ret[((index++))]=$errCode
+  if [[ $errCode -ne 0 ]]; then echo "error test010.src.sql"; fi
+else
+  printf "Import test010.8.src.sql"
+  $MYSQL_CMD < test010.8.src.sql && echo " - done."; errCode=$?; ret[((index++))]=$errCode
+  if [[ $errCode -ne 0 ]]; then echo "error test010.8.src.sql"; fi
+fi
 
 if [[ $major -eq 5 && $medium -ge 7 ]]; then
     printf "Import test011.src.sql"
     # test virtual column support, with simple inserts forced to complete (a) and complete inserts (b)
     $MYSQL_CMD < test011.src.sql && echo " - done."; errCode=$?; ret[((index++))]=$errCode
 else
-    echo "test011 disabled, only valid for mysql server version > 5.7.0"
+    echo "test011 disabled, only valid for mysql server version 5.7.x"
 fi
 
 printf "Import test012.src.sql"
@@ -146,7 +152,9 @@ $MYSQLDUMP_CMD test001 \
 errCode=$?; ret[((index++))]=$errCode
 
 printf "\nRun mysqldump with PHP:\n\n"
-php test.php || { echo "ERROR running test.php" && exit -1; }
+php pdo_checks.php $HOST || { echo "ERROR running pdo_checks.php" && exit -1; }
+errCode=$?; ret[((index++))]=$errCode
+php test.php $HOST || { echo "ERROR running test.php" && exit -1; }
 errCode=$?; ret[((index++))]=$errCode
 
 printf "\nImport generated SQL dumps...\n\n"
@@ -188,7 +196,7 @@ if [[ $major -eq 5 && $medium -ge 7 ]]; then
     # test virtual column support, with simple inserts forced to complete (a) and complete inserts (b)
     cat test011.src.sql | egrep "INSERT|GENERATED" > output/test011.filtered.sql && echo "Created test011.filtered.sql"
 else
-    echo "test011 disabled, only valid for mysql server version > 5.7.0"
+    echo "test011 disabled, only valid for mysql server version 5.7.x"
 fi
 
 cat output/mysqldump_test001.sql | grep ^INSERT > output/mysqldump_test001.filtered.sql && echo "Created mysqldump_test001.filtered.sql"
@@ -209,7 +217,7 @@ if [[ $major -eq 5 && $medium -ge 7 ]]; then
     cat output/mysqldump-php_test011a.sql | egrep "INSERT|GENERATED" > output/mysqldump-php_test011a.filtered.sql && echo "Created mysqldump-php_test011a.filtered.sql"
     cat output/mysqldump-php_test011b.sql | egrep "INSERT|GENERATED" > output/mysqldump-php_test011b.filtered.sql && echo "Created mysqldump-php_test011b.filtered.sql"
 else
-    echo "test011 disabled, only valid for mysql server version > 5.7.0"
+    echo "test011 disabled, only valid for mysql server version 5.7.x"
 fi
 
 cat output/mysqldump-php_test012.sql | grep -E -e '50001 (CREATE|VIEW)' -e '50013 DEFINER' -e 'CREATE.*TRIGGER' -e 'FUNCTION' -e 'PROCEDURE' > output/mysqldump-php_test012.filtered.sql && echo "Created mysqldump-php_test012.filtered.sql"
@@ -293,7 +301,7 @@ if [[ $major -eq 5 && $medium -ge 7 ]]; then
     errCode=$?; ret[((index++))]=$errCode
     if [[ $errCode -ne 0 ]]; then echo -e "\n$test\n"; fi
 else
-    echo test011 disabled, only valid for mysql server version > 5.7.0
+    echo "test011 disabled, only valid for mysql server version 5.7.x"
 fi
 
 # Test create views, events, trigger
@@ -329,7 +337,10 @@ if [[ $retvalue -eq 0 ]]; then
     rm output/*.checksum 2> /dev/null
     rm output/*.filtered.sql 2> /dev/null
     rm output/mysqldump* 2> /dev/null
+
+    echo -e "\nAll tests were successfully"
+else
+    echo -e "\nThere are errors. Exiting with code $retvalue"
 fi
 
-echo -e "\nExiting with code $retvalue"
 exit $retvalue

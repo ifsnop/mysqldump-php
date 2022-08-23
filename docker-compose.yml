@@ -1,19 +1,54 @@
+version: '3.7'
+
 services:
 
   db:
-    container_name: "mysqldump-php-db"
+    container_name: "mysqldump-php-mysql-57"
     image: druidfi/mysql:5.7-drupal
+    ports:
+      - 3306
 
   db2:
-    container_name: "mysqldump-php-db2"
+    container_name: "mysqldump-php-mysql-80"
     image: druidfi/mysql:8.0-drupal
+    ports:
+      - 3306
 
-  php:
-    container_name: "mysqldump-php"
-    image: tester:latest
+  php74:
+    container_name: "mysqldump-php-74"
+    image: mysqldump-php-tester:php-7.4
     build:
       context: .
+      args:
+        PHP_SHORT_VERSION: "74"
     volumes:
       - .:/app
     depends_on:
       - db
+      - db2
+
+  php80:
+    container_name: "mysqldump-php-80"
+    image: mysqldump-php-tester:php-8.0
+    build:
+      context: .
+      args:
+        PHP_SHORT_VERSION: "80"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - db2
+
+  php81:
+    container_name: "mysqldump-php-81"
+    image: mysqldump-php-tester:php-8.1
+    build:
+      context: .
+      args:
+        PHP_SHORT_VERSION: "81"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - db2
