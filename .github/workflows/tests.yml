@@ -50,7 +50,7 @@ jobs:
         run: vendor/bin/phpunit
 
       - name: Create user and databases for testing
-        run: ./tests/scripts/create_users.sh 127.0.0.1
+        run: cd tests/scripts && ./create_users.sh 127.0.0.1
 
       - name: Run test script
-        run: ./tests/scripts/test.sh 127.0.0.1
+        run: cd tests/scripts && ./test.sh 127.0.0.1
