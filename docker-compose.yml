@@ -3,10 +3,14 @@ services:
   db:
     container_name: "mysqldump-php-db"
     image: druidfi/mysql:5.7-drupal
+    ports:
+      - 3306
 
   db2:
     container_name: "mysqldump-php-db2"
     image: druidfi/mysql:8.0-drupal
+    ports:
+      - 3306
 
   php:
     container_name: "mysqldump-php"
