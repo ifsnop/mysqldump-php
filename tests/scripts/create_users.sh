@@ -9,7 +9,7 @@ major=`$MYSQL_CMD -e "SELECT @@version\G" | grep version |awk '{print $2}' | awk
 medium=`$MYSQL_CMD -e "SELECT @@version\G" | grep version |awk '{print $2}' | awk -F"." '{print $2}'`
 minor=`$MYSQL_CMD -e "SELECT @@version\G" | grep version |awk '{print $2}' | awk -F"." '{print $3}'`
 
-printf "\nCreating users in MySQL server version $major.$medium.$minor on host '$HOST' with user '$USER'\n"
+printf "\nCreating users in MySQL server version $major.$medium.$minor on host '$HOST' with user '$USER'\n\n"
 
 $MYSQL_CMD -e "CREATE USER IF NOT EXISTS '$USER'@'%';"
 $MYSQL_CMD -e "CREATE DATABASE IF NOT EXISTS test001;"

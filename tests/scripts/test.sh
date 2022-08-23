@@ -194,7 +194,7 @@ if [[ $major -eq 5 && $medium -ge 7 ]]; then
     # test virtual column support, with simple inserts forced to complete (a) and complete inserts (b)
     cat test011.src.sql | egrep "INSERT|GENERATED" > output/test011.filtered.sql && echo "Created test011.filtered.sql"
 else
-    echo "test011 disabled, only valid for mysql server version > 5.7.0"
+    echo "test011 disabled, only valid for mysql server version 5.7.x"
 fi
 
 cat output/mysqldump_test001.sql | grep ^INSERT > output/mysqldump_test001.filtered.sql && echo "Created mysqldump_test001.filtered.sql"
@@ -215,7 +215,7 @@ if [[ $major -eq 5 && $medium -ge 7 ]]; then
     cat output/mysqldump-php_test011a.sql | egrep "INSERT|GENERATED" > output/mysqldump-php_test011a.filtered.sql && echo "Created mysqldump-php_test011a.filtered.sql"
     cat output/mysqldump-php_test011b.sql | egrep "INSERT|GENERATED" > output/mysqldump-php_test011b.filtered.sql && echo "Created mysqldump-php_test011b.filtered.sql"
 else
-    echo "test011 disabled, only valid for mysql server version > 5.7.0"
+    echo "test011 disabled, only valid for mysql server version 5.7.x"
 fi
 
 cat output/mysqldump-php_test012.sql | grep -E -e '50001 (CREATE|VIEW)' -e '50013 DEFINER' -e 'CREATE.*TRIGGER' -e 'FUNCTION' -e 'PROCEDURE' > output/mysqldump-php_test012.filtered.sql && echo "Created mysqldump-php_test012.filtered.sql"
@@ -299,7 +299,7 @@ if [[ $major -eq 5 && $medium -ge 7 ]]; then
     errCode=$?; ret[((index++))]=$errCode
     if [[ $errCode -ne 0 ]]; then echo -e "\n$test\n"; fi
 else
-    echo test011 disabled, only valid for mysql server version > 5.7.0
+    echo "test011 disabled, only valid for mysql server version 5.7.x"
 fi
 
 # Test create views, events, trigger

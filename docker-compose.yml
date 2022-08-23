@@ -20,7 +20,7 @@ services:
     build:
       context: .
       args:
-        PHP_VERSION: "7.4"
+        PHP_SHORT_VERSION: "74"
     volumes:
       - .:/app
     depends_on:
@@ -33,7 +33,7 @@ services:
     build:
       context: .
       args:
-        PHP_VERSION: "8.0"
+        PHP_SHORT_VERSION: "80"
     volumes:
       - .:/app
     depends_on:
@@ -46,7 +46,7 @@ services:
     build:
       context: .
       args:
-        PHP_VERSION: "8.1"
+        PHP_SHORT_VERSION: "81"
     volumes:
       - .:/app
     depends_on:
