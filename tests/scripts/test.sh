@@ -146,7 +146,7 @@ $MYSQLDUMP_CMD test001 \
 errCode=$?; ret[((index++))]=$errCode
 
 printf "\nRun mysqldump with PHP:\n\n"
-php test.php || { echo "ERROR running test.php" && exit -1; }
+php test.php $HOST || { echo "ERROR running test.php" && exit -1; }
 errCode=$?; ret[((index++))]=$errCode
 
 printf "\nImport generated SQL dumps...\n\n"
