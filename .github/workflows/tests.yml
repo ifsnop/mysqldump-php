@@ -11,14 +11,12 @@ jobs:
 
   tests:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     strategy:
       matrix:
-        #mysql-versions: ['5.7', '8.0']
-        mysql-versions: ['5.7']
-        php-versions: ['7.4', '8.0']
-        #php-versions: ['7.4', '8.0', '8.1']
+        mysql-versions: ['5.7', '8.0']
+        php-versions: ['7.4', '8.0', '8.1']
 
     services:
       db:
