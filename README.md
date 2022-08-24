@@ -1,5 +1,11 @@
 # mysqldump-php
 
+[![Run tests](https://github.com/druidfi/mysqldump-php/actions/workflows/tests.yml/badge.svg)](https://github.com/druidfi/mysqldump-php/actions/workflows/tests.yml)
+[![Total Downloads](https://poser.pugx.org/druidfi/mysqldump-php/downloads)](https://packagist.org/packages/druidfi/mysqldump-php)
+[![Monthly Downloads](https://poser.pugx.org/druidfi/mysqldump-php/d/monthly)](https://packagist.org/packages/druidfi/mysqldump-php)
+[![Daily Downloads](https://poser.pugx.org/druidfi/mysqldump-php/d/daily)](https://packagist.org/packages/druidfi/mysqldump-php)
+[![Latest Stable Version](https://poser.pugx.org/druidfi/mysqldump-php/v/stable.png)](https://packagist.org/packages/druidfi/mysqldump-php)
+
 This is a PHP version of `mysqldump` cli that comes with MySQL, without dependencies, output compression and sane defaults.
 
 Out of the box, `mysqldump-php` supports backing up table structures, the data itself, views, triggers and events.
