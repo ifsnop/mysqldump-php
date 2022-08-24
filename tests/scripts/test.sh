@@ -152,8 +152,11 @@ $MYSQLDUMP_CMD test001 \
 errCode=$?; ret[((index++))]=$errCode
 
 printf "\nRun mysqldump with PHP:\n\n"
-php pdo_checks.php $HOST || { echo "ERROR running pdo_checks.php" && exit -1; }
-errCode=$?; ret[((index++))]=$errCode
+
+# Uncomment following 2 lines if you wanna test PDO
+#php pdo_checks.php $HOST || { echo "ERROR running pdo_checks.php" && exit -1; }
+#errCode=$?; ret[((index++))]=$errCode
+
 php test.php $HOST || { echo "ERROR running test.php" && exit -1; }
 errCode=$?; ret[((index++))]=$errCode
 
