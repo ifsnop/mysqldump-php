@@ -950,9 +950,11 @@ class Mysqldump
     protected function getColumnStmt(string $tableName): array
     {
         $colStmt = [];
-
         foreach ($this->tableColumnTypes[$tableName] as $colName => $colType) {
-            if ($colType['type'] == 'bit' && $this->settings->isEnabled('hex-blob')) {
+            // TODO handle bug where PHP 8.1 returns double field wrong
+            if ($colType['type'] == 'double' && PHP_VERSION_ID > 80100) {
+                $colStmt[] = sprintf("CONCAT(`%s`) AS `%s`", $colName, $colName);
+            } elseif ($colType['type'] === 'bit' && $this->settings->isEnabled('hex-blob')) {
                 $colStmt[] = sprintf("LPAD(HEX(`%s`),2,'0') AS `%s`", $colName, $colName);
             } elseif ($colType['is_blob'] && $this->settings->isEnabled('hex-blob')) {
                 $colStmt[] = sprintf("HEX(`%s`) AS `%s`", $colName, $colName);
