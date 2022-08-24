@@ -6,11 +6,12 @@
 [![Daily Downloads](https://poser.pugx.org/druidfi/mysqldump-php/d/daily)](https://packagist.org/packages/druidfi/mysqldump-php)
 [![Latest Stable Version](https://poser.pugx.org/druidfi/mysqldump-php/v/stable.png)](https://packagist.org/packages/druidfi/mysqldump-php)
 
-This is a PHP version of `mysqldump` cli that comes with MySQL, without dependencies, output compression and sane defaults.
+This is a PHP version of `mysqldump` cli that comes with MySQL. It can be used for interacting with the data before
+creating the database dump. E.g. it can modify the contents of tables and is thus good for anonymize data.
 
 Out of the box, `mysqldump-php` supports backing up table structures, the data itself, views, triggers and events.
 
-`mysqldump-php` is the only library that supports:
+`mysqldump-php` supports:
 
 - output binary blobs as hex
 - resolves view dependencies (using Stand-In tables)
@@ -25,11 +26,8 @@ Out of the box, `mysqldump-php` supports backing up table structures, the data i
 
 ## Requirements
 
-- PHP 7.4 or 8.x - [see supported versions](https://www.php.net/supported-versions.php)
+- PHP 7.4 or 8.x with PDO - [see supported versions](https://www.php.net/supported-versions.php)
 - MySQL 5.7 or newer (and compatible MariaDB)
-- [PDO](https://www.php.net/pdo)
-- Connections to database are made using the standard DSN, documented in
-  [PDO connection string](https://www.php.net/manual/en/ref.pdo-mysql.connection.php).
 
 ## Installing
 
@@ -133,82 +131,71 @@ All options:
 - **if-not-exists**
   - Only create a new table when a table of the same name does not already exist. No error message is thrown if the table already exists. 
 - **compress**
-  - Gzip, Bzip2, None.
-  - Could be specified using the declared consts: CompressManagerFactory::GZIP, CompressManagerFactory::BZIP2 or CompressManagerFactory::NONE
+  - Possible values: `Bzip2|Gzip|Gzipstream|None`, default is `None`
+  - Could be specified using the consts: `CompressManagerFactory::GZIP`, `CompressManagerFactory::BZIP2` or `CompressManagerFactory::NONE`
 - **reset-auto-increment**
   - Removes the AUTO_INCREMENT option from the database definition
   - Useful when used with no-data, so when db is recreated, it will start from 1 instead of using an old value
 - **add-drop-database**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_add-drop-database
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_add-drop-database)
 - **add-drop-table**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_add-drop-table
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_add-drop-table)
 - **add-drop-triggers**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_add-drop-trigger
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_add-drop-trigger)
 - **add-locks**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_add-locks
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_add-locks)
 - **complete-insert**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_complete-insert
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_complete-insert)
 - **databases**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_databases
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_databases)
 - **default-character-set**
-  - utf8 (default, compatible option), utf8mb4 (for full utf8 compliance)
-  - Could be specified using the declared consts: DumpSettings::UTF8 or DumpSettings::UTF8MB4
-  - https://dev.mysql.com/doc/refman/5.7/en/charset-unicode-utf8mb4.html
-  - https://mathiasbynens.be/notes/mysql-utf8mb4
+  - Possible values: `utf8|utf8mb4`, default is `utf8`
+  - `utf8` is compatible option and `utf8mb4` is for full utf8 compliance
+  - Could be specified using the consts: `DumpSettings::UTF8` or `DumpSettings::UTF8MB4`
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/charset-unicode-utf8mb4.html)
 - **disable-keys**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_disable-keys
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_disable-keys)
 - **events**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_events
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_events)
 - **extended-insert**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_extended-insert
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_extended-insert)
 - **hex-blob**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_hex-blob
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_hex-blob)
 - **insert-ignore**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_insert-ignore
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_insert-ignore)
 - **lock-tables**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_lock-tables
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_lock-tables)
 - **net_buffer_length**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_net-buffer-length
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_net-buffer-length)
 - **no-autocommit**
   - Option to disable autocommit (faster inserts, no problems with index keys)
-  - https://dev.mysql.com/doc/refman/5.7/en/commit.html
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/commit.html)
 - **no-create-info**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_no-create-info
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_no-create-info)
 - **no-data**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_no-data
   - Do not dump data for these tables (array of table names), support regexps, `true` to ignore all tables
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_no-data)
 - **routines**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_routines
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_routines)
 - **single-transaction**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_single-transaction
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_single-transaction)
 - **skip-comments**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_skip-comments
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_skip-comments)
 - **skip-dump-date**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_dump-date
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_dump-date)
 - **skip-triggers**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_triggers
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_triggers)
 - **skip-tz-utc**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_tz-utc
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_tz-utc)
 - **skip-definer**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqlpump.html#option_mysqlpump_skip-definer
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqlpump.html#option_mysqlpump_skip-definer)
 - **where**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_where
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_where)
 
-The following options are now enabled by default, and there is no way to disable them since
-they should always be used.
+The following options are now enabled by default, and there is no way to disable them since they should always be used.
 
 - **disable-foreign-keys-check**
-  - https://dev.mysql.com/doc/refman/5.7/en/optimizing-innodb-bulk-data-loading.html
-
-## PDO Settings
-
-- **PDO::ATTR_PERSISTENT**
-- **PDO::ATTR_ERRMODE**
-- **PDO::MYSQL_ATTR_INIT_COMMAND**
-- **PDO::MYSQL_ATTR_USE_BUFFERED_QUERY**
-  - https://secure.php.net/manual/en/ref.pdo-mysql.php
-  - https://stackoverflow.com/questions/13728106/unexpectedly-hitting-php-memory-limit-with-a-single-pdo-query/13729745#13729745
-  - https://secure.php.net/manual/en/mysqlinfo.concepts.buffering.php
+  - MySQL docs [5.7](https://dev.mysql.com/doc/refman/5.7/en/optimizing-innodb-bulk-data-loading.html)
 
 ## Privileges
 
@@ -251,14 +238,9 @@ docker-compose exec -w /app/tests/scripts php80 ./test.sh
 docker-compose exec -w /app/tests/scripts php81 ./test.sh
 ```
 
-## Contributing
-
-Format all code to PHP-FIG standards.
-https://www.php-fig.org/
-
 ## Credits
 
-Forked from Diego Torres's version which have latest updates from 2020.
+Forked from Diego Torres's version which have latest updates from 2020. Use it for PHP 7.3 and older.
 https://github.com/ifsnop/mysqldump-php
 
 Originally based on James Elliott's script from 2009.
