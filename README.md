@@ -251,11 +251,6 @@ docker-compose exec -w /app/tests/scripts php80 ./test.sh
 docker-compose exec -w /app/tests/scripts php81 ./test.sh
 ```
 
-## Bugs (from mysqldump, not from mysqldump-php)
-
-After [this](https://bugs.mysql.com/bug.php?id=80150) bug report, a new one has been introduced. _binary is appended
-also when hex-blob option is used, if the value is empty.
-
 ## Contributing
 
 Format all code to PHP-FIG standards.
