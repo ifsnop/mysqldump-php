@@ -88,7 +88,7 @@ class DumpSettings
         return $this->settings['default-character-set'];
     }
 
-    public function getDefaults(): array
+    public static function getDefaults(): array
     {
         return self::$defaults;
     }
