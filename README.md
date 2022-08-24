@@ -114,74 +114,15 @@ $dumper->setTableLimits([
 ]);
 ```
 
-## Constructor and default parameters
+## Dump Settings
+
+Dump settings can be changed from default values with 4th argument for Mysqldump constructor:
 
 ```php
-/**
- * Constructor of Mysqldump.
- *
- * @param string $dsn        PDO DSN connection string
- * @param string $user       SQL account username
- * @param string $pass       SQL account password
- * @param array  $dumpSettings SQL database settings
- * @param array  $pdoSettings  PDO configured attributes
- */
-public function __construct(
-    string $dsn = '',
-    string ?$user = '',
-    string ?$pass = '',
-    array $dumpSettings = [],
-    array $pdoSettings = []
-)
-
-$dumpSettingsDefault = [
-    'include-tables' => [],
-    'exclude-tables' => [],
-    'compress' => Mysqldump::NONE,
-    'init_commands' => [],
-    'no-data' => [],
-    'if-not-exists' => false,
-    'reset-auto-increment' => false,
-    'add-drop-database' => false,
-    'add-drop-table' => false,
-    'add-drop-trigger' => true,
-    'add-locks' => true,
-    'complete-insert' => false,
-    'databases' => false,
-    'default-character-set' => Mysqldump::UTF8,
-    'disable-keys' => true,
-    'extended-insert' => true,
-    'events' => false,
-    'hex-blob' => true, /* faster than escaped content */
-    'insert-ignore' => false,
-    'net_buffer_length' => Mysqldump::MAXLINESIZE,
-    'no-autocommit' => true,
-    'no-create-info' => false,
-    'lock-tables' => true,
-    'routines' => false,
-    'single-transaction' => true,
-    'skip-triggers' => false,
-    'skip-tz-utc' => false,
-    'skip-comments' => false,
-    'skip-dump-date' => false,
-    'skip-definer' => false,
-    'where' => '',
-    /* deprecated */
-    'disable-foreign-keys-check' => true
-];
-
-$pdoSettingsDefaults = [
-    PDO::ATTR_PERSISTENT => true,
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false
-];
-
-// missing settings in constructor will be replaced by default options
-$this->_pdoSettings = array_replace_recursive($pdoSettingsDefault, $pdoSettings);
-$this->_dumpSettings = array_replace_recursive($dumpSettingsDefault, $dumpSettings);
+$dumper = new \Druidfi\Mysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password', $pdoOptions);
 ```
 
-## Dump Settings
+All options:
 
 - **include-tables**
   - Only include these tables (array of table names), include all if empty.
@@ -193,71 +134,71 @@ $this->_dumpSettings = array_replace_recursive($dumpSettingsDefault, $dumpSettin
   - Only create a new table when a table of the same name does not already exist. No error message is thrown if the table already exists. 
 - **compress**
   - Gzip, Bzip2, None.
-  - Could be specified using the declared consts: Mysqldump::GZIP, Mysqldump::BZIP2 or Mysqldump::NONE
+  - Could be specified using the declared consts: CompressManagerFactory::GZIP, CompressManagerFactory::BZIP2 or CompressManagerFactory::NONE
 - **reset-auto-increment**
   - Removes the AUTO_INCREMENT option from the database definition
   - Useful when used with no-data, so when db is recreated, it will start from 1 instead of using an old value
 - **add-drop-database**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-database
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_add-drop-database
 - **add-drop-table**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-table
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_add-drop-table
 - **add-drop-triggers**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-drop-trigger
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_add-drop-trigger
 - **add-locks**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_add-locks
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_add-locks
 - **complete-insert**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_complete-insert
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_complete-insert
 - **databases**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_databases
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_databases
 - **default-character-set**
   - utf8 (default, compatible option), utf8mb4 (for full utf8 compliance)
-  - Could be specified using the declared consts: Mysqldump::UTF8 or Mysqldump::UTF8MB4
-  - https://dev.mysql.com/doc/refman/5.5/en/charset-unicode-utf8mb4.html
+  - Could be specified using the declared consts: DumpSettings::UTF8 or DumpSettings::UTF8MB4
+  - https://dev.mysql.com/doc/refman/5.7/en/charset-unicode-utf8mb4.html
   - https://mathiasbynens.be/notes/mysql-utf8mb4
 - **disable-keys**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_disable-keys
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_disable-keys
 - **events**
   - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_events
 - **extended-insert**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_extended-insert
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_extended-insert
 - **hex-blob**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_hex-blob
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_hex-blob
 - **insert-ignore**
   - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_insert-ignore
 - **lock-tables**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_lock-tables
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_lock-tables
 - **net_buffer_length**
-  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_net_buffer_length
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_net-buffer-length
 - **no-autocommit**
   - Option to disable autocommit (faster inserts, no problems with index keys)
-  - https://dev.mysql.com/doc/refman/4.1/en/commit.html
+  - https://dev.mysql.com/doc/refman/5.7/en/commit.html
 - **no-create-info**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-create-info
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_no-create-info
 - **no-data**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_no-data
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_no-data
   - Do not dump data for these tables (array of table names), support regexps, `true` to ignore all tables
 - **routines**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_routines
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_routines
 - **single-transaction**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_single-transaction
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_single-transaction
 - **skip-comments**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_comments
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_skip-comments
 - **skip-dump-date**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_dump-date
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_dump-date
 - **skip-triggers**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_triggers
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_triggers
 - **skip-tz-utc**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_tz-utc
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_tz-utc
 - **skip-definer**
   - https://dev.mysql.com/doc/refman/5.7/en/mysqlpump.html#option_mysqlpump_skip-definer
 - **where**
-  - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_where
+  - https://dev.mysql.com/doc/refman/5.7/en/mysqldump.html#option_mysqldump_where
 
 The following options are now enabled by default, and there is no way to disable them since
 they should always be used.
 
 - **disable-foreign-keys-check**
-  - https://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
+  - https://dev.mysql.com/doc/refman/5.7/en/optimizing-innodb-bulk-data-loading.html
 
 ## PDO Settings
 
@@ -269,9 +210,9 @@ they should always be used.
   - https://stackoverflow.com/questions/13728106/unexpectedly-hitting-php-memory-limit-with-a-single-pdo-query/13729745#13729745
   - https://secure.php.net/manual/en/mysqlinfo.concepts.buffering.php
 
-## Errors
+## Privileges
 
-To dump a database, you need the following privileges :
+To dump a database, you need the following privileges:
 
 - **SELECT**
   - In order to dump table structures and data.
@@ -314,12 +255,6 @@ docker-compose exec -w /app/tests/scripts php81 ./test.sh
 
 After [this](https://bugs.mysql.com/bug.php?id=80150) bug report, a new one has been introduced. _binary is appended
 also when hex-blob option is used, if the value is empty.
-
-## TODO
-
-- Handle tablespaces issues
-- Update tests (test.sh and test.php) to pass
-- Update Mysql links in this README.md
 
 ## Contributing
 
