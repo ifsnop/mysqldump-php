@@ -35,13 +35,13 @@ jobs:
           - os: ubuntu-latest
             database-version: 'mysql:8.0'
             php-version: '8.1'
-          - os: ubuntu-latest
+          - os: ubuntu-18.04
             database-version: 'mariadb:10.6'
             php-version: '7.4'
-          - os: ubuntu-latest
+          - os: ubuntu-18.04
             database-version: 'mariadb:10.6'
             php-version: '8.0'
-          - os: ubuntu-latest
+          - os: ubuntu-18.04
             database-version: 'mariadb:10.6'
             php-version: '8.1'
 
