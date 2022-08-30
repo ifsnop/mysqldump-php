@@ -343,7 +343,8 @@ class TypeAdapterMysql implements TypeAdapterInterface
         return sprintf(
             "SELECT TABLE_NAME AS tbl_name ".
             "FROM INFORMATION_SCHEMA.TABLES ".
-            "WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='%s'",
+            "WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='%s' ".
+            "ORDER BY TABLE_NAME",
             $databaseName
         );
     }
@@ -353,7 +354,8 @@ class TypeAdapterMysql implements TypeAdapterInterface
         return sprintf(
             "SELECT TABLE_NAME AS tbl_name ".
             "FROM INFORMATION_SCHEMA.TABLES ".
-            "WHERE TABLE_TYPE='VIEW' AND TABLE_SCHEMA='%s'",
+            "WHERE TABLE_TYPE='VIEW' AND TABLE_SCHEMA='%s' ".
+            "ORDER BY TABLE_NAME",
             $databaseName
         );
     }
