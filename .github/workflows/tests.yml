@@ -18,27 +18,36 @@ jobs:
       matrix:
         include:
           - os: ubuntu-18.04
-            mysql-version: '5.7'
+            database-version: 'mysql:5.7'
             php-version: '7.4'
           - os: ubuntu-18.04
-            mysql-version: '5.7'
+            database-version: 'mysql:5.7'
             php-version: '8.0'
           - os: ubuntu-18.04
-            mysql-version: '5.7'
+            database-version: 'mysql:5.7'
             php-version: '8.1'
           - os: ubuntu-latest
-            mysql-version: '8.0'
+            database-version: 'mysql:8.0'
             php-version: '7.4'
           - os: ubuntu-latest
-            mysql-version: '8.0'
+            database-version: 'mysql:8.0'
             php-version: '8.0'
           - os: ubuntu-latest
-            mysql-version: '8.0'
+            database-version: 'mysql:8.0'
+            php-version: '8.1'
+          - os: ubuntu-18.04
+            database-version: 'mariadb:10.6'
+            php-version: '7.4'
+          - os: ubuntu-18.04
+            database-version: 'mariadb:10.6'
+            php-version: '8.0'
+          - os: ubuntu-18.04
+            database-version: 'mariadb:10.6'
             php-version: '8.1'
 
     services:
       db:
-        image: druidfi/mysql:${{ matrix.mysql-version }}-drupal
+        image: druidfi/${{ matrix.database-version }}-drupal
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
