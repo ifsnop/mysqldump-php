@@ -243,7 +243,7 @@ $this->_dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dump
   - https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html#option_mysqldump_databases
 - **default-character-set**
   - utf8 (default, compatible option), utf8mb4 (for full utf8 compliance)
-  - Could be specified using the declared consts: IMysqldump\Mysqldump::UTF8 or IMysqldump\Mysqldump::UTF8MB4BZIP2
+  - Could be specified using the declared consts: IMysqldump\Mysqldump::UTF8 or IMysqldump\Mysqldump::UTF8MB4
   - https://dev.mysql.com/doc/refman/5.5/en/charset-unicode-utf8mb4.html
   - https://mathiasbynens.be/notes/mysql-utf8mb4
 - **disable-keys**
