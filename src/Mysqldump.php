@@ -108,8 +108,10 @@ class Mysqldump
         $data = [];
 
         foreach (explode(';', substr($dsn, $pos + 1)) as $kvp) {
-            list($param, $value) = explode('=', $kvp);
-            $data[strtolower($param)] = $value;
+            if (strpos($kvp, '=') !== false) {
+                list($param, $value) = explode('=', $kvp);
+                $data[strtolower($param)] = $value;
+            }
         }
 
         if (empty($data['host']) && empty($data['unix_socket'])) {

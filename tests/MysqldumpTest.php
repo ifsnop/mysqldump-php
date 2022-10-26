@@ -38,7 +38,7 @@ class MysqldumpTest extends TestCase
      */
     public function testTableSpecificLimitsWork()
     {
-        $dump = new Mysqldump('mysql:host=localhost;dbname=test', 'testing', 'testing');
+        $dump = new Mysqldump('mysql:host=localhost;dbname=test;', 'testing', 'testing');
 
         $dump->setTableLimits([
             'users' => 200,
