@@ -43,12 +43,18 @@ class MysqldumpTest extends TestCase
         $dump->setTableLimits([
             'users' => 200,
             'logs' => 500,
-            'table_with_invalid_limit' => '41923, 42992'
+            'table_with_invalid_limit' => '41923, 42992',
+            'table_with_range_limit' => [41923, 42992],
+            'table_with_invalid_range_limit' => [41923],
+            'table_with_invalid_range_limit2' => [41923, 42992, 42999],
         ]);
 
         $this->assertEquals(200, $dump->getTableLimit('users'));
         $this->assertEquals(500, $dump->getTableLimit('logs'));
         $this->assertFalse($dump->getTableLimit('table_with_invalid_limit'));
         $this->assertFalse($dump->getTableLimit('table_name_with_no_limit'));
+        $this->assertEquals('41923, 42992', $dump->getTableLimit('table_with_range_limit'));
+        $this->assertFalse($dump->getTableLimit('table_with_invalid_range_limit'));
+        $this->assertFalse($dump->getTableLimit('table_with_invalid_range_limit2'));
     }
 }
