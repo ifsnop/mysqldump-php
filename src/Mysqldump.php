@@ -110,7 +110,7 @@ class Mysqldump
         foreach (explode(';', substr($dsn, $pos + 1)) as $kvp) {
             if (strpos($kvp, '=') !== false) {
                 list($param, $value) = explode('=', $kvp);
-                $data[strtolower($param)] = $value;
+                $data[trim(strtolower($param))] = $value;
             }
         }
 
