@@ -109,6 +109,7 @@ class MysqldumpTest extends TestCase
     private function getPrivate(Mysqldump $dump, $var)
     {
         $reflectionProperty = new \ReflectionProperty(Mysqldump::class, $var);
+        $reflectionProperty->setAccessible(true);
         return $reflectionProperty->getValue($dump);
     }
 }
