@@ -107,7 +107,7 @@ class MysqldumpTest extends TestCase
         $this->assertEquals(500, $dump->getTableLimit('logs'));
         $this->assertFalse($dump->getTableLimit('table_with_invalid_limit'));
         $this->assertFalse($dump->getTableLimit('table_name_with_no_limit'));
-        $this->assertEquals('41923, 42992', $dump->getTableLimit('table_with_range_limit'));
+        $this->assertEquals('41923,42992', $dump->getTableLimit('table_with_range_limit'));
         $this->assertFalse($dump->getTableLimit('table_with_invalid_range_limit'));
         $this->assertFalse($dump->getTableLimit('table_with_invalid_range_limit2'));
     }

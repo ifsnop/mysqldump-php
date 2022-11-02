@@ -1046,7 +1046,7 @@ class Mysqldump
         if (is_array($this->tableLimits[$tableName]) &&
             count($this->tableLimits[$tableName]) === 2 &&
             is_numeric(implode('', $this->tableLimits[$tableName]))) {
-            $v = implode(', ', $this->tableLimits[$tableName]);
+            $v = implode(',', $this->tableLimits[$tableName]);
         }
 
         return $v;
