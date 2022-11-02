@@ -812,7 +812,7 @@ class Mysqldump
         }
 
         if ($limit = $this->getTableLimit($tableName)) {
-            $stmt .= sprintf(' LIMIT %d', $limit);
+            $stmt .= is_numeric($limit) ? sprintf(' LIMIT %d', $limit) : sprintf(' LIMIT %s', $limit);
         }
 
         $resultSet = $this->conn->query($stmt);
