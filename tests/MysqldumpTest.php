@@ -101,6 +101,8 @@ class MysqldumpTest extends TestCase
             'table_with_range_limit' => [41923, 42992],
             'table_with_invalid_range_limit' => [41923],
             'table_with_invalid_range_limit2' => [41923, 42992, 42999],
+            'table_with_invalid_range_limit3' => [2, 1],
+            'table_with_invalid_range_limit4' => [1, 1],
         ]);
 
         $this->assertEquals(200, $dump->getTableLimit('users'));
@@ -110,6 +112,8 @@ class MysqldumpTest extends TestCase
         $this->assertEquals('41923,42992', $dump->getTableLimit('table_with_range_limit'));
         $this->assertFalse($dump->getTableLimit('table_with_invalid_range_limit'));
         $this->assertFalse($dump->getTableLimit('table_with_invalid_range_limit2'));
+        $this->assertFalse($dump->getTableLimit('table_with_invalid_range_limit3'));
+        $this->assertEquals('1,1', $dump->getTableLimit('table_with_invalid_range_limit4'));
     }
 
     private function getPrivate(Mysqldump $dump, $var)

@@ -1040,18 +1040,20 @@ class Mysqldump
             return false;
         }
 
-        $v = false;
+        $limit = false;
         if (is_numeric($this->tableLimits[$tableName])) {
-            $v = is_numeric($this->tableLimits[$tableName]);
+            $limit = $this->tableLimits[$tableName];
         }
 
         if (is_array($this->tableLimits[$tableName]) &&
             count($this->tableLimits[$tableName]) === 2 &&
-            is_numeric(implode('', $this->tableLimits[$tableName]))) {
-            $v = implode(',', $this->tableLimits[$tableName]);
+            is_numeric(implode('', $this->tableLimits[$tableName])) &&
+            $this->tableLimits[$tableName][0] <= $this->tableLimits[$tableName][1]
+        ) {
+            $limit = implode(',', $this->tableLimits[$tableName]);
         }
 
-        return $v;
+        return $limit;
 
     }
 
