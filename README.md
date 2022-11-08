@@ -111,7 +111,15 @@ $dumper->setTableLimits([
     'posts' => 10
 ]);
 ```
+You can also specify the limits as an array where the first value is the number of rows and the second is the offset
 
+```php
+$dumper = new \Druidfi\Mysqldump\Mysqldump('mysql:host=localhost;dbname=testdb', 'username', 'password');
+
+$dumper->setTableLimits([
+    'users' => [20, 10], //MySql query equivalent "... LIMIT 20 OFFSET 10"
+]);
+```
 ## Dump Settings
 
 Dump settings can be changed from default values with 4th argument for Mysqldump constructor:
