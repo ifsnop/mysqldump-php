@@ -75,7 +75,8 @@ class Mysqldump
         ?string $pass = null,
         array   $settings = [],
         array   $pdoOptions = []
-    ) {
+    )
+    {
         $this->dsn = $this->parseDsn($dsn);
         $this->user = $user;
         $this->pass = $pass;
@@ -249,20 +250,20 @@ class Mysqldump
     {
         // Some info about software, source and time
         $header = sprintf(
-            "-- mysqldump-php https://github.com/druidfi/mysqldump-php". PHP_EOL.
-            "--". PHP_EOL.
-            "-- Host: %s\tDatabase: %s". PHP_EOL.
-            "-- ------------------------------------------------------". PHP_EOL,
+            "-- mysqldump-php https://github.com/druidfi/mysqldump-php" . PHP_EOL .
+            "--" . PHP_EOL .
+            "-- Host: %s\tDatabase: %s" . PHP_EOL .
+            "-- ------------------------------------------------------" . PHP_EOL,
             $this->host,
             $this->dbName
         );
 
         if (!empty($version = $this->db->getVersion())) {
-            $header .= "-- Server version \t". $version . PHP_EOL;
+            $header .= "-- Server version \t" . $version . PHP_EOL;
         }
 
         if (!$this->settings->skipDumpDate()) {
-            $header .= "-- Date: ".date('r'). PHP_EOL . PHP_EOL;
+            $header .= "-- Date: " . date('r') . PHP_EOL . PHP_EOL;
         }
 
         return $header;
@@ -276,7 +277,7 @@ class Mysqldump
         $footer = '-- Dump completed';
 
         if (!$this->settings->skipDumpDate()) {
-            $footer .= ' on: '.date('r');
+            $footer .= ' on: ' . date('r');
         }
 
         $footer .= PHP_EOL;
@@ -510,9 +511,9 @@ class Mysqldump
 
             if (!$this->settings->skipComments()) {
                 $ret = sprintf(
-                    "--".PHP_EOL.
-                    "-- Table structure for table `%s`".PHP_EOL.
-                    "--".PHP_EOL.PHP_EOL,
+                    "--" . PHP_EOL .
+                    "-- Table structure for table `%s`" . PHP_EOL .
+                    "--" . PHP_EOL . PHP_EOL,
                     $tableName
                 );
             }
@@ -550,7 +551,7 @@ class Mysqldump
         foreach ($columns as $col) {
             $types = $this->db->parseColumnType($col);
             $columnTypes[$col['Field']] = [
-                'is_numeric'=> $types['is_numeric'],
+                'is_numeric' => $types['is_numeric'],
                 'is_blob' => $types['is_blob'],
                 'type' => $types['type'],
                 'type_sql' => $col['Type'],
@@ -610,7 +611,7 @@ class Mysqldump
         $ret = implode(PHP_EOL . ',', $ret);
 
         return sprintf(
-            "CREATE TABLE IF NOT EXISTS `%s` (".PHP_EOL."%s".PHP_EOL.");".PHP_EOL,
+            "CREATE TABLE IF NOT EXISTS `%s` (" . PHP_EOL . "%s" . PHP_EOL . ");" . PHP_EOL,
             $viewName,
             $ret
         );
@@ -623,9 +624,9 @@ class Mysqldump
     {
         if (!$this->settings->skipComments()) {
             $ret = sprintf(
-                "--". PHP_EOL.
-                "-- View structure for view `%s`". PHP_EOL.
-                "--". PHP_EOL . PHP_EOL,
+                "--" . PHP_EOL .
+                "-- View structure for view `%s`" . PHP_EOL .
+                "--" . PHP_EOL . PHP_EOL,
                 $viewName
             );
 
@@ -672,9 +673,9 @@ class Mysqldump
     private function getProcedureStructure(string $procedureName)
     {
         if (!$this->settings->skipComments()) {
-            $ret = "--".PHP_EOL.
-                "-- Dumping routines for database '".$this->dbName."'".PHP_EOL.
-                "--".PHP_EOL.PHP_EOL;
+            $ret = "--" . PHP_EOL .
+                "-- Dumping routines for database '" . $this->dbName . "'" . PHP_EOL .
+                "--" . PHP_EOL . PHP_EOL;
             $this->write($ret);
         }
 
@@ -695,9 +696,9 @@ class Mysqldump
     private function getFunctionStructure(string $functionName)
     {
         if (!$this->settings->skipComments()) {
-            $ret = "--".PHP_EOL.
-                "-- Dumping routines for database '".$this->dbName."'".PHP_EOL.
-                "--".PHP_EOL.PHP_EOL;
+            $ret = "--" . PHP_EOL .
+                "-- Dumping routines for database '" . $this->dbName . "'" . PHP_EOL .
+                "--" . PHP_EOL . PHP_EOL;
             $this->write($ret);
         }
 
@@ -719,9 +720,9 @@ class Mysqldump
     private function getEventStructure(string $eventName)
     {
         if (!$this->settings->skipComments()) {
-            $ret = "--".PHP_EOL.
-                "-- Dumping events for database '".$this->dbName."'".PHP_EOL.
-                "--".PHP_EOL.PHP_EOL;
+            $ret = "--" . PHP_EOL .
+                "-- Dumping events for database '" . $this->dbName . "'" . PHP_EOL .
+                "--" . PHP_EOL . PHP_EOL;
             $this->write($ret);
         }
 
@@ -801,7 +802,7 @@ class Mysqldump
             $colNames = $this->getColumnNames($tableName);
         }
 
-        $stmt = "SELECT ".implode(",", $colStmt)." FROM `$tableName`";
+        $stmt = "SELECT " . implode(",", $colStmt) . " FROM `$tableName`";
 
         // Table specific conditions override the default 'where'
         $condition = $this->getTableWhere($tableName);
@@ -811,7 +812,9 @@ class Mysqldump
         }
 
         if ($limit = $this->getTableLimit($tableName)) {
-            $stmt .= sprintf(' LIMIT %d', $limit);
+            $stmt .= is_numeric($limit) ?
+                sprintf(' LIMIT %d', $limit) :
+                sprintf(' LIMIT %s', $limit);
         }
 
         $resultSet = $this->conn->query($stmt);
@@ -873,9 +876,9 @@ class Mysqldump
     {
         if (!$this->settings->skipComments()) {
             $this->write(
-                "--".PHP_EOL.
-                "-- Dumping data for table `$tableName`".PHP_EOL.
-                "--".PHP_EOL.PHP_EOL
+                "--" . PHP_EOL .
+                "-- Dumping data for table `$tableName`" . PHP_EOL .
+                "--" . PHP_EOL . PHP_EOL
             );
         }
 
@@ -936,8 +939,8 @@ class Mysqldump
 
         if (!$this->settings->skipComments()) {
             $this->write(
-                "-- Dumped table `".$tableName."` with $count row(s)".PHP_EOL.
-                '--'.PHP_EOL.PHP_EOL
+                "-- Dumped table `" . $tableName . "` with $count row(s)" . PHP_EOL .
+                '--' . PHP_EOL . PHP_EOL
             );
         }
     }
@@ -1037,7 +1040,20 @@ class Mysqldump
             return false;
         }
 
-        return is_numeric($this->tableLimits[$tableName]) ? $this->tableLimits[$tableName] : false;
+        $limit = false;
+
+        if (is_numeric($this->tableLimits[$tableName])) {
+            $limit = $this->tableLimits[$tableName];
+        }
+
+        if (is_array($this->tableLimits[$tableName]) &&
+            count($this->tableLimits[$tableName]) === 2 &&
+            is_numeric(implode('', $this->tableLimits[$tableName]))
+        ) {
+            $limit = implode(',', $this->tableLimits[$tableName]);
+        }
+
+        return $limit;
     }
 
     /**
