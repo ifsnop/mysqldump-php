@@ -155,6 +155,29 @@ try {
     );
     $dump->start("output/mysqldump-php_test013.sql");
 
+    print "Create dump with PHP: mysql-php_test014a.sql" . PHP_EOL;
+    $dump = new Mysqldump(
+        "mysql:host=$host;dbname=test014",
+        $user,
+        "",
+        [
+            'complete-insert' => false,
+            'hex-blob' => true,
+        ]    );
+    $dump->start("output/mysqldump-php_test014a.sql");
+
+    print "Create dump with PHP: mysql-php_test014b.sql" . PHP_EOL;
+    $dump = new Mysqldump(
+        "mysql:host=$host;dbname=test014",
+        $user,
+        "",
+        [
+            'complete-insert' => true,
+            'hex-blob' => true,
+        ]
+    );
+    $dump->start("output/mysqldump-php_test014b.sql");
+
     exit(0);
 } catch (Exception $e) {
     print "Error: " . $e->getMessage() . PHP_EOL;

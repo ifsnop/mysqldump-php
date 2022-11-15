@@ -84,6 +84,10 @@ $MYSQL_CMD < test012.src.sql && echo " - done."; errCode=$?; ret[((index++))]=$e
 if [[ $errCode -ne 0 ]]; then echo "error test012.src.sql"; fi
 #$MYSQL_CMD < test013.src.sql; errCode=$?; ret[((index++))]=$errCode
 
+printf "Import test014.src.sql"
+$MYSQL_CMD < test014.src.sql && echo " - done."; errCode=$?; ret[((index++))]=$errCode
+if [[ $errCode -ne 0 ]]; then echo "error test014.src.sql"; fi
+
 printf "\nRun checksum tests:\n\n"
 
 printf "Create checksum: test001.src.checksum"
@@ -202,6 +206,13 @@ else
     echo "test011 disabled, only valid for mysql server version 5.7.x"
 fi
 
+if [[ $major -eq 5 && $medium -ge 7 ]]; then
+    # test virtual column support, with simple inserts forced to complete (a) and complete inserts (b)
+    cat test014.src.sql | egrep "INSERT|GENERATED" > output/test014.filtered.sql && echo "Created test014.filtered.sql"
+else
+    echo "test014 disabled, only valid for mysql server version 5.7.x"
+fi
+
 cat output/mysqldump_test001.sql | grep ^INSERT > output/mysqldump_test001.filtered.sql && echo "Created mysqldump_test001.filtered.sql"
 cat output/mysqldump_test001_complete.sql | grep ^INSERT > output/mysqldump_test001_complete.filtered.sql && echo "Created mysqldump_test001_complete.filtered.sql"
 cat output/mysqldump_test002.sql | grep ^INSERT > output/mysqldump_test002.filtered.sql && echo "Created mysqldump_test002.filtered.sql"
@@ -225,6 +236,14 @@ fi
 
 cat output/mysqldump-php_test012.sql | grep -E -e '50001 (CREATE|VIEW)' -e '50013 DEFINER' -e 'CREATE.*TRIGGER' -e 'FUNCTION' -e 'PROCEDURE' > output/mysqldump-php_test012.filtered.sql && echo "Created mysqldump-php_test012.filtered.sql"
 cat output/mysqldump-php_test013.sql | grep INSERT > output/mysqldump-php_test013.filtered.sql && echo "Created mysqldump-php_test013.filtered.sql"
+
+if [[ $major -eq 5 && $medium -ge 7 ]]; then
+    # test virtual column support, with simple inserts forced to complete (a) and complete inserts (b)
+    cat output/mysqldump-php_test014a.sql | egrep "INSERT|GENERATED" > output/mysqldump-php_test014a.filtered.sql && echo "Created mysqldump-php_test014a.filtered.sql"
+    cat output/mysqldump-php_test014b.sql | egrep "INSERT|GENERATED" > output/mysqldump-php_test014b.filtered.sql && echo "Created mysqldump-php_test014b.filtered.sql"
+else
+    echo "test014 disabled, only valid for mysql server version 5.7.x"
+fi
 
 printf "\nRun diff tests:\n\n"
 
@@ -325,6 +344,19 @@ diff output/mysqldump_test013.filtered.sql output/mysqldump-php_test013.filtered
 errCode=$?; ret[((index++))]=$errCode
 if [[ $errCode -ne 0 ]]; then echo -e "\n$test\n"; fi
 
+if [[ $major -eq 5 && $medium -ge 7 ]]; then
+    # test virtual column support, with simple inserts forced to complete (a) and complete inserts (b)
+    test="Test#$index diff test014.filtered.sql mysqldump-php_test014a.filtered.sql"
+    diff output/test014.filtered.sql output/mysqldump-php_test014a.filtered.sql
+    errCode=$?; ret[((index++))]=$errCode
+    if [[ $errCode -ne 0 ]]; then echo -e "\n$test\n"; fi
+    test="Test#$index diff test014.filtered.sql mysqldump-php_test014b.filtered.sql"
+    diff output/test014.filtered.sql output/mysqldump-php_test014b.filtered.sql
+    errCode=$?; ret[((index++))]=$errCode
+    if [[ $errCode -ne 0 ]]; then echo -e "\n$test\n"; fi
+else
+    echo "test011 disabled, only valid for mysql server version 5.7.x"
+fi
 echo -e "\nDone $index tests\n"
 
 retvalue=0
@@ -337,9 +369,9 @@ for i in $(seq 0 $index) ; do
 done
 
 if [[ $retvalue -eq 0 ]]; then
-    rm output/*.checksum 2> /dev/null
-    rm output/*.filtered.sql 2> /dev/null
-    rm output/mysqldump* 2> /dev/null
+#    rm output/*.checksum 2> /dev/null
+#    rm output/*.filtered.sql 2> /dev/null
+#    rm output/mysqldump* 2> /dev/null
 
     echo -e "\nAll tests were successfully"
 else
