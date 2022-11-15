@@ -794,6 +794,9 @@ class Mysqldump
         $lineSize = 0;
         $colNames = [];
 
+        // getting the column statement has side effect, so we backup this setting for consitency
+        $completeInsertBackup = $this->settings->isEnabled('complete-insert');
+
         // colStmt is used to form a query to obtain row values
         $colStmt = $this->getColumnStmt($tableName);
 
@@ -865,6 +868,8 @@ class Mysqldump
         if ($this->infoCallable && is_callable($this->infoCallable)) {
             call_user_func($this->infoCallable, 'table', ['name' => $tableName, 'rowCount' => $count]);
         }
+
+        $this->settings->setCompleteInsert($completeInsertBackup);
     }
 
     /**
