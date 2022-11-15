@@ -957,14 +957,14 @@ class Mysqldump
         $colStmt = [];
         foreach ($this->tableColumnTypes[$tableName] as $colName => $colType) {
             // TODO handle bug where PHP 8.1 returns double field wrong
-            if ($colType['type'] == 'double' && PHP_VERSION_ID > 80100) {
+            if ($colType['is_virtual']) {
+                $this->settings->setCompleteInsert();
+            } elseif ($colType['type'] == 'double' && PHP_VERSION_ID > 80100) {
                 $colStmt[] = sprintf("CONCAT(`%s`) AS `%s`", $colName, $colName);
             } elseif ($colType['type'] === 'bit' && $this->settings->isEnabled('hex-blob')) {
                 $colStmt[] = sprintf("LPAD(HEX(`%s`),2,'0') AS `%s`", $colName, $colName);
             } elseif ($colType['is_blob'] && $this->settings->isEnabled('hex-blob')) {
                 $colStmt[] = sprintf("HEX(`%s`) AS `%s`", $colName, $colName);
-            } elseif ($colType['is_virtual']) {
-                $this->settings->setCompleteInsert();
             } else {
                 $colStmt[] = sprintf("`%s`", $colName);
             }
