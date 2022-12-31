@@ -26,6 +26,9 @@ jobs:
           - os: ubuntu-18.04
             database-version: 'mysql:5.7'
             php-version: '8.1'
+          - os: ubuntu-18.04
+            database-version: 'mysql:5.7'
+            php-version: '8.2'
           - os: ubuntu-latest
             database-version: 'mysql:8.0'
             php-version: '7.4'
@@ -35,6 +38,9 @@ jobs:
           - os: ubuntu-latest
             database-version: 'mysql:8.0'
             php-version: '8.1'
+          - os: ubuntu-latest
+            database-version: 'mysql:8.0'
+            php-version: '8.2'
           - os: ubuntu-18.04
             database-version: 'mariadb:10.6'
             php-version: '7.4'
@@ -44,6 +50,9 @@ jobs:
           - os: ubuntu-18.04
             database-version: 'mariadb:10.6'
             php-version: '8.1'
+          - os: ubuntu-18.04
+            database-version: 'mariadb:10.6'
+            php-version: '8.2'
 
     services:
       db:
