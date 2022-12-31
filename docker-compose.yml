@@ -61,3 +61,17 @@ services:
       - db
       - db2
       - db3
+
+  php82:
+    container_name: "mysqldump-php-82"
+    image: mysqldump-php-tester:php-8.2
+    build:
+      context: .
+      args:
+        PHP_SHORT_VERSION: "82"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - db2
+      - db3
