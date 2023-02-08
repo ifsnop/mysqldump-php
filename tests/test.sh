@@ -51,11 +51,11 @@ if [[ $errCode -ne 0 ]]; then echo "error test001.src.sql"; fi
 mysql -utravis < test010.src.sql; errCode=$?; ret[((index++))]=$errCode
 if [[ $errCode -ne 0 ]]; then echo "error test010.src.sql"; fi
 
-if [[ $major -eq 5 && $medium -ge 7 ]]; then
+if [[ $major -ge 5 && $medium -ge 7 ]]; then
     # test virtual column support, with simple inserts forced to complete (a) and complete inserts (b)
     mysql -utravis < test011.src.sql; errCode=$?; ret[((index++))]=$errCode
 else
-    echo "test011 disabled, only valid for mysql server version > 5.7.0"
+    echo "test011 disabled, only valid for mysql server version greater than 5.7.0"
 fi
 mysql -utravis < test012.src.sql; errCode=$?; ret[((index++))]=$errCode
 #mysql -utravis < test013.src.sql; errCode=$?; ret[((index++))]=$errCode
