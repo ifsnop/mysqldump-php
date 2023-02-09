@@ -1312,6 +1312,8 @@ class Mysqldump
                 continue;
             } elseif ($colType['type'] == 'bit' && $this->dumpSettings['hex-blob']) {
                 $colStmt[] = "LPAD(HEX(`{$colName}`),2,'0') AS `{$colName}`";
+            } elseif ($colType['type'] == 'double' && PHP_VERSION_ID > 80100) {
+                $colStmt[] = sprintf("CONCAT(`%s`) AS `%s`", $colName, $colName);
             } elseif ($colType['is_blob'] && $this->dumpSettings['hex-blob']) {
                 $colStmt[] = "HEX(`{$colName}`) AS `{$colName}`";
             } else {
