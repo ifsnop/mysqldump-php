@@ -1946,7 +1946,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
 
         if ($viewStmtReplaced = preg_replace(
             '/^(CREATE(?:\s+ALGORITHM=(?:UNDEFINED|MERGE|TEMPTABLE))?)\s+('
-            .self::DEFINER_RE.'(?:\s+SQL SECURITY DEFINER|INVOKER)?)?\s+(VIEW .+)$/',
+            .self::DEFINER_RE.'(?:\s+SQL SECURITY (?:DEFINER|INVOKER))?)?\s+(VIEW .+)$/',
             '/*!50001 \1 */'.PHP_EOL.$definerStr.'/*!50001 \3 */',
             $viewStmt,
             1
