@@ -114,7 +114,7 @@ $dump = new IMysqldump\Mysqldump(
     "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test011",
     "travis",
     "",
-    array('complete-insert' =>  false));
+    array('complete-insert' =>  false, 'hex-blob' => false));
 $dump->start("mysqldump-php_test011a.sql");
 
 print "starting mysql-php_test011b.sql" . PHP_EOL;
