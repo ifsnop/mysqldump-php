@@ -277,6 +277,46 @@ class Mysqldump
     }
 
     /**
+    * Import supplied SQL file
+    * @param string $path Absolute path to imported *.sql file
+    */
+    public function restore($path)
+    {
+        if(!$path || !is_file($path)){
+            throw new Exception("File {$path} does not exist.");
+        }
+
+        $handle = fopen($path , 'rb');
+
+        if(!$handle){
+            throw new Exception("Failed reading file {$path}. Check access permissions.");
+        }
+
+        if(!$this->dbHandler){
+            $this->connect();
+        }
+
+        $buffer = '';
+        while ( !feof($handle) ) {
+            $line = trim(fgets($handle));
+
+            if (substr($line, 0, 2) == '--' || !$line) {
+                continue; // skip comments
+            }
+
+            $buffer .= $line;
+
+            // if it has a semicolon at the end, it's the end of the query
+            if (';' == substr(rtrim($line), -1, 1)) {
+                $this->dbHandler->exec($buffer);
+                $buffer = '';
+            }
+        }
+
+        fclose($handle);
+    }
+
+    /**
      * Parse DSN string and extract dbname value
      * Several examples of a DSN string
      *   mysql:host=localhost;dbname=testdb
