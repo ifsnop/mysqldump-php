@@ -33,6 +33,7 @@ MySQLDump-PHP is the only library that supports:
 * does insert-ignore, like a REPLACE but ignoring errors if a duplicate key exists.
 * modifying data from database on-the-fly when dumping, using hooks.
 * can save directly to google cloud storage over a compressed stream wrapper (GZIPSTREAM).
+* can restore a dump from a file, when no mysql executable is available.
 
 ## Important
 
