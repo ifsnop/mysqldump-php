@@ -433,6 +433,12 @@ class Mysqldump
         // Write some basic info to output file
         $this->compressManager->write($this->getDumpFileHeader());
 
+        // initiate a transaction at global level to create a consistent snapshot
+        if ($this->dumpSettings['single-transaction']) {
+            $this->dbHandler->exec($this->typeAdapter->setup_transaction());
+            $this->dbHandler->exec($this->typeAdapter->start_transaction());
+        }
+
         // Store server settings and use sanner defaults to dump
         $this->compressManager->write(
             $this->typeAdapter->backup_parameters()
@@ -484,6 +490,12 @@ class Mysqldump
         $this->compressManager->write(
             $this->typeAdapter->restore_parameters()
         );
+
+        // end transaction
+        if ($this->dumpSettings['single-transaction']) {
+            $this->dbHandler->exec($this->typeAdapter->commit_transaction());
+        }
+
         // Write some stats to output file.
         $this->compressManager->write($this->getDumpFileFooter());
         // Close output file.
@@ -694,6 +706,8 @@ class Mysqldump
      */
     private function exportTables()
     {
+
+
         // Exporting tables one by one
         foreach ($this->tables as $table) {
             if ($this->matches($table, $this->dumpSettings['exclude-tables'])) {
@@ -1216,11 +1230,6 @@ class Mysqldump
             );
         }
 
-        if ($this->dumpSettings['single-transaction']) {
-            $this->dbHandler->exec($this->typeAdapter->setup_transaction());
-            $this->dbHandler->exec($this->typeAdapter->start_transaction());
-        }
-
         if ($this->dumpSettings['lock-tables'] && !$this->dumpSettings['single-transaction']) {
             $this->typeAdapter->lock_table($tableName);
         }
@@ -1267,10 +1276,6 @@ class Mysqldump
             $this->compressManager->write(
                 $this->typeAdapter->end_add_lock_table($tableName)
             );
-        }
-
-        if ($this->dumpSettings['single-transaction']) {
-            $this->dbHandler->exec($this->typeAdapter->commit_transaction());
         }
 
         if ($this->dumpSettings['lock-tables'] && !$this->dumpSettings['single-transaction']) {
