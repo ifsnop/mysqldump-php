@@ -17,51 +17,64 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-18.04
-            database-version: 'mysql:5.7'
+          - os: ubuntu-20.04
+            database: 'mysql'
+            database-version: '5.7'
             php-version: '7.4'
-          - os: ubuntu-18.04
-            database-version: 'mysql:5.7'
+          - os: ubuntu-20.04
+            database: 'mysql'
+            database-version: '5.7'
             php-version: '8.0'
-          - os: ubuntu-18.04
-            database-version: 'mysql:5.7'
+          - os: ubuntu-20.04
+            database: 'mysql'
+            database-version: '5.7'
             php-version: '8.1'
-          - os: ubuntu-18.04
-            database-version: 'mysql:5.7'
+          - os: ubuntu-20.04
+            database: 'mysql'
+            database-version: '5.7'
             php-version: '8.2'
           - os: ubuntu-latest
-            database-version: 'mysql:8.0'
+            database: 'mysql'
+            database-version: '8.0'
             php-version: '7.4'
           - os: ubuntu-latest
-            database-version: 'mysql:8.0'
+            database: 'mysql'
+            database-version: '8.0'
             php-version: '8.0'
           - os: ubuntu-latest
-            database-version: 'mysql:8.0'
+            database: 'mysql'
+            database-version: '8.0'
             php-version: '8.1'
           - os: ubuntu-latest
-            database-version: 'mysql:8.0'
+            database: 'mysql'
+            database-version: '8.0'
             php-version: '8.2'
-          - os: ubuntu-18.04
-            database-version: 'mariadb:10.6'
+          - os: ubuntu-20.04
+            database: 'mariadb'
+            database-version: '10.6'
             php-version: '7.4'
-          - os: ubuntu-18.04
-            database-version: 'mariadb:10.6'
+          - os: ubuntu-20.04
+            database: 'mariadb'
+            database-version: '10.6'
             php-version: '8.0'
-          - os: ubuntu-18.04
-            database-version: 'mariadb:10.6'
+          - os: ubuntu-20.04
+            database: 'mariadb'
+            database-version: '10.6'
             php-version: '8.1'
-          - os: ubuntu-18.04
-            database-version: 'mariadb:10.6'
+          - os: ubuntu-20.04
+            database: 'mariadb'
+            database-version: '10.6'
             php-version: '8.2'
-
-    services:
-      db:
-        image: druidfi/${{ matrix.database-version }}-drupal
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
+
+      - uses: shogo82148/actions-setup-mysql@v1
+        with:
+          distribution: '${{ matrix.database }}'
+          mysql-version: '${{ matrix.database-version }}'
+          user: 'travis'
+          password: ''
+          root-password: 'drupal'
 
       - name: Checkout code
         uses: actions/checkout@v3
