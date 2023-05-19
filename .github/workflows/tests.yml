@@ -17,16 +17,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             database-version: 'mysql:5.7'
             php-version: '7.4'
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             database-version: 'mysql:5.7'
             php-version: '8.0'
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             database-version: 'mysql:5.7'
             php-version: '8.1'
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             database-version: 'mysql:5.7'
             php-version: '8.2'
           - os: ubuntu-latest
@@ -41,16 +41,16 @@ jobs:
           - os: ubuntu-latest
             database-version: 'mysql:8.0'
             php-version: '8.2'
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             database-version: 'mariadb:10.6'
             php-version: '7.4'
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             database-version: 'mariadb:10.6'
             php-version: '8.0'
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             database-version: 'mariadb:10.6'
             php-version: '8.1'
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             database-version: 'mariadb:10.6'
             php-version: '8.2'
 
