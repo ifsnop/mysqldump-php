@@ -9,7 +9,8 @@
     "authors": [
         {
             "name": "Druid.fi",
-            "email": "info@druid.fi"
+            "email": "info@druid.fi",
+            "homepage": "https://github.com/druidfi"
         },
         {
             "name" : "Diego Torres",
