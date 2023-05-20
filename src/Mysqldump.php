@@ -193,6 +193,12 @@ class Mysqldump
             $this->write($this->getDumpFileHeader());
         }
 
+        // Initiate a transaction at global level to create a consistent snapshot.
+        if ($this->settings->isEnabled('single-transaction')) {
+            $this->conn->exec($this->db->setupTransaction());
+            $this->conn->exec($this->db->startTransaction());
+        }
+
         // Store server settings and use saner defaults to dump
         $this->write($this->db->backupParameters());
 
@@ -233,6 +239,11 @@ class Mysqldump
 
         // Restore saved parameters.
         $this->write($this->db->restoreParameters());
+
+        // End transaction.
+        if ($this->settings->isEnabled('single-transaction')) {
+            $this->conn->exec($this->db->commitTransaction());
+        }
 
         // Write some stats to output file.
         if (!$this->settings->skipComments()) {
@@ -887,11 +898,6 @@ class Mysqldump
             );
         }
 
-        if ($this->settings->isEnabled('single-transaction')) {
-            $this->conn->exec($this->db->setupTransaction());
-            $this->conn->exec($this->db->startTransaction());
-        }
-
         if ($this->settings->isEnabled('lock-tables') && !$this->settings->isEnabled('single-transaction')) {
             $this->db->lockTable($tableName);
         }
@@ -924,10 +930,6 @@ class Mysqldump
 
         if ($this->settings->isEnabled('add-locks')) {
             $this->write($this->db->endAddLockTable($tableName));
-        }
-
-        if ($this->settings->isEnabled('single-transaction')) {
-            $this->conn->exec($this->db->commitTransaction());
         }
 
         if ($this->settings->isEnabled('lock-tables')
