@@ -17,6 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # MySQL 5.7
           - os: ubuntu-20.04
             database: 'mysql'
             database-version: '5.7'
@@ -33,6 +34,11 @@ jobs:
             database: 'mysql'
             database-version: '5.7'
             php-version: '8.2'
+          - os: ubuntu-20.04
+            database: 'mysql'
+            database-version: '5.7'
+            php-version: '8.3'
+          # MySQL 8.0
           - os: ubuntu-latest
             database: 'mysql'
             database-version: '8.0'
@@ -49,22 +55,31 @@ jobs:
             database: 'mysql'
             database-version: '8.0'
             php-version: '8.2'
+          - os: ubuntu-latest
+            database: 'mysql'
+            database-version: '8.0'
+            php-version: '8.3'
+          # MariaDB 10.11 LTS
           - os: ubuntu-20.04
             database: 'mariadb'
-            database-version: '10.6'
+            database-version: '10.11'
             php-version: '7.4'
           - os: ubuntu-20.04
             database: 'mariadb'
-            database-version: '10.6'
+            database-version: '10.11'
             php-version: '8.0'
           - os: ubuntu-20.04
             database: 'mariadb'
-            database-version: '10.6'
+            database-version: '10.11'
             php-version: '8.1'
           - os: ubuntu-20.04
             database: 'mariadb'
-            database-version: '10.6'
+            database-version: '10.11'
             php-version: '8.2'
+          - os: ubuntu-20.04
+            database: 'mariadb'
+            database-version: '10.11'
+            php-version: '8.3'
 
     steps:
 
