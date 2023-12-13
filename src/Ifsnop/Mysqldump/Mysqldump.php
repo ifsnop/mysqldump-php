@@ -293,6 +293,17 @@ class Mysqldump
             throw new Exception("Failed reading file {$path}. Check access permissions.");
         }
 
+        $gzfile = false;
+        $line = trim(fgets($handle));
+        # .gz files start with 0x1F 0x8B byte sequence
+        if(preg_match('/^\x1F\x8B/', $line)) {
+          fclose($handle);
+          $handle = gzopen($path , 'rb');
+          $gzfile = true;
+        } else {
+          rewind($handle);
+        }
+
         if(!$this->dbHandler){
             $this->connect();
         }
@@ -314,7 +325,11 @@ class Mysqldump
             }
         }
 
-        fclose($handle);
+        if($gzfile) {
+            gzclose($handle);
+        } else {
+            fclose($handle);
+        }
     }
 
     /**
