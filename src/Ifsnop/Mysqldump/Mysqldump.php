@@ -294,9 +294,8 @@ class Mysqldump
         }
 
         $gzfile = false;
-        $line = trim(fgets($handle));
         # .gz files start with 0x1F 0x8B byte sequence
-        if(preg_match('/^\x1F\x8B/', $line)) {
+        if(fread($handle, 2) === '\x1F\x8B') {
           fclose($handle);
           $handle = gzopen($path , 'rb');
           $gzfile = true;
