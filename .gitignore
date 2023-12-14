@@ -1,4 +1,9 @@
+# editors
 /.project
-/composer.phar
 /.settings
+# Vim swap files
+.*.sw*
+
+/composer.lock
+/composer.phar
 /vendor/
