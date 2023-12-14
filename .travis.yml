@@ -1,19 +1,279 @@
 language: php
 
-php:
-  - 5.6
-  - 5.5
-  - 5.4
-  - 5.3
-  - hhvm
+matrix:
+  include:
+  - php: 5.3
+    dist: precise
+    sudo: required
+    services:
+      - mysql
+    before_script:
+      - curl -s http://getcomposer.org/installer | php
+      - php composer.phar install
+      - mysql -V
+      - mysqldump -V
+      - tests/create_users.sh
+    script:
+      - php -l src/Ifsnop/Mysqldump/Mysqldump.php
+      - php src/Ifsnop/Mysqldump/Mysqldump.php
+      - vendor/bin/phpunit
+      - cd tests && ./test.sh
+    before_install:
+      - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+  - php: 5.4
+    dist: precise
+    sudo: required
+    services:
+      - mysql
+    before_script:
+      - curl -s http://getcomposer.org/installer | php
+      - php composer.phar install
+      - mysql -V
+      - mysqldump -V
+      - tests/create_users.sh
+    script:
+      - php -l src/Ifsnop/Mysqldump/Mysqldump.php
+      - php src/Ifsnop/Mysqldump/Mysqldump.php
+      - vendor/bin/phpunit
+      - cd tests && ./test.sh
+    before_install:
+      - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+  - php: 5.5
+    dist: precise
+    sudo: required
+    services:
+      - mysql
+    before_script:
+      - curl -s http://getcomposer.org/installer | php
+      - php composer.phar install
+      - mysql -V
+      - mysqldump -V
+      - tests/create_users.sh
+    script:
+      - php -l src/Ifsnop/Mysqldump/Mysqldump.php
+      - php src/Ifsnop/Mysqldump/Mysqldump.php
+      - vendor/bin/phpunit
+      - cd tests && ./test.sh
+    before_install:
+      - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+  - php: 5.6
+    dist: precise
+    sudo: required
+    services:
+      - mysql
+    before_script:
+      - curl -s http://getcomposer.org/installer | php
+      - php composer.phar install
+      - mysql -V
+      - mysqldump -V
+      - tests/create_users.sh
+    script:
+      - php -l src/Ifsnop/Mysqldump/Mysqldump.php
+      - php src/Ifsnop/Mysqldump/Mysqldump.php
+      - vendor/bin/phpunit
+      - cd tests && ./test.sh
+    before_install:
+      - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+  - php: 5.6
+    dist: xenial
+    sudo: required
+    services:
+      - mysql
+    before_script:
+      - curl -s http://getcomposer.org/installer | php
+      - php composer.phar install
+      - mysql -V
+      - mysqldump -V
+      - tests/create_users.sh
+    script:
+      - php -l src/Ifsnop/Mysqldump/Mysqldump.php
+      - php src/Ifsnop/Mysqldump/Mysqldump.php
+      - vendor/bin/phpunit
+      - cd tests && ./test.sh
+    before_install:
+      - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+  - php: 7.0
+    dist: xenial
+    sudo: required
+    services:
+      - mysql
+    before_script:
+      - curl -s http://getcomposer.org/installer | php
+      - php composer.phar install
+      - mysql -V
+      - mysqldump -V
+      - tests/create_users.sh
+    script:
+      - php -l src/Ifsnop/Mysqldump/Mysqldump.php
+      - php src/Ifsnop/Mysqldump/Mysqldump.php
+      - vendor/bin/phpunit
+      - cd tests && ./test.sh
+    before_install:
+      - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+  - php: 7.1
+    dist: xenial
+    sudo: required
+    services:
+      - mysql
+    before_script:
+      - curl -s http://getcomposer.org/installer | php
+      - php composer.phar install
+      - mysql -V
+      - mysqldump -V
+      - tests/create_users.sh
+    script:
+      - php -l src/Ifsnop/Mysqldump/Mysqldump.php
+      - php src/Ifsnop/Mysqldump/Mysqldump.php
+      - vendor/bin/phpunit
+      - cd tests && ./test.sh
+    before_install:
+      - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+  - php: 7.2
+    dist: xenial
+    sudo: required
+    services:
+      - mysql
+    before_script:
+      - curl -s http://getcomposer.org/installer | php
+      - php composer.phar install
+      - mysql -V
+      - mysqldump -V
+      - tests/create_users.sh
+    script:
+      - php -l src/Ifsnop/Mysqldump/Mysqldump.php
+      - php src/Ifsnop/Mysqldump/Mysqldump.php
+      - vendor/bin/phpunit
+      - cd tests && ./test.sh
+    before_install:
+      - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+  - php: 7.3
+    dist: xenial
+    sudo: required
+    services:
+      - mysql
+    before_script:
+      - curl -s http://getcomposer.org/installer | php
+      - php composer.phar install
+      - mysql -V
+      - mysqldump -V
+      - tests/create_users.sh
+    script:
+      - php -l src/Ifsnop/Mysqldump/Mysqldump.php
+      - php src/Ifsnop/Mysqldump/Mysqldump.php
+      - vendor/bin/phpunit
+      - cd tests && ./test.sh
+    before_install:
+      - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+  - php: 7.4
+    dist: xenial
+    sudo: required
+    services:
+      - mysql
+    before_script:
+      - curl -s http://getcomposer.org/installer | php
+      - php composer.phar install
+      - mysql -V
+      - mysqldump -V
+      - tests/create_users.sh
+    script:
+      - php -l src/Ifsnop/Mysqldump/Mysqldump.php
+      - php src/Ifsnop/Mysqldump/Mysqldump.php
+      - vendor/bin/phpunit
+      - cd tests && ./test.sh
+    before_install:
+      - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+  - php: nightly
+    dist: xenial
+    sudo: required
+    services:
+      - mysql
+    before_script:
+      - curl -s http://getcomposer.org/installer | php
+      - php composer.phar install
+      - mysql -V
+      - mysqldump -V
+      - tests/create_users.sh
+    script:
+      - php -l src/Ifsnop/Mysqldump/Mysqldump.php
+      - php src/Ifsnop/Mysqldump/Mysqldump.php
+      - vendor/bin/phpunit
+      - cd tests && ./test.sh
+    before_install:
+      - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+  - php: hhvm-3.18
+    dist: xenial
+    sudo: required
+    services:
+      - mysql
+    before_script:
+      - curl -s http://getcomposer.org/installer | php
+      - php composer.phar install
+      - mysql -V
+      - mysqldump -V
+      - tests/create_users.sh
+    script:
+      - php -l src/Ifsnop/Mysqldump/Mysqldump.php
+      - php src/Ifsnop/Mysqldump/Mysqldump.php
+      - vendor/bin/phpunit
+      - cd tests && ./test.sh
+    before_install:
+      - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+  - php: hhvm-3.21
+    dist: xenial
+    sudo: required
+    services:
+      - mysql
+    before_script:
+      - curl -s http://getcomposer.org/installer | php
+      - php composer.phar install
+      - mysql -V
+      - mysqldump -V
+      - tests/create_users.sh
+    script:
+      - php -l src/Ifsnop/Mysqldump/Mysqldump.php
+      - php src/Ifsnop/Mysqldump/Mysqldump.php
+      - vendor/bin/phpunit
+      - cd tests && ./test.sh
+    before_install:
+      - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+  - php: hhvm-3.24
+    dist: xenial
+    sudo: required
+    services:
+      - mysql
+    before_script:
+      - curl -s http://getcomposer.org/installer | php
+      - php composer.phar install
+      - mysql -V
+      - mysqldump -V
+      - tests/create_users.sh
+    script:
+      - php -l src/Ifsnop/Mysqldump/Mysqldump.php
+      - php src/Ifsnop/Mysqldump/Mysqldump.php
+      - vendor/bin/phpunit
+      - cd tests && ./test.sh
+    before_install:
+      - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+  - php: hhvm
+    dist: xenial
+    sudo: required
+    services:
+      - mysql
+    before_script:
+      - curl -s http://getcomposer.org/installer | php
+      - php composer.phar install
+      - mysql -V
+      - mysqldump -V
+      - tests/create_users.sh
+    script:
+      - php -l src/Ifsnop/Mysqldump/Mysqldump.php
+      - php src/Ifsnop/Mysqldump/Mysqldump.php
+      - vendor/bin/phpunit
+      - cd tests && ./test.sh
+    before_install:
+      - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
 
-services:
-  - mysql
-
-before_script:
-  - curl -s http://getcomposer.org/installer | php
-  - php composer.phar install --dev
-
-script:
-  - php src/Ifsnop/Mysqldump/Mysqldump.php
-  - cd tests && ./test.sh
+  allow_failures:
+    - php: 5.3
+    - php: nightly
+    - php: hhvm
