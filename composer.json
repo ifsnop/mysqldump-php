@@ -1,5 +1,5 @@
 {
-    "name": "cnlsjohndoe/mysqldump-php",
+    "name": "ifsnop/mysqldump-php",
     "description": "This is a php version of linux's mysqldump in terminal \"$ mysqldump -u username -p...\"",
     "type": "library",
     "keywords": ["mysql", "mysqldump", "pdo", "php7", "php5", "database", "php", "sql", "hhvm", "mariadb", "mysql-backup"],
