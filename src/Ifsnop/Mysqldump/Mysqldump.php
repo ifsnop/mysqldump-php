@@ -1175,35 +1175,34 @@ class Mysqldump
         $ignore = $this->dumpSettings['insert-ignore'] ? '  IGNORE' : '';
 
         $count = 0;
+	$line = '';
         foreach ($resultSet as $row) {
             $count++;
             $vals = $this->prepareColumnValues($tableName, $row);
             if ($onlyOnce || !$this->dumpSettings['extended-insert']) {
                 if ($this->dumpSettings['complete-insert']) {
-                    $lineSize += $this->compressManager->write(
-                        "INSERT$ignore INTO `$tableName` (".
+                    $line .= "INSERT$ignore INTO `$tableName` (".
                         implode(", ", $colNames).
                         ") VALUES (".implode(",", $vals).")"
-                    );
+                    ;
                 } else {
-                    $lineSize += $this->compressManager->write(
-                        "INSERT$ignore INTO `$tableName` VALUES (".implode(",", $vals).")"
-                    );
+                    $line .= "INSERT$ignore INTO `$tableName` VALUES (".implode(",", $vals).")";
                 }
                 $onlyOnce = false;
             } else {
-                $lineSize += $this->compressManager->write(",(".implode(",", $vals).")");
+                $line .= ",(".implode(",", $vals).")";
             }
-            if (($lineSize > $this->dumpSettings['net_buffer_length']) ||
+            if ((strlen($line) > $this->dumpSettings['net_buffer_length']) ||
                     !$this->dumpSettings['extended-insert']) {
                 $onlyOnce = true;
-                $lineSize = $this->compressManager->write(";".PHP_EOL);
+                $this->compressManager->write($line . ";".PHP_EOL);
+		$line = '';
             }
         }
         $resultSet->closeCursor();
 
-        if (!$onlyOnce) {
-            $this->compressManager->write(";".PHP_EOL);
+        if ($line !== '') {
+            $this->compressManager->write($line. ";".PHP_EOL);
         }
 
         $this->endListValues($tableName, $count);
