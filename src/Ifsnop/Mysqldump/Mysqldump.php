@@ -1059,40 +1059,36 @@ class Mysqldump
             $row = call_user_func($this->transformTableRowCallable, $tableName, $row);
         }
 
+        $dbHandler = $this->dbHandler;
         foreach ($row as $colName => $colValue) {
             if ($this->transformColumnValueCallable) {
                 $colValue = call_user_func($this->transformColumnValueCallable, $tableName, $colName, $colValue, $row);
             }
 
-            $ret[] = $this->escape($colValue, $columnTypes[$colName]);
+            if ($colValue === null) {
+                $ret[] = "NULL";
+                continue;
+            }
+
+            $colType = $columnTypes[$colName];
+            if ($this->dumpSettings['hex-blob'] && $colType['is_blob']) {
+		        if ($colType['type'] == 'bit' || $colValue !== '') {
+                    $ret[] = "0x{$colValue}";
+                } else {
+                    $ret[] = "''";
+                }
+                continue;
+            }
+
+            if ($colType['is_numeric']) {
+                $ret[] = $colValue;
+                continue;
+            }
+
+            $ret[] = $dbHandler->quote($colValue);
         }
 
         return $ret;
-    }
-
-    /**
-     * Escape values with quotes when needed
-     *
-     * @param string $tableName Name of table which contains rows
-     * @param array $row Associative array of column names and values to be quoted
-     *
-     * @return string
-     */
-    private function escape($colValue, $colType)
-    {
-        if (is_null($colValue)) {
-            return "NULL";
-        } elseif ($this->dumpSettings['hex-blob'] && $colType['is_blob']) {
-            if ($colType['type'] == 'bit' || !empty($colValue)) {
-                return "0x{$colValue}";
-            } else {
-                return "''";
-            }
-        } elseif ($colType['is_numeric']) {
-            return $colValue;
-        }
-
-        return $this->dbHandler->quote($colValue);
     }
 
     /**
