@@ -1474,7 +1474,9 @@ class CompressGzip extends CompressManagerFactory
 class CompressNone extends CompressManagerFactory
 {
     private $fileHandler = null;
-
+    private array $buffer = [];
+    private int $bufferSize = 0;
+	
     /**
      * @param string $filename
      */
@@ -1490,16 +1492,37 @@ class CompressNone extends CompressManagerFactory
 
     public function write($str)
     {
-        $bytesWritten = fwrite($this->fileHandler, $str);
-        if (false === $bytesWritten) {
-            throw new Exception("Writting to file failed! Probably, there is no more free space left?");
-        }
+        $this->buffer[] = $str;
+        $bytesWritten = strlen($str);
+        $this->bufferSize += $bytesWritten;
+        if ($this->bufferSize > 10 * 1024 * 1024) {
+            $this->flush();
+	}
         return $bytesWritten;
+    }
+
+    public function flush()
+    {
+        if (false === fwrite($this->fileHandler, implode('', $this->buffer))) {
+	    throw new Exception("Writing to file failed! Probably, there is no more free space left?");
+	}
+        $this->buffer = [];
+        $this->bufferSize = 0;
+    }
+
+    public function __destruct()
+    {
+        if (isset($this->fileHandler)) {
+            $this->close();
+	}
     }
 
     public function close()
     {
-        return fclose($this->fileHandler);
+        $this->flush();
+        $res = fclose($this->fileHandler);
+        $this->fileHandler = null;
+        return $res;
     }
 }
 
