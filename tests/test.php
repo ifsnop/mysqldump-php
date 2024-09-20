@@ -162,4 +162,17 @@ $dump = new IMysqldump\Mysqldump(
     ));
 $dump->start("mysqldump-php_test013.sql");
 
+print "starting mysql-php_test014.sql" . PHP_EOL;
+$dump = new IMysqldump\Mysqldump(
+    "mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test014",
+    "travis",
+    "",
+    array(
+        "insert-ignore" => true,
+        "extended-insert" => true,
+    ));
+$timer=microtime(true);
+$dump->start("mysqldump-php_test014.sql");
+print round(microtime(true) - $timer,3) . " seconds" . PHP_EOL;
+
 exit(0);

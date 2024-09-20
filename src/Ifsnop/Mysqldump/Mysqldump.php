@@ -1145,7 +1145,6 @@ class Mysqldump
         $this->prepareListValues($tableName);
 
         $onlyOnce = true;
-        $lineSize = 0;
 
         // colStmt is used to form a query to obtain row values
         $colStmt = $this->getColumnStmt($tableName);
@@ -1183,8 +1182,7 @@ class Mysqldump
                 if ($this->dumpSettings['complete-insert']) {
                     $line .= "INSERT$ignore INTO `$tableName` (".
                         implode(", ", $colNames).
-                        ") VALUES (".implode(",", $vals).")"
-                    ;
+                        ") VALUES (".implode(",", $vals).")";
                 } else {
                     $line .= "INSERT$ignore INTO `$tableName` VALUES (".implode(",", $vals).")";
                 }
@@ -1201,7 +1199,7 @@ class Mysqldump
         }
         $resultSet->closeCursor();
 
-        if ($line !== '') {
+        if ('' !== $line) {
             $this->compressManager->write($line. ";".PHP_EOL);
         }
 

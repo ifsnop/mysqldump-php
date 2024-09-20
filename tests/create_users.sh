@@ -21,6 +21,7 @@ mysql -u root -e "GRANT ALL PRIVILEGES ON test009.* TO 'travis'@'%' WITH GRANT O
 mysql -u root -e "GRANT ALL PRIVILEGES ON test010.* TO 'travis'@'%' WITH GRANT OPTION;"
 mysql -u root -e "GRANT ALL PRIVILEGES ON test011.* TO 'travis'@'%' WITH GRANT OPTION;"
 mysql -u root -e "GRANT ALL PRIVILEGES ON test012.* TO 'travis'@'%' WITH GRANT OPTION;"
+mysql -u root -e "GRANT ALL PRIVILEGES ON test014.* TO 'travis'@'%' WITH GRANT OPTION;"
 mysql -u root -e "GRANT SUPER,LOCK TABLES ON *.* TO 'travis'@'%';"
 mysql -u root -e "GRANT SELECT ON mysql.proc to 'travis'@'%';"
 mysql -u root -e "FLUSH PRIVILEGES;"

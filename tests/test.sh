@@ -113,6 +113,9 @@ mysqldump -utravis test001 \
     > mysqldump_test013.sql
 errCode=$?; ret[((index++))]=$errCode
 
+#speed test
+gzip -dc test014.src.sql.gz | mysql -utravis
+
 php test.php || { echo "ERROR running test.php" && exit -1; }
 errCode=$?; ret[((index++))]=$errCode
 
