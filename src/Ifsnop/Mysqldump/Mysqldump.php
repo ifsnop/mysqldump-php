@@ -2077,7 +2077,7 @@ class TypeAdapterMysql extends TypeAdapterFactory
         $definerStr = $this->dumpSettings['skip-definer'] ? '' : '/*!50117 \2*/ ';
 
         if ($eventStmtReplaced = preg_replace(
-            '/^(CREATE)\s+('.self::DEFINER_RE.')?\s+(EVENT .*)$/',
+            '/^(CREATE)\s+('.self::DEFINER_RE.')?\s+(EVENT\s.*)$/s',
             '/*!50106 \1*/ '.$definerStr.'/*!50106 \3 */',
             $eventStmt,
             1
