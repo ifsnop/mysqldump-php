@@ -299,7 +299,7 @@ class Mysqldump
 
         $buffer = '';
         while ( !feof($handle) ) {
-            $line = trim(fgets($handle));
+            $line = fgets($handle);
 
             if (substr($line, 0, 2) == '--' || !$line) {
                 continue; // skip comments
