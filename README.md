@@ -217,6 +217,8 @@ $this->_dumpSettings = self::array_replace_recursive($dumpSettingsDefault, $dump
 
 ## Dump Settings
 
+- **query_part_limit**
+  - Default is 5000. The script will select target table part by part each 5000 records until end of table instead of select all records in a single query.
 - **include-tables**
   - Only include these tables (array of table names), include all if empty.
 - **exclude-tables**
