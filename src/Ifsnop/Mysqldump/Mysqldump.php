@@ -182,7 +182,14 @@ class Mysqldump
 
         // This drops MYSQL dependency, only use the constant if it's defined.
         if ("mysql" === $this->dbType) {
-            $this->pdoSettingsDefault[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = false;
+
+            if (defined('Pdo\\Mysql::ATTR_USE_BUFFERED_QUERY')) {
+                $attribute = constant('Pdo\\Mysql::ATTR_USE_BUFFERED_QUERY');
+            } else {
+                $attribute = PDO::MYSQL_ATTR_USE_BUFFERED_QUERY;
+            }
+
+            $this->pdoSettingsDefault[$attribute] = false;
         }
 
         $this->pdoSettings = array_replace_recursive($this->pdoSettingsDefault, $pdoSettings);
