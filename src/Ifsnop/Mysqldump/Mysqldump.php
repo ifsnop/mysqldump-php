@@ -122,6 +122,7 @@ class Mysqldump
         'compress' => Mysqldump::NONE,
         'init_commands' => array(),
         'no-data' => array(),
+        'query_part_limit' => 5000,
         'if-not-exists' => false,
         'reset-auto-increment' => false,
         'add-drop-database' => false,
@@ -306,7 +307,7 @@ class Mysqldump
 
         $buffer = '';
         while ( !feof($handle) ) {
-            $line = fgets($handle);
+            $line = trim(fgets($handle));
 
             if (substr($line, 0, 2) == '--' || !$line) {
                 continue; // skip comments
@@ -386,12 +387,14 @@ class Mysqldump
                 case 'mysql':
                 case 'pgsql':
                 case 'dblib':
+
                     $this->dbHandler = @new PDO(
                         $this->dsn,
                         $this->user,
                         $this->pass,
                         $this->pdoSettings
                     );
+
                     // Execute init commands once connected
                     foreach ($this->dumpSettings['init_commands'] as $stmt) {
                         $this->dbHandler->exec($stmt);
@@ -439,12 +442,6 @@ class Mysqldump
 
         // Write some basic info to output file
         $this->compressManager->write($this->getDumpFileHeader());
-
-        // initiate a transaction at global level to create a consistent snapshot
-        if ($this->dumpSettings['single-transaction']) {
-            $this->dbHandler->exec($this->typeAdapter->setup_transaction());
-            $this->dbHandler->exec($this->typeAdapter->start_transaction());
-        }
 
         // Store server settings and use sanner defaults to dump
         $this->compressManager->write(
@@ -497,12 +494,6 @@ class Mysqldump
         $this->compressManager->write(
             $this->typeAdapter->restore_parameters()
         );
-
-        // end transaction
-        if ($this->dumpSettings['single-transaction']) {
-            $this->dbHandler->exec($this->typeAdapter->commit_transaction());
-        }
-
         // Write some stats to output file.
         $this->compressManager->write($this->getDumpFileFooter());
         // Close output file.
@@ -713,8 +704,6 @@ class Mysqldump
      */
     private function exportTables()
     {
-
-
         // Exporting tables one by one
         foreach ($this->tables as $table) {
             if ($this->matches($table, $this->dumpSettings['exclude-tables'])) {
@@ -1140,6 +1129,53 @@ class Mysqldump
         $this->infoCallable = $callable;
     }
 
+    private function listValuesParts($stmt, $limit, $offset, $tableName, &$onlyOnce, &$lineSize, &$colNames)
+    {
+        if ($limit !== false) {
+            $stmt .= " LIMIT {$limit} OFFSET $offset";
+        }
+
+        $resultSet = $this->dbHandler->query($stmt);
+        $resultSet->setFetchMode(PDO::FETCH_ASSOC);
+
+        $ignore = $this->dumpSettings['insert-ignore'] ? '  IGNORE' : '';
+
+        $count = 0;
+        foreach ($resultSet as $row) {
+            $count++;
+            $vals = $this->prepareColumnValues($tableName, $row);
+            if ($onlyOnce || !$this->dumpSettings['extended-insert']) {
+                if ($this->dumpSettings['complete-insert']) {
+                    $lineSize += $this->compressManager->write(
+                        "INSERT$ignore INTO `$tableName` (".
+                        implode(", ", $colNames).
+                        ") VALUES (".implode(",", $vals).")"
+                    );
+                } else {
+                    $lineSize += $this->compressManager->write(
+                        "INSERT$ignore INTO `$tableName` VALUES (".implode(",", $vals).")"
+                    );
+                }
+                $onlyOnce = false;
+            } else {
+                $lineSize += $this->compressManager->write("," .PHP_EOL . "(".implode(",", $vals).")");
+            }
+            if (($lineSize > $this->dumpSettings['net_buffer_length']) ||
+                    !$this->dumpSettings['extended-insert']) {
+                $onlyOnce = true;
+                $lineSize = $this->compressManager->write(";".PHP_EOL);
+            }
+        }
+        $resultSet->closeCursor();
+
+        if (!$onlyOnce) {
+            $this->compressManager->write(PHP_EOL."-- =================================".PHP_EOL);
+        }
+
+
+        return $count;
+    }
+
     /**
      * Table rows extractor
      *
@@ -1152,6 +1188,7 @@ class Mysqldump
         $this->prepareListValues($tableName);
 
         $onlyOnce = true;
+        $lineSize = 0;
 
         // colStmt is used to form a query to obtain row values
         $colStmt = $this->getColumnStmt($tableName);
@@ -1169,46 +1206,25 @@ class Mysqldump
             $stmt .= " WHERE {$condition}";
         }
 
-        $limit = $this->getTableLimit($tableName);
+        $tableLimit = $this->getTableLimit($tableName);
 
-        if ($limit !== false) {
-            $stmt .= " LIMIT {$limit}";
-        }
+        $limit = $this->dumpSettings['query_part_limit'];
 
-        $resultSet = $this->dbHandler->query($stmt);
-        $resultSet->setFetchMode(PDO::FETCH_ASSOC);
-
-        $ignore = $this->dumpSettings['insert-ignore'] ? '  IGNORE' : '';
-
+        $offset = 0;
         $count = 0;
-        $line = '';
-        foreach ($resultSet as $row) {
-            $count++;
-            $vals = $this->prepareColumnValues($tableName, $row);
-            if ($onlyOnce || !$this->dumpSettings['extended-insert']) {
-                if ($this->dumpSettings['complete-insert']) {
-                    $line .= "INSERT$ignore INTO `$tableName` (".
-                        implode(", ", $colNames).
-                        ") VALUES (".implode(",", $vals).")";
-                } else {
-                    $line .= "INSERT$ignore INTO `$tableName` VALUES (".implode(",", $vals).")";
-                }
-                $onlyOnce = false;
-            } else {
-                $line .= ",(".implode(",", $vals).")";
-            }
-            if ((strlen($line) > $this->dumpSettings['net_buffer_length']) ||
-                    !$this->dumpSettings['extended-insert']) {
-                $onlyOnce = true;
-                $this->compressManager->write($line . ";".PHP_EOL);
-                $line = '';
-            }
-        }
-        $resultSet->closeCursor();
 
-        if ('' !== $line) {
-            $this->compressManager->write($line. ";".PHP_EOL);
+        do 
+        {
+            $aCount = $this->listValuesParts($stmt, $limit, $offset, $tableName, $onlyOnce, $lineSize, $colNames);
+            $count += $aCount;
+            $offset += $limit;
         }
+        while ($aCount > 0);
+
+        if (!$onlyOnce) {
+            $this->compressManager->write(";".PHP_EOL);
+        }
+
 
         $this->endListValues($tableName, $count);
 
@@ -1232,6 +1248,11 @@ class Mysqldump
                 "-- Dumping data for table `$tableName`".PHP_EOL.
                 "--".PHP_EOL.PHP_EOL
             );
+        }
+
+        if ($this->dumpSettings['single-transaction']) {
+            $this->dbHandler->exec($this->typeAdapter->setup_transaction());
+            $this->dbHandler->exec($this->typeAdapter->start_transaction());
         }
 
         if ($this->dumpSettings['lock-tables'] && !$this->dumpSettings['single-transaction']) {
@@ -1280,6 +1301,10 @@ class Mysqldump
             $this->compressManager->write(
                 $this->typeAdapter->end_add_lock_table($tableName)
             );
+        }
+
+        if ($this->dumpSettings['single-transaction']) {
+            $this->dbHandler->exec($this->typeAdapter->commit_transaction());
         }
 
         if ($this->dumpSettings['lock-tables'] && !$this->dumpSettings['single-transaction']) {
@@ -1484,9 +1509,16 @@ class CompressNone extends CompressManagerFactory
      */
     public function open($filename)
     {
-        $this->fileHandler = fopen($filename, "wb");
-        if (false === $this->fileHandler) {
-            throw new Exception("Output file is not writable");
+        if (empty($filename))
+        {
+            $this->fileHandler = 0;
+        }
+        else
+        {
+            $this->fileHandler = fopen($filename, "wb");
+            if (false === $this->fileHandler) {
+                throw new Exception("Output file is not writable");
+            }
         }
 
         return true;
@@ -1494,6 +1526,12 @@ class CompressNone extends CompressManagerFactory
 
     public function write($str)
     {
+        if (empty($this->fileHandler))
+        {
+            echo $str;
+            return strlen($str);
+        }
+
         $bytesWritten = fwrite($this->fileHandler, $str);
         if (false === $bytesWritten) {
             throw new Exception("Writting to file failed! Probably, there is no more free space left?");
@@ -1503,6 +1541,10 @@ class CompressNone extends CompressManagerFactory
 
     public function close()
     {
+        if (empty($this->fileHandler))
+        {
+            return true;
+        }
         return fclose($this->fileHandler);
     }
 }
